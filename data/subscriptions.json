@@ -1,0 +1,26 @@
+[
+  {
+    "unsplashId": "UVfvFrp4x4E",
+    "title": "Netflix",
+    "tags": ["fun", "essential"],
+    "price": 47000,
+    "currency": "COP",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "VISA",
+      "number": 1234
+    }
+  },
+  {
+    "unsplashId": "w-qqwn5O-4I",
+    "title": "Spotify",
+    "tags": ["fun", "essential"],
+    "price": 22000,
+    "currency": "COP",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1234
+    }
+  }
+]
