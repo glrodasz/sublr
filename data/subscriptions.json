@@ -1,26 +1,242 @@
 [
   {
+    "unsplashId": "wn7dOzUh3Rs",
+    "title": "Meetup",
+    "tags": ["community"],
+    "price": 9.99,
+    "currency": "USD",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1654
+    }
+  },
+  {
+    "unsplashId": "LPZy4da9aRo",
+    "title": "G Suite (Community)",
+    "tags": ["community"],
+    "price": 6.00,
+    "currency": "USD",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "x60R3XOy7Tg",
+    "title": "undefined.sh",
+    "tags": ["domains"],
+    "price": 99.99,
+    "currency": "USD",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "wQLAGv4_OYs",
+    "title": "cssconf.co",
+    "tags": ["domains"],
+    "price": 112199,
+    "currency": "COP",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "O6N9RV2rzX8",
+    "title": "csscommunity.dev",
+    "tags": ["domains"],
+    "price": 63186,
+    "currency": "COP",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "z0MDyylvY1k",
+    "title": "guillermorodas.com",
+    "tags": ["domains"],
+    "price": 61956,
+    "currency": "COP",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "z0MDyylvY1k",
+    "title": "glrodasz.com",
+    "tags": ["domains"],
+    "price": 61887,
+    "currency": "COP",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "x60R3XOy7Tg",
+    "title": "undefinedshell.com",
+    "tags": ["domains"],
+    "price": 42647,
+    "currency": "COP",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "z0MDyylvY1k",
+    "title": "glrz.me",
+    "tags": ["domains"],
+    "price": 11419,
+    "currency": "COP",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "7egjL_Najrc",
+    "title": "HBO max",
+    "tags": ["entertainment"],
+    "price": 89,
+    "currency": "SEK",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
     "unsplashId": "UVfvFrp4x4E",
     "title": "Netflix",
-    "tags": ["fun", "essential"],
-    "price": 47000,
+    "tags": ["entertainment", "essential"],
+    "price": 38900,
     "currency": "COP",
     "time": "MONTHLY",
     "creditCard": {
-      "type": "VISA",
-      "number": 1234
+      "type": "MASTERCARD",
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "wKeZstqxKTQ",
+    "title": "Amazon Prime",
+    "tags": ["entertainment"],
+    "price": 59,
+    "currency": "SEK",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
     }
   },
   {
     "unsplashId": "w-qqwn5O-4I",
     "title": "Spotify",
-    "tags": ["fun", "essential"],
-    "price": 22000,
+    "tags": ["entertainment", "essential"],
+    "price": 23900,
     "currency": "COP",
     "time": "MONTHLY",
     "creditCard": {
       "type": "MASTERCARD",
-      "number": 1234
+      "number": 9387
+    }
+  },
+  {
+    "unsplashId": "9BJRGlqoIUk",
+    "title": "iCloud",
+    "tags": ["essential"],
+    "price": 89,
+    "currency": "SEK",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
+    "unsplashId": "5OyvN4Yx46E",
+    "title": "Google One",
+    "tags": ["essential"],
+    "price": 99.99,
+    "currency": "USD",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
+    "unsplashId": "3wPJxh-piRw",
+    "title": "1Password",
+    "tags": ["essential"],
+    "price": 74.81,
+    "currency": "USD",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
+    "unsplashId": "niUkImZcSP8",
+    "title": "YouTube Premium",
+    "tags": ["non-essential"],
+    "price": 179,
+    "currency": "SEK",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
+    "unsplashId": "pZudVp-chcY",
+    "title": "Skype",
+    "tags": ["non-essential"],
+    "price": 14,
+    "currency": "EUR",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
+    "unsplashId": "LfaN1gswV5c",
+    "title": "Keep Safe",
+    "tags": ["non-essential"],
+    "price": 23.99,
+    "currency": "USD",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
+    "unsplashId": "CTivHyiTbFw",
+    "title": "Digital Ocean",
+    "tags": ["projects"],
+    "price": 6.00,
+    "currency": "USD",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 9387
     }
   }
 ]

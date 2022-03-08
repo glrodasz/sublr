@@ -1,7 +1,22 @@
 import React from "react";
 
+const DEFAULT_UNSPLASH_ID = '3zx-cgfbFAg'
+
+const CREDIT_CARD_TYPES = {
+  "VISA": 'visa',
+  "MASTERCARD": 'mastercard'
+}
+
+const TIME_DESCRIPTION = {
+  "MONTHLY": '/mo',
+  "YEARLY": '/year',
+}
+
+const getCreditCardType = type => CREDIT_CARD_TYPES[type]
+const getTimeDescription = time => TIME_DESCRIPTION[time]
+
 const Card = ({
-  unsplashId,
+  unsplashId = DEFAULT_UNSPLASH_ID,
   title,
   tags,
   price,
@@ -32,13 +47,13 @@ const Card = ({
             <span className="price">
               {new Intl.NumberFormat().format(price)} {currency}
             </span>
-            <span className="time">{time === "MONTHLY" ? "/mo" : "/year"}</span>
+            <span className="time">{getTimeDescription(time)}</span>
           </div>
           <div className="credit-card">
             <span className="icon">
               <img
                 src={`/icons/${
-                  creditCard.type === "VISA" ? "visa" : "mastercard"
+                  getCreditCardType(creditCard.type)
                 }.svg`}
               />
             </span>
@@ -48,11 +63,12 @@ const Card = ({
       </div>
       <style jsx>{`
         .card {
+          background: #fff;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
           box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
             0 4px 6px -4px rgb(0 0 0 / 0.1);
-          width: 300px;
+          width: 100%;
           display: flex;
           flex-direction: column;
         }
@@ -115,29 +131,29 @@ const Card = ({
         .subscription {
           display: flex;
           align-items: center;
-          font-size: 32px;
+          font-size: 30px;
+          gap: 5px;
           font-weight: bold;
         }
 
         .price {
           color: #111827;
-          margin-right: 10px;
         }
 
         .time {
           color: #6b7280;
-          font-size: 28px;
+          font-size: 26px;
         }
 
         .credit-card {
           display: flex;
-          gap: 5px;
+          gap: 10px;
           align-items: center;
           margin-top: 10px;
         }
 
         .credit-card .icon {
-          width: 30px;
+          width: 35px;
           line-height: 0;
         }
 
@@ -147,6 +163,7 @@ const Card = ({
 
         .credit-card-number {
           font-weight: bold;
+          font-size: 22px;
           color: #374151;
         }
       `}</style>
