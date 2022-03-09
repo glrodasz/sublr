@@ -1,19 +1,9 @@
 import React from "react";
 
-const DEFAULT_UNSPLASH_ID = '3zx-cgfbFAg'
+import CreditCardIcon from "./CreditCardIcon";
+import Subscription from "./Subscription";
 
-const CREDIT_CARD_TYPES = {
-  "VISA": 'visa',
-  "MASTERCARD": 'mastercard'
-}
-
-const TIME_DESCRIPTION = {
-  "MONTHLY": '/mo',
-  "YEARLY": '/year',
-}
-
-const getCreditCardType = type => CREDIT_CARD_TYPES[type]
-const getTimeDescription = time => TIME_DESCRIPTION[time]
+import { DEFAULT_UNSPLASH_ID } from "../constants";
 
 const Card = ({
   unsplashId = DEFAULT_UNSPLASH_ID,
@@ -43,22 +33,8 @@ const Card = ({
           </div>
         </div>
         <div className="content">
-          <div className="subscription">
-            <span className="price">
-              {new Intl.NumberFormat().format(price)} {currency}
-            </span>
-            <span className="time">{getTimeDescription(time)}</span>
-          </div>
-          <div className="credit-card">
-            <span className="icon">
-              <img
-                src={`/icons/${
-                  getCreditCardType(creditCard.type)
-                }.svg`}
-              />
-            </span>
-            <div className="credit-card-number">{creditCard.number}</div>
-          </div>
+          <Subscription price={price} currency={currency} time={time} />
+          <CreditCardIcon {...creditCard} />
         </div>
       </div>
       <style jsx>{`
@@ -84,6 +60,7 @@ const Card = ({
           border-radius: 8px 8px 0 0;
           background-repeat: no-repeat;
           background-size: cover;
+          gap: 10px;
         }
 
         .cover::before {
@@ -109,7 +86,6 @@ const Card = ({
           display: flex;
           justify-content: flex-start;
           gap: 10px;
-          margin-top: 10px;
           position: relative;
         }
 
@@ -126,45 +102,7 @@ const Card = ({
           display: flex;
           flex-direction: column;
           padding: 20px;
-        }
-
-        .subscription {
-          display: flex;
-          align-items: center;
-          font-size: 30px;
-          gap: 5px;
-          font-weight: bold;
-        }
-
-        .price {
-          color: #111827;
-        }
-
-        .time {
-          color: #6b7280;
-          font-size: 26px;
-        }
-
-        .credit-card {
-          display: flex;
           gap: 10px;
-          align-items: center;
-          margin-top: 10px;
-        }
-
-        .credit-card .icon {
-          width: 35px;
-          line-height: 0;
-        }
-
-        .credit-card .icon img {
-          width: 100%;
-        }
-
-        .credit-card-number {
-          font-weight: bold;
-          font-size: 22px;
-          color: #374151;
         }
       `}</style>
     </>

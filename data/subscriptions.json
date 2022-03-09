@@ -113,7 +113,7 @@
     "tags": ["entertainment"],
     "price": 89,
     "currency": "SEK",
-    "time": "YEARLY",
+    "time": "MONTHLY",
     "creditCard": {
       "type": "MASTERCARD",
       "number": 1490
@@ -197,7 +197,7 @@
     "tags": ["non-essential"],
     "price": 179,
     "currency": "SEK",
-    "time": "YEARLY",
+    "time": "MONTHLY",
     "creditCard": {
       "type": "MASTERCARD",
       "number": 1490
