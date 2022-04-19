@@ -1,27 +1,27 @@
 import React from "react";
 
 import { getTimeDescription } from "../helpers";
+import Price from "./Price";
 
-const Subscription = ({ price, currency, time }) => {
+const Subscription = ({ price, currency, time, size }) => {
   return (
     <>
       <div className="subscription">
-        <span className="price">
-          {new Intl.NumberFormat().format(price)} {currency}
-        </span>
+        <Price currency={currency} size={size}>
+          {price}
+        </Price>
         <span className="time">{getTimeDescription(time)}</span>
       </div>
       <style jsx>{`
         .subscription {
           display: flex;
           align-items: center;
-          font-size: 30px;
           gap: 5px;
           font-weight: bold;
         }
 
-        .price {
-          color: #111827;
+        .subscription.size-small {
+          font-size: 24px;
         }
 
         .time {

@@ -109,8 +109,8 @@
   },
   {
     "unsplashId": "7egjL_Najrc",
-    "title": "HBO max",
-    "tags": ["entertainment"],
+    "title": "HBO Max",
+    "tags": ["entertainment", "paypal"],
     "price": 89,
     "currency": "SEK",
     "time": "MONTHLY",
@@ -132,6 +132,30 @@
     }
   },
   {
+    "unsplashId": "itRfuFf1gdY",
+    "title": "Disney+",
+    "tags": ["entertainment", "paypal"],
+    "price": 89,
+    "currency": "SEK",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "VISA",
+      "number": 2671
+    }
+  },
+  {
+    "unsplashId": "-yBvef_mAaQ",
+    "title": "Metricool",
+    "tags": ["projects", "paypal"],
+    "price": 18.75,
+    "currency": "EUR",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
     "unsplashId": "wKeZstqxKTQ",
     "title": "Amazon Prime",
     "tags": ["entertainment"],
@@ -144,9 +168,21 @@
     }
   },
   {
+    "unsplashId": "bXqOMf5tvDk",
+    "title": "Zoom",
+    "tags": ["work", "paypal"],
+    "price": 14.99,
+    "currency": "USD",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
     "unsplashId": "w-qqwn5O-4I",
     "title": "Spotify",
-    "tags": ["entertainment", "essential"],
+    "tags": ["entertainment", "essential", "family"],
     "price": 23900,
     "currency": "COP",
     "time": "MONTHLY",
@@ -170,7 +206,7 @@
   {
     "unsplashId": "5OyvN4Yx46E",
     "title": "Google One",
-    "tags": ["essential"],
+    "tags": ["essential", "family"],
     "price": 99.99,
     "currency": "USD",
     "time": "YEARLY",
@@ -182,7 +218,7 @@
   {
     "unsplashId": "3wPJxh-piRw",
     "title": "1Password",
-    "tags": ["essential"],
+    "tags": ["essential", "family"],
     "price": 74.81,
     "currency": "USD",
     "time": "YEARLY",
@@ -194,7 +230,7 @@
   {
     "unsplashId": "niUkImZcSP8",
     "title": "YouTube Premium",
-    "tags": ["non-essential"],
+    "tags": ["non-essential", "family"],
     "price": 179,
     "currency": "SEK",
     "time": "MONTHLY",
@@ -206,7 +242,7 @@
   {
     "unsplashId": "pZudVp-chcY",
     "title": "Skype",
-    "tags": ["non-essential"],
+    "tags": ["non-essential", "paypal"],
     "price": 14,
     "currency": "EUR",
     "time": "MONTHLY",
@@ -237,6 +273,51 @@
     "creditCard": {
       "type": "MASTERCARD",
       "number": 9387
+    }
+  },
+  {
+    "unsplashId": "OVEWbIgffDk",
+    "title": "Epidemic Sound",
+    "tags": ["projects", "streaming", "paypal"],
+    "price": 125,
+    "currency": "SEK",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1490
+    }
+  },
+  {
+    "title": "Carrd",
+    "tags": ["projects", "paypal"],
+    "price": 19,
+    "currency": "USD",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1654
+    }
+  },
+  {
+    "title": "Canva",
+    "tags": ["projects", "community", "paypal"],
+    "price": 12.99,
+    "currency": "USD",
+    "time": "MONTHLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1654
+    }
+  },
+  {
+    "title": "Discord",
+    "tags": ["non-essential", "community", "paypal"],
+    "price": 169.97,
+    "currency": "USD",
+    "time": "YEARLY",
+    "creditCard": {
+      "type": "MASTERCARD",
+      "number": 1654
     }
   }
 ]

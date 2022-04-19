@@ -1,42 +1,9 @@
 import React from "react";
 
-import CreditCardIcon from "./CreditCardIcon";
-import Subscription from "./Subscription";
-
-import { DEFAULT_UNSPLASH_ID } from "../constants";
-
-const Card = ({
-  unsplashId = DEFAULT_UNSPLASH_ID,
-  title,
-  tags,
-  price,
-  currency,
-  time,
-  creditCard,
-}) => {
+const Card = ({ children, isInline }) => {
   return (
     <>
-      <div className="card">
-        <div
-          className="cover"
-          style={{
-            backgroundImage: `url(https://source.unsplash.com/${unsplashId})`,
-          }}
-        >
-          <h1 className="title">{title}</h1>
-          <div className="tags">
-            {tags.map((tag) => (
-              <span key={tag} className="tag">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="content">
-          <Subscription price={price} currency={currency} time={time} />
-          <CreditCardIcon {...creditCard} />
-        </div>
-      </div>
+      <div className={`card ${isInline && "is-inline"}`}>{children}</div>
       <style jsx>{`
         .card {
           background: #fff;
@@ -49,60 +16,8 @@ const Card = ({
           flex-direction: column;
         }
 
-        .cover {
-          position: relative;
-          height: 180px;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
-          color: #fff;
-          padding: 10px 20px 20px;
-          border-radius: 8px 8px 0 0;
-          background-repeat: no-repeat;
-          background-size: cover;
-          gap: 10px;
-        }
-
-        .cover::before {
-          content: "";
-          position: absolute;
-          border-radius: 8px 8px 0 0;
-          background: linear-gradient(
-            0deg,
-            rgba(0, 0, 0, 0.9) 0%,
-            rgba(0, 0, 0, 0.2) 65%
-          );
-          inset: 0;
-        }
-
-        .title {
-          font-size: 24px;
-          font-weight: bold;
-          position: relative;
-          text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
-        }
-
-        .tags {
-          display: flex;
-          justify-content: flex-start;
-          gap: 10px;
-          position: relative;
-        }
-
-        .tag {
-          background: #475569;
-          padding: 2px 10px;
-          border-radius: 14px;
-          font-size: 14px;
-          text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
-          text-transform: capitalize;
-        }
-
-        .content {
-          display: flex;
-          flex-direction: column;
-          padding: 20px;
-          gap: 10px;
+        .is-inline {
+          max-width: max-content;
         }
       `}</style>
     </>
