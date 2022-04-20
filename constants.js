@@ -9,6 +9,11 @@ export const TIME_DESCRIPTION = {
   YEARLY: "/year",
 };
 
+export const TIME_ATTRIBUTE = {
+  MONTHLY: "monthly",
+  YEARLY: "yearly",
+};
+
 export const CREDIT_CARD_TYPES = {
   VISA: "visa",
   MASTERCARD: "mastercard",

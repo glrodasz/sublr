@@ -6,7 +6,7 @@ import Subscription from "./Subscription";
 const CreditCard = ({ type, number, currency, time, price }) => {
   return (
     <>
-      <Card isInline>
+      <Card>
         <div className="container">
           <CreditCardIcon number={number} type={type} />
           <Subscription price={price} currency={currency} time={time} size="small" />

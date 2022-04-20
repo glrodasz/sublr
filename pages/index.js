@@ -1,7 +1,7 @@
 import Head from "next/head";
+import { useState } from "react";
 
 import CardSubscription from "../components/CardSubscription";
-import Summary from "../components/Summary";
 import Subtitle from "../components/Subtitle";
 import Price from "../components/Price";
 import CreditCard from "../components/CreditCard";
@@ -13,7 +13,11 @@ import {
 
 import subscriptions from "../data/subscriptions.json";
 
+import { TIME_ATTRIBUTE } from "../constants";
+
 export default function Home() {
+  const [time, setTime] = useState("MONTHLY");
+
   const grouppedMonthlySubscriptions =
     getMonthlySubscriptionGrouppedByCard(subscriptions);
 
@@ -48,53 +52,65 @@ export default function Home() {
         <section className="row">
           <article>
             <Subtitle>Total Monthly</Subtitle>
-            <Price currency={"USD"}>145900</Price>
+            <Price currency={"USD"}>{summaryTotal.monthly}</Price>
           </article>
           <article>
             <Subtitle>Total Yearly</Subtitle>
-            <Price currency={"USD"}>1545900</Price>
+            <Price currency={"USD"}>{summaryTotal.yearly}</Price>
           </article>
         </section>
 
         <section>
           <Subtitle>Total by Card</Subtitle>
-          <section className="row">
-            <CreditCard
-              number={1654}
-              type="VISA"
-              currency="COP"
-              time="MONTHLY"
-              price={145900}
-            />
-            <CreditCard
-              number={1654}
-              type="VISA"
-              currency="COP"
-              time="MONTHLY"
-              price={145900}
-            />
-            <CreditCard
-              number={1654}
-              type="VISA"
-              currency="COP"
-              time="MONTHLY"
-              price={145900}
-            />
-          </section>
+          <div className="cards-container">
+            {summaryData.map((data) => {
+              return (
+                <CreditCard
+                  key={data.key}
+                  number={data.creditCard.number}
+                  type={data.creditCard.type}
+                  currency={data[TIME_ATTRIBUTE[time]].currency}
+                  time={time}
+                  price={data[TIME_ATTRIBUTE[time]].price}
+                />
+              );
+            })}
+          </div>
         </section>
 
         <section>
           <Subtitle>Subscriptions</Subtitle>
           <div className="cards-container">
-            {subscriptions.map((subcription) => (
-              <CardSubscription key={subscriptions.title} {...subcription} />
-            ))}
+            {subscriptions.map((subscription) => {
+              let price = subscription.price;
+              if (
+                subscription.time === "MONTHLY" &&
+                time === "YEARLY"
+              ) {
+                price = price * 12;
+              } else if (
+                subscription.time === "YEARLY" &&
+                time === "MONTHLY"
+              ) {
+                price = price / 12;
+              }
+
+              return (
+                <CardSubscription
+                  key={subscription.title}
+                  unsplashId={subscription.unsplashId}
+                  title={subscription.title}
+                  tags={subscription.tags}
+                  currency={subscription.currency}
+                  creditCard={subscription.creditCard}
+                  time={time}
+                  price={price.toFixed(2)}
+                />
+              );
+            })}
           </div>
         </section>
       </main>
-      {/* <div className="summary">
-        <Summary data={summaryData} total={summaryTotal} />
-      </div> */}
 
       <style jsx>{`
         article,
@@ -117,10 +133,10 @@ export default function Home() {
           gap: 30px;
           place-content: center;
           grid-template-columns: minmax(300px, 1fr);
-          padding-block-end: 300px;
         }
 
         .container {
+          height: 100%;
           width: 100%;
           max-width: 800px;
           padding: 20px;
