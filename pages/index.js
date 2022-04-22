@@ -14,12 +14,14 @@ import {
 import subscriptions from "../data/subscriptions.json";
 
 import { TIME_ATTRIBUTE } from "../constants";
+import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 
 export default function Home() {
+  const { rates } = useCurrencyExchangeRates();
   const [time, setTime] = useState("MONTHLY");
 
   const grouppedMonthlySubscriptions =
-    getMonthlySubscriptionGrouppedByCard(subscriptions);
+    getMonthlySubscriptionGrouppedByCard(subscriptions, rates);
 
   const summaryData = getSummaryData(grouppedMonthlySubscriptions);
 
@@ -83,15 +85,9 @@ export default function Home() {
           <div className="cards-container">
             {subscriptions.map((subscription) => {
               let price = subscription.price;
-              if (
-                subscription.time === "MONTHLY" &&
-                time === "YEARLY"
-              ) {
+              if (subscription.time === "MONTHLY" && time === "YEARLY") {
                 price = price * 12;
-              } else if (
-                subscription.time === "YEARLY" &&
-                time === "MONTHLY"
-              ) {
+              } else if (subscription.time === "YEARLY" && time === "MONTHLY") {
                 price = price / 12;
               }
 

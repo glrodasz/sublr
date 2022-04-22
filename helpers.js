@@ -1,26 +1,32 @@
 import {
   CREDIT_CARD_TYPES,
   TIME_DESCRIPTION,
-  CURRENCY_TO_USD,
 } from "./constants";
 
 export const getCreditCardType = (type) => CREDIT_CARD_TYPES[type];
 export const getTimeDescription = (time) => TIME_DESCRIPTION[time];
 
-export const getUsdPrice = (price, currency) =>
-  Number(CURRENCY_TO_USD[currency](price).toFixed(2));
+export const currencyToUsd = (rates) => ({
+  "USD": price => price,
+  "COP": price => price / rates?.COP ?? 1,
+  "SEK": price => price / rates?.SEK ?? 1,
+  "EUR": price => price / rates?.EUR ?? 1
+})
 
-export const getMonthlySubscriptionGrouppedByCard = (subscriptions) =>
+export const getUsdPrice = (price, currency, rates) =>
+  Number(currencyToUsd(rates)[currency](price).toFixed(2));
+
+export const getMonthlySubscriptionGrouppedByCard = (subscriptions, rates) =>
   subscriptions.reduce((group, sub) => {
     const foreignKey = `${sub.creditCard.type}_${sub.creditCard.number}`;
 
     const monthlyPrice = sub.time === "MONTHLY" ? sub.price : sub.price / 12;
 
     if (group[foreignKey]) {
-      group[foreignKey].price += getUsdPrice(monthlyPrice, sub.currency);
+      group[foreignKey].price += getUsdPrice(monthlyPrice, sub.currency, rates);
     } else {
       group[foreignKey] = {
-        price: getUsdPrice(monthlyPrice, sub.currency),
+        price: getUsdPrice(monthlyPrice, sub.currency, rates),
         currency: "USD",
       };
     }
