@@ -19,6 +19,7 @@ import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 export default function Home() {
   const { rates } = useCurrencyExchangeRates();
   const [time, setTime] = useState("MONTHLY");
+  const [currency, setCurrency] = useState("ALL")
 
   const grouppedMonthlySubscriptions =
     getMonthlySubscriptionGrouppedByCard(subscriptions, rates);

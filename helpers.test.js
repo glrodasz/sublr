@@ -12,11 +12,7 @@ jest.mock("./constants", () => {
     },
     TIME_DESCRIPTION: {
       MONTHLY: "bar",
-    },
-    CURRENCY_TO_USD: {
-      USD: (price) => price,
-      COP: (price) => price / 2999,
-    },
+    }
   };
 });
 
@@ -60,9 +56,12 @@ describe("[ helpers ]", () => {
         const price = 7000;
         const currency = "COP";
         const expected = 2.33;
+        const rates = {
+          COP: 2999
+        }
 
         // Act
-        const result = getUsdPrice(price, currency);
+        const result = getUsdPrice(price, currency, rates);
 
         // Assert
         expect(result).toBe(expected);
