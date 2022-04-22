@@ -19,10 +19,10 @@ import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 export default function Home() {
   const { rates } = useCurrencyExchangeRates();
   const [time, setTime] = useState("MONTHLY");
-  const [currency, setCurrency] = useState("ALL")
+  const [currency, setCurrency] = useState("USD")
 
   const grouppedMonthlySubscriptions =
-    getMonthlySubscriptionGrouppedByCard(subscriptions, rates);
+    getMonthlySubscriptionGrouppedByCard(subscriptions, currency, rates);
 
   const summaryData = getSummaryData(grouppedMonthlySubscriptions);
 
@@ -55,11 +55,11 @@ export default function Home() {
         <section className="row">
           <article>
             <Subtitle>Total Monthly</Subtitle>
-            <Price currency={"USD"}>{summaryTotal.monthly}</Price>
+            <Price currency={currency}>{summaryTotal.monthly}</Price>
           </article>
           <article>
             <Subtitle>Total Yearly</Subtitle>
-            <Price currency={"USD"}>{summaryTotal.yearly}</Price>
+            <Price currency={currency}>{summaryTotal.yearly}</Price>
           </article>
         </section>
 
