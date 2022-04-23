@@ -7,7 +7,7 @@ const CreditCardIcon = ({ type, number }) => {
     <>
       <div className="credit-card">
         <span className="icon">
-          <img src={`/icons/${getCreditCardType(type)}.svg`} />
+          <img src={`/icons/${getCreditCardType(type).toLowerCase()}.svg`} />
         </span>
         <div className="credit-card-number">{number}</div>
       </div>

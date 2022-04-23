@@ -11,6 +11,6 @@ export const TIME_ATTRIBUTE = {
 };
 
 export const CREDIT_CARD_TYPES = {
-  VISA: "visa",
-  MASTERCARD: "mastercard",
+  VISA: "VISA",
+  MASTERCARD: "MasterCard",
 };

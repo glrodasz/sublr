@@ -9,7 +9,10 @@ import CreditCard from "../components/CreditCard";
 import {
   getMonthlySubscriptionGrouppedByCard,
   getSummaryData,
+  getUsdPrice,
 } from "../helpers";
+
+import { CREDIT_CARD_TYPES } from "../constants";
 
 import subscriptions from "../data/subscriptions.json";
 
@@ -17,12 +20,19 @@ import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 
 export default function Home() {
-  const { rates } = useCurrencyExchangeRates();
-  const [time, setTime] = useState("MONTHLY");
-  const [currency, setCurrency] = useState("USD")
+  const [time, setTime] = useState("YEARLY");
+  const [currency, setCurrency] = useState("USD");
+  const [sortBy, setSortBy] = useState("PRICE");
+  const [card, setCard] = useState("");
 
-  const grouppedMonthlySubscriptions =
-    getMonthlySubscriptionGrouppedByCard(subscriptions, currency, rates);
+  const { rates } = useCurrencyExchangeRates();
+  const grouppedMonthlySubscriptions = getMonthlySubscriptionGrouppedByCard(
+    subscriptions,
+    currency,
+    rates
+  );
+
+  const [cards, setCards] = useState(Object.keys(grouppedMonthlySubscriptions));
 
   const summaryData = getSummaryData(grouppedMonthlySubscriptions);
 
@@ -52,6 +62,68 @@ export default function Home() {
         ></link>
       </Head>
       <main className="container">
+        <section className="row">
+          <fieldset>
+            <label>Sort by</label>
+            <select onChange={(event) => setSortBy(event.currentTarget.value)}>
+              <option value="PRICE" selected={sortBy === "PRICE"}>
+                Price
+              </option>
+              <option value="NAME" selected={sortBy === "NAME"}>
+                Name
+              </option>
+              <option value="CARD" selected={sortBy === "CARD"}>
+                Card
+              </option>
+            </select>
+          </fieldset>
+
+          <fieldset>
+            <label>Currency</label>
+            <select
+              onChange={(event) => setCurrency(event.currentTarget.value)}
+            >
+              <option value="USD" selected={currency === "USD"}>
+                USD
+              </option>
+              <option value="COP" selected={currency === "COP"}>
+                COP
+              </option>
+              <option value="EUR" selected={currency === "EUR"}>
+                EUR
+              </option>
+              <option value="SEK" selected={currency === "SEK"}>
+                SEK
+              </option>
+            </select>
+          </fieldset>
+
+          <fieldset>
+            <label>Time</label>
+            <select onChange={(event) => setTime(event.currentTarget.value)}>
+              <option value="YEARLY" selected={time === "YEARLY"}>
+                /yearly
+              </option>
+              <option value="MONTHLY" selected={time === "MONTHLY"}>
+                /mo
+              </option>
+            </select>
+          </fieldset>
+
+          <fieldset>
+            <label>Cards</label>
+            <select onChange={(event) => setCard(event.currentTarget.value)}>
+              <option value="" selected={card === ""}>
+                All
+              </option>
+              {cards.map((card) => (
+                <option key={card} value={card}>
+                  {card.split("_")[1]} ({CREDIT_CARD_TYPES[card.split("_")[0]]})
+                </option>
+              ))}
+            </select>
+          </fieldset>
+        </section>
         <section className="row">
           <article>
             <Subtitle>Total Monthly</Subtitle>
@@ -84,27 +156,54 @@ export default function Home() {
         <section>
           <Subtitle>Subscriptions</Subtitle>
           <div className="cards-container">
-            {subscriptions.map((subscription) => {
-              let price = subscription.price;
-              if (subscription.time === "MONTHLY" && time === "YEARLY") {
-                price = price * 12;
-              } else if (subscription.time === "YEARLY" && time === "MONTHLY") {
-                price = price / 12;
-              }
+            {subscriptions
+              .filter(({ creditCard }) => {
+                if (card) {
+                  return `${creditCard.type}_${creditCard.number}` === card;
+                }
 
-              return (
-                <CardSubscription
-                  key={subscription.title}
-                  unsplashId={subscription.unsplashId}
-                  title={subscription.title}
-                  tags={subscription.tags}
-                  currency={subscription.currency}
-                  creditCard={subscription.creditCard}
-                  time={time}
-                  price={price.toFixed(2)}
-                />
-              );
-            })}
+                return true;
+              })
+              .sort((a, b) => {
+                if (sortBy === "NAME") {
+                  return a.title.localeCompare(b.title);
+                } else if (sortBy === "PRICE") {
+                  return (
+                    Number(
+                      getUsdPrice(
+                        b.time === "MONTHLY" ? b.price * 12 : b.price,
+                        b.currency,
+                        rates
+                      )
+                    ) -
+                    Number(
+                      getUsdPrice(
+                        a.time === "MONTHLY" ? a.price * 12 : a.price,
+                        a.currency,
+                        rates
+                      )
+                    )
+                  );
+                } else if (sortBy === "CARD") {
+                  return a.creditCard.number - b.creditCard.number;
+                }
+
+                return 0;
+              })
+              .map((subscription) => {
+                return (
+                  <CardSubscription
+                    key={subscription.title}
+                    unsplashId={subscription.unsplashId}
+                    title={subscription.title}
+                    tags={subscription.tags}
+                    currency={subscription.currency}
+                    creditCard={subscription.creditCard}
+                    time={subscription.time}
+                    price={subscription.price.toFixed(2)}
+                  />
+                );
+              })}
           </div>
         </section>
       </main>
