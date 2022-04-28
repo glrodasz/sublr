@@ -23,7 +23,7 @@ const Price = ({ children, currency, size, decimals = 2 }) => {
       </div>
       <style jsx>{`
         .price {
-          color: #111827;
+          color: #2d0612;
           font-weight: bold;
           white-space: nowrap;
         }

@@ -27,7 +27,7 @@ const Filter = ({ label, options, value, setValue }) => {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #f5f5f5;
+          color: #fecdd3;
         }
 
         label {
@@ -42,6 +42,7 @@ const Filter = ({ label, options, value, setValue }) => {
           width: 80px;
           cursor: pointer;
           border: none;
+          color: #2d0612;
         }
 
         .select-container {
@@ -55,7 +56,7 @@ const Filter = ({ label, options, value, setValue }) => {
           left: auto;
           right: 5px;
           content: "▼";
-          color: #475569;
+          color: #2d0612;
           z-index: 10;
           pointer-events: none;
         }

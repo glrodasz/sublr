@@ -30,7 +30,7 @@ const CreditCardIcon = ({ type, number }) => {
         .credit-card-number {
           font-weight: bold;
           font-size: 22px;
-          color: #374151;
+          color: #79686D;
         }
       `}</style>
     </>
