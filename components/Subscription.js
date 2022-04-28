@@ -23,7 +23,7 @@ const Subscription = ({ price, currency, time, size = "md", decimals }) => {
         }
 
         .time {
-          color: #6b7280;
+          color: #b87a85;
         }
 
         .size-md {

@@ -5,6 +5,7 @@ import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
 import Price from "../components/Price";
 import CreditCard from "../components/CreditCard";
+import Filter from "../components/Filter";
 
 import {
   getMonthlySubscriptionGrouppedByCard,
@@ -64,74 +65,62 @@ export default function Home() {
           href="https://cdn.jsdelivr.net/gh/jgthms/minireset.css@master/minireset.min.css"
         ></link>
       </Head>
-      <main className="container">
+      <nav>
         <section className="row">
-          <fieldset>
-            <label>Sort by</label>
-            <select onChange={(event) => setSortBy(event.currentTarget.value)}>
-              <option value="PRICE" selected={sortBy === "PRICE"}>
-                Price
-              </option>
-              <option value="NAME" selected={sortBy === "NAME"}>
-                Name
-              </option>
-              <option value="CARD" selected={sortBy === "CARD"}>
-                Card
-              </option>
-            </select>
-          </fieldset>
+          <Filter
+            label="Sort by"
+            value={sortBy}
+            setValue={setSortBy}
+            options={[
+              { text: "Price", value: "PRICE" },
+              { text: "Name", value: "NAME" },
+              { text: "Card", value: "CARD" },
+            ]}
+          />
+          <Filter
+            label="Currency"
+            value={currency}
+            setValue={setCurrency}
+            options={[
+              { text: "USD", value: "USD" },
+              { text: "COP", value: "COP" },
+              { text: "EUR", value: "EUR" },
+              { text: "SEK", value: "SEK" },
+            ]}
+          />
 
-          <fieldset>
-            <label>Currency</label>
-            <select
-              onChange={(event) => setCurrency(event.currentTarget.value)}
-            >
-              <option value="USD" selected={currency === "USD"}>
-                USD
-              </option>
-              <option value="COP" selected={currency === "COP"}>
-                COP
-              </option>
-              <option value="EUR" selected={currency === "EUR"}>
-                EUR
-              </option>
-              <option value="SEK" selected={currency === "SEK"}>
-                SEK
-              </option>
-            </select>
-          </fieldset>
+          <Filter
+            label="Time"
+            value={time}
+            setValue={setTime}
+            options={[
+              { text: "Yearly", value: "YEARLY" },
+              { text: "Monthly", value: "MONTHLY" },
+            ]}
+          />
 
-          <fieldset>
-            <label>Time</label>
-            <select onChange={(event) => setTime(event.currentTarget.value)}>
-              <option value="YEARLY" selected={time === "YEARLY"}>
-                /yearly
-              </option>
-              <option value="MONTHLY" selected={time === "MONTHLY"}>
-                /mo
-              </option>
-            </select>
-          </fieldset>
-
-          <fieldset>
-            <label>Cards</label>
-            <select onChange={(event) => setCard(event.currentTarget.value)}>
-              <option value="" selected={card === ""}>
-                All
-              </option>
-              {cards.map((card) => (
-                <option key={card} value={card}>
-                  {card.split("_")[1]} ({CREDIT_CARD_TYPES[card.split("_")[0]]})
-                </option>
-              ))}
-            </select>
-          </fieldset>
+          <Filter
+            label="Cards"
+            value={card}
+            setValue={setCard}
+            options={[
+              { text: "All", value: "" },
+              ...cards.map((card) => ({
+                text: `${card.split("_")[1]} (${
+                  CREDIT_CARD_TYPES[card.split("_")[0]]
+                })`,
+                value: card,
+              })),
+            ]}
+          />
         </section>
+      </nav>
+      <main className="container">
         <section className="row">
           {(isDesktop || time === "MONTHLY") && (
             <article>
               <Subtitle>Total Monthly</Subtitle>
-              <Price currency={currency} decimals={0}>
+              <Price currency={currency} decimals={0} size="lg">
                 {summaryTotal.monthly}
               </Price>
             </article>
@@ -139,7 +128,7 @@ export default function Home() {
           {(isDesktop || time === "YEARLY") && (
             <article>
               <Subtitle>Total Yearly</Subtitle>
-              <Price currency={currency} decimals={0}>
+              <Price currency={currency} decimals={0} size="lg">
                 {summaryTotal.yearly}
               </Price>
             </article>
@@ -227,10 +216,19 @@ export default function Home() {
           gap: 10px;
         }
 
-        section.row {
+        nav {
+          background: #e11d48;
+          padding: 12px 20px;
+        }
+
+        .row {
           flex-direction: row;
           flex-wrap: wrap;
           gap: 20px 30px;
+        }
+
+        .evenly {
+          justify-content: space-evenly;
         }
 
         .cards-container {

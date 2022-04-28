@@ -11,7 +11,7 @@ const Subtitle = ({ children }) => {
 				text-transform: uppercase;
 				font-size: 16px;
 				font-weight: bold;
-				color: #6b7280;
+				color: #2d0612;
 				width: 100%;
 			}
 		`}</style>

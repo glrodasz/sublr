@@ -7,7 +7,7 @@ const Card = ({ children, isInline }) => {
       <style jsx>{`
         .card {
           background: #fff;
-          border: 1px solid #e5e7eb;
+          border: 1px solid rgba(0,0,0, 0.01);
           border-radius: 8px;
           box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
             0 4px 6px -4px rgb(0 0 0 / 0.1);

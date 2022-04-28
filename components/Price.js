@@ -29,16 +29,21 @@ const Price = ({ children, currency, size, decimals = 2 }) => {
         }
 
         .currency {
-          color: #6b7280;
+          color: #b87a85;
+        }
+
+        .size-sm {
+          font-size: 22px;
         }
 
         .size-md {
           font-size: 30px;
         }
 
-        .size-sm {
-          font-size: 22px;
+        .size-lg {
+          font-size: 35px;
         }
+
       `}</style>
     </>
   );
