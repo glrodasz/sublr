@@ -3,13 +3,13 @@ import Card from "./Card";
 import CreditCardIcon from "./CreditCardIcon";
 import Subscription from "./Subscription";
 
-const CreditCard = ({ type, number, currency, time, price }) => {
+const CreditCard = ({ type, number, currency, time, price, decimals }) => {
   return (
     <>
       <Card>
         <div className="container">
           <CreditCardIcon number={number} type={type} />
-          <Subscription price={price} currency={currency} time={time} size="small" />
+          <Subscription price={price} currency={currency} time={time} decimals={decimals} size="sm" />
         </div>
       </Card>
       <style jsx>{`

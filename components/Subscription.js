@@ -3,14 +3,16 @@ import React from "react";
 import { getTimeDescription } from "../helpers";
 import Price from "./Price";
 
-const Subscription = ({ price, currency, time, size }) => {
+const Subscription = ({ price, currency, time, size = "md", decimals }) => {
   return (
     <>
       <div className="subscription">
-        <Price currency={currency} size={size}>
+        <Price currency={currency} size={size} decimals={decimals}>
           {price}
         </Price>
-        <span className="time">{getTimeDescription(time)}</span>
+        <span className={`time ${size ? `size-${size}` : ""}`}>
+          {getTimeDescription(time)}
+        </span>
       </div>
       <style jsx>{`
         .subscription {
@@ -20,13 +22,16 @@ const Subscription = ({ price, currency, time, size }) => {
           font-weight: bold;
         }
 
-        .subscription.size-small {
-          font-size: 24px;
-        }
-
         .time {
           color: #6b7280;
-          font-size: 26px;
+        }
+
+        .size-md {
+          font-size: 30px;
+        }
+
+        .size-sm {
+          font-size: 22px;
         }
       `}</style>
     </>

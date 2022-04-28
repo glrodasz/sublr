@@ -19,11 +19,15 @@ import subscriptions from "../data/subscriptions.json";
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 
+import useMedia from "../hooks/useMedia";
+
 export default function Home() {
   const [time, setTime] = useState("YEARLY");
   const [currency, setCurrency] = useState("USD");
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
+
+  const isDesktop = useMedia(['(min-width: 992px)'], [true])
 
   const { rates } = useCurrencyExchangeRates();
   const grouppedMonthlySubscriptions = getMonthlySubscriptionGrouppedByCard(
@@ -125,18 +129,18 @@ export default function Home() {
           </fieldset>
         </section>
         <section className="row">
-          <article>
+          {(isDesktop || time === "MONTHLY") && <article>
             <Subtitle>Total Monthly</Subtitle>
-            <Price currency={currency}>{summaryTotal.monthly}</Price>
-          </article>
-          <article>
+            <Price currency={currency} decimals={0}>{summaryTotal.monthly}</Price>
+          </article>}
+          {(isDesktop || time === "YEARLY") && <article>
             <Subtitle>Total Yearly</Subtitle>
-            <Price currency={currency}>{summaryTotal.yearly}</Price>
-          </article>
+            <Price currency={currency} decimals={0}>{summaryTotal.yearly}</Price>
+          </article>}
         </section>
 
         <section>
-          <Subtitle>Total by Card</Subtitle>
+          <Subtitle>Cards {time}</Subtitle>
           <div className="cards-container">
             {summaryData.map((data) => {
               return (
@@ -145,8 +149,8 @@ export default function Home() {
                   number={data.creditCard.number}
                   type={data.creditCard.type}
                   currency={data[TIME_ATTRIBUTE[time]].currency}
-                  time={time}
                   price={data[TIME_ATTRIBUTE[time]].price}
+                  decimals={0}
                 />
               );
             })}

@@ -4,6 +4,7 @@ const request = (url, options) =>
   fetch(url, options).then((data) => data.json());
 
 const RATES_FROM_USD = ["COP", "SEK", "EUR"];
+
 const getExchangeRatesApiUrl = (rates) =>
   `https://api.exchangerate.host/latest?symbols=${rates.join(",")}&base=USD`;
 

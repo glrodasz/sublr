@@ -7,34 +7,36 @@ const LANG_PER_CURRENCY = {
   EUR: "en-IE",
 };
 
-const Price = ({ children, currency, size }) => {
+const Price = ({ children, currency, size, decimals = 2 }) => {
   return (
     <>
-      <span className={`price ${size && `size-${size}`}`}>
-        {new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
-          style: "currency",
-          currency,
-          maximumFractionDigits: currency === "USD" ? 2 : 0,
-          minimumFractionDigits: 0,
-        }).format(children)}{" "}
-        <span className={`currency ${size && `size-${size}`}`}>
-          ({currency})
+      <div className={`container ${size ? `size-${size}` : ""}`}>
+        <span className="price">
+          {new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
+            style: "currency",
+            currency,
+            maximumFractionDigits: decimals,
+            minimumFractionDigits: 0,
+          }).format(children)}{" "}
+          <span className="currency">({currency})</span>
         </span>
-      </span>
+      </div>
       <style jsx>{`
         .price {
           color: #111827;
-          font-size: 30px;
           font-weight: bold;
           white-space: nowrap;
         }
 
         .currency {
           color: #6b7280;
-          font-size: 26px;
         }
 
-        .size-small {
+        .size-md {
+          font-size: 30px;
+        }
+
+        .size-sm {
           font-size: 22px;
         }
       `}</style>
