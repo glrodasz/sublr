@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -26,8 +26,7 @@ export default function Home() {
   const [currency, setCurrency] = useState("USD");
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
-
-  const isDesktop = useMedia(['(min-width: 992px)'], [true])
+  const isDesktop = useMedia(["(min-width: 992px)"], [true]);
 
   const { rates } = useCurrencyExchangeRates();
   const grouppedMonthlySubscriptions = getMonthlySubscriptionGrouppedByCard(
@@ -129,14 +128,22 @@ export default function Home() {
           </fieldset>
         </section>
         <section className="row">
-          {(isDesktop || time === "MONTHLY") && <article>
-            <Subtitle>Total Monthly</Subtitle>
-            <Price currency={currency} decimals={0}>{summaryTotal.monthly}</Price>
-          </article>}
-          {(isDesktop || time === "YEARLY") && <article>
-            <Subtitle>Total Yearly</Subtitle>
-            <Price currency={currency} decimals={0}>{summaryTotal.yearly}</Price>
-          </article>}
+          {(isDesktop || time === "MONTHLY") && (
+            <article>
+              <Subtitle>Total Monthly</Subtitle>
+              <Price currency={currency} decimals={0}>
+                {summaryTotal.monthly}
+              </Price>
+            </article>
+          )}
+          {(isDesktop || time === "YEARLY") && (
+            <article>
+              <Subtitle>Total Yearly</Subtitle>
+              <Price currency={currency} decimals={0}>
+                {summaryTotal.yearly}
+              </Price>
+            </article>
+          )}
         </section>
 
         <section>
