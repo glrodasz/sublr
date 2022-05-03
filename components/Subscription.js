@@ -26,12 +26,18 @@ const Subscription = ({ price, currency, time, size = "md", decimals }) => {
           color: #b87a85;
         }
 
+        .size-sm {
+          font-size: 22px;
+        }
+
         .size-md {
           font-size: 30px;
         }
 
-        .size-sm {
-          font-size: 22px;
+        @media only screen and (min-width: 1000px) {
+          .size-md {
+            font-size: var(--font-size-md);
+          }
         }
       `}</style>
     </>

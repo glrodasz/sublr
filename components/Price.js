@@ -44,6 +44,16 @@ const Price = ({ children, currency, size, decimals = 2 }) => {
           font-size: 35px;
         }
 
+        @media only screen and (min-width: 1000px) {
+          .size-sm {
+            font-size: var(--font-size-sm);
+          }
+
+          .size-md {
+            font-size: var(--font-size-md);
+          }
+        }
+
       `}</style>
     </>
   );
