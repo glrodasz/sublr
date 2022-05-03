@@ -234,7 +234,7 @@ export default function Home() {
 
         nav {
           background: #b51739;
-          padding: 12px 20px;
+          padding: 12px 0;
         }
 
         nav > .container {
@@ -243,7 +243,6 @@ export default function Home() {
 
         .logo {
           max-width: 100px;
-          margin-right: 20px;
         }
 
         .logo > img {
