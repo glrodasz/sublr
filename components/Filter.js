@@ -1,24 +1,30 @@
 import React from "react";
 
-const Filter = ({ label, options, value, setValue }) => {
+const Filter = ({ label, options, icon, showIcon, value, setValue }) => {
   return (
     <>
       <fieldset className="filter">
-        <label>{label}</label>
+        {showIcon ? (
+          <span className="icon">
+            <img src={`/icons/${icon}.svg`} />
+          </span>
+        ) : (
+          <label>{label}</label>
+        )}
         <div className="select-container">
-        <select onChange={(event) => setValue(event.currentTarget.value)}>
-          {options.map((option) => {
-            return (
-              <option
-                key={option.text}
-                value={option.value}
-                selected={option.value === value}
-              >
-                {option.text}
-              </option>
-            );
-          })}
-        </select>
+          <select onChange={(event) => setValue(event.currentTarget.value)}>
+            {options.map((option) => {
+              return (
+                <option
+                  key={option.text}
+                  value={option.value}
+                  selected={option.value === value}
+                >
+                  {option.text}
+                </option>
+              );
+            })}
+          </select>
         </div>
       </fieldset>
       <style jsx>{`
@@ -26,12 +32,13 @@ const Filter = ({ label, options, value, setValue }) => {
           border: none;
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 14px;
           color: #fecdd3;
         }
 
         label {
           font-weight: bold;
+          text-transform: uppercase;
         }
 
         select {

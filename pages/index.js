@@ -66,54 +66,64 @@ export default function Home() {
         ></link>
       </Head>
       <nav>
-        <section className="row">
-          <Filter
-            label="Sort by"
-            value={sortBy}
-            setValue={setSortBy}
-            options={[
-              { text: "Price", value: "PRICE" },
-              { text: "Name", value: "NAME" },
-              { text: "Card", value: "CARD" },
-            ]}
-          />
-          <Filter
-            label="Currency"
-            value={currency}
-            setValue={setCurrency}
-            options={[
-              { text: "USD", value: "USD" },
-              { text: "COP", value: "COP" },
-              { text: "EUR", value: "EUR" },
-              { text: "SEK", value: "SEK" },
-            ]}
-          />
+        <div className="container">
+          <section className="row">
+            {isDesktop && (
+              <Filter
+                label="Sort by"
+                value={sortBy}
+                setValue={setSortBy}
+                options={[
+                  { text: "Price", value: "PRICE" },
+                  { text: "Name", value: "NAME" },
+                  { text: "Card", value: "CARD" },
+                ]}
+              />
+            )}
+            <Filter
+              label="Currency"
+              value={currency}
+              icon={"coin"}
+              showIcon={!isDesktop}
+              setValue={setCurrency}
+              options={[
+                { text: "USD", value: "USD" },
+                { text: "COP", value: "COP" },
+                { text: "EUR", value: "EUR" },
+                { text: "SEK", value: "SEK" },
+              ]}
+            />
 
-          <Filter
-            label="Time"
-            value={time}
-            setValue={setTime}
-            options={[
-              { text: "Yearly", value: "YEARLY" },
-              { text: "Monthly", value: "MONTHLY" },
-            ]}
-          />
+            <Filter
+              label="Time"
+              value={time}
+              icon={"time"}
+              showIcon={!isDesktop}
+              setValue={setTime}
+              options={[
+                { text: "Yearly", value: "YEARLY" },
+                { text: "Monthly", value: "MONTHLY" },
+              ]}
+            />
 
-          <Filter
-            label="Cards"
-            value={card}
-            setValue={setCard}
-            options={[
-              { text: "All", value: "" },
-              ...cards.map((card) => ({
-                text: `${card.split("_")[1]} (${
-                  CREDIT_CARD_TYPES[card.split("_")[0]]
-                })`,
-                value: card,
-              })),
-            ]}
-          />
-        </section>
+            {isDesktop && (
+              <Filter
+                label="Cards"
+                value={card}
+                setValue={setCard}
+                options={[
+                  { text: "All", value: "" },
+                  ...cards.map((card) => ({
+                    text: `${card.split("_")[1]} (${
+                      CREDIT_CARD_TYPES[card.split("_")[0]]
+                    })`,
+                    value: card,
+                  })),
+                ]}
+              />
+            )}
+          </section>
+        </div>
       </nav>
       <main className="container">
         <section className="row">
@@ -219,6 +229,10 @@ export default function Home() {
         nav {
           background: #e11d48;
           padding: 12px 20px;
+        }
+
+        nav > .container {
+          padding: 0 20px;
         }
 
         .row {
