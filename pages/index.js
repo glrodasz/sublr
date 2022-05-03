@@ -28,6 +28,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
+  const isMobile = useMedia(["(max-width: 799px)"], [true]);
 
   const { rates } = useCurrencyExchangeRates();
   const grouppedMonthlySubscriptions = getMonthlySubscriptionGrouppedByCard(
@@ -68,7 +69,12 @@ export default function Home() {
       <nav>
         <div className="container">
           <section className="row">
-            {isDesktop && (
+            <figure className="logo">
+              <img
+                src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`}
+              ></img>
+            </figure>
+            {!isMobile && (
               <Filter
                 label="Sort by"
                 value={sortBy}
@@ -84,7 +90,7 @@ export default function Home() {
               label="Currency"
               value={currency}
               icon={"coin"}
-              showIcon={!isDesktop}
+              showIcon={isMobile}
               setValue={setCurrency}
               options={[
                 { text: "USD", value: "USD" },
@@ -98,7 +104,7 @@ export default function Home() {
               label="Time"
               value={time}
               icon={"time"}
-              showIcon={!isDesktop}
+              showIcon={isMobile}
               setValue={setTime}
               options={[
                 { text: "Yearly", value: "YEARLY" },
@@ -106,7 +112,7 @@ export default function Home() {
               ]}
             />
 
-            {isDesktop && (
+            {!isMobile && (
               <Filter
                 label="Cards"
                 value={card}
@@ -227,12 +233,21 @@ export default function Home() {
         }
 
         nav {
-          background: #e11d48;
+          background: #b51739;
           padding: 12px 20px;
         }
 
         nav > .container {
           padding: 0 20px;
+        }
+
+        .logo {
+          max-width: 100px;
+          margin-right: 20px;
+        }
+
+        .logo > img {
+          width: 100%;
         }
 
         .row {

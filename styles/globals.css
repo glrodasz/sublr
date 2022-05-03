@@ -1,6 +1,7 @@
 :root {
   --font-size-sm: clamp(1rem, -1.3438rem + 3.75vw, 1.375rem);
   --font-size-md: clamp(1.5625rem, -0.3906rem + 3.125vw, 1.875rem);
+  --primary-color: #e11d48;
 }
 
 html,
