@@ -74,18 +74,17 @@ export default function Home() {
                 src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`}
               ></img>
             </figure>
-            {!isMobile && (
-              <Filter
-                label="Sort by"
-                value={sortBy}
-                setValue={setSortBy}
-                options={[
-                  { text: "Price", value: "PRICE" },
-                  { text: "Name", value: "NAME" },
-                  { text: "Card", value: "CARD" },
-                ]}
-              />
-            )}
+            <Filter
+              label="Sort by"
+              value={sortBy}
+              setValue={setSortBy}
+              options={[
+                { text: "Price", value: "PRICE" },
+                { text: "Name", value: "NAME" },
+                { text: "Card", value: "CARD" },
+              ]}
+              isHiddenInMobile
+            />
             <Filter
               label="Currency"
               value={currency}
@@ -111,8 +110,6 @@ export default function Home() {
                 { text: "Monthly", value: "MONTHLY" },
               ]}
             />
-
-            {!isMobile && (
               <Filter
                 label="Cards"
                 value={card}
@@ -126,8 +123,8 @@ export default function Home() {
                     value: card,
                   })),
                 ]}
+                isHiddenInMobile
               />
-            )}
           </section>
         </div>
       </nav>

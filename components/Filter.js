@@ -1,9 +1,17 @@
 import React from "react";
 
-const Filter = ({ label, options, icon, showIcon, value, setValue }) => {
+const Filter = ({
+  label,
+  options,
+  icon,
+  showIcon,
+  value,
+  setValue,
+  isHiddenInMobile
+}) => {
   return (
     <>
-      <fieldset className="filter">
+      <div className={`filter ${isHiddenInMobile ? "is-hidden-in-mobile" : ""}`}>
         {showIcon ? (
           <span className="icon">
             <img src={`/icons/${icon}.svg`} />
@@ -16,7 +24,7 @@ const Filter = ({ label, options, icon, showIcon, value, setValue }) => {
             {options.map((option) => {
               return (
                 <option
-                  key={`${label}_${option.text}`}
+                  key={option.text}
                   value={option.value}
                   selected={option.value === value}
                 >
@@ -26,7 +34,7 @@ const Filter = ({ label, options, icon, showIcon, value, setValue }) => {
             })}
           </select>
         </div>
-      </fieldset>
+      </div>
       <style jsx>{`
         .filter {
           border: none;
@@ -66,6 +74,12 @@ const Filter = ({ label, options, icon, showIcon, value, setValue }) => {
           color: #2d0612;
           z-index: 10;
           pointer-events: none;
+        }
+
+        @media (max-width: 799px) {
+          .is-hidden-in-mobile {
+            display: none;
+          }
         }
       `}</style>
     </>
