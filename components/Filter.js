@@ -16,7 +16,7 @@ const Filter = ({ label, options, icon, showIcon, value, setValue }) => {
             {options.map((option) => {
               return (
                 <option
-                  key={option.text}
+                  key={`${label}_${option.text}`}
                   value={option.value}
                   selected={option.value === value}
                 >

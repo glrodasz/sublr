@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -37,7 +37,7 @@ export default function Home() {
     rates
   );
 
-  const [cards, setCards] = useState(Object.keys(grouppedMonthlySubscriptions));
+  const [cards] = useState(Object.keys(grouppedMonthlySubscriptions));
 
   const summaryData = getSummaryData(grouppedMonthlySubscriptions);
 
