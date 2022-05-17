@@ -7,11 +7,14 @@ const Filter = ({
   showIcon,
   value,
   setValue,
-  isHiddenInMobile
+  isHiddenInMobile,
+  children,
 }) => {
   return (
     <>
-      <div className={`filter ${isHiddenInMobile ? "is-hidden-in-mobile" : ""}`}>
+      <div
+        className={`filter ${isHiddenInMobile ? "is-hidden-in-mobile" : ""}`}
+      >
         {showIcon ? (
           <span className="icon">
             <img src={`/icons/${icon}.svg`} />
@@ -19,21 +22,26 @@ const Filter = ({
         ) : (
           <label>{label}</label>
         )}
-        <div className="select-container">
-          <select onChange={(event) => setValue(event.currentTarget.value)}>
-            {options.map((option) => {
-              return (
-                <option
-                  key={option.text}
-                  value={option.value}
-                  selected={option.value === value}
-                >
-                  {option.text}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+
+        {children ? (
+          children
+        ) : (
+          <div className="select-container">
+            <select onChange={(event) => setValue(event.currentTarget.value)}>
+              {options.map((option) => {
+                return (
+                  <option
+                    key={option.text}
+                    value={option.value}
+                    selected={option.value === value}
+                  >
+                    {option.text}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        )}
       </div>
       <style jsx>{`
         .filter {

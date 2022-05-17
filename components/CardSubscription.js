@@ -3,6 +3,7 @@ import React from "react";
 import CreditCardIcon from "./CreditCardIcon";
 import Subscription from "./Subscription";
 import Card from './Card'
+import Tag from "./Tag";
 
 import { DEFAULT_UNSPLASH_ID } from "../constants";
 
@@ -27,9 +28,9 @@ const CardSubscription = ({
           <h1 className="title">{title}</h1>
           <div className="tags">
             {tags.map((tag) => (
-              <span key={tag} className="tag">
+              <Tag key={tag}>
                 {tag}
-              </span>
+              </Tag>
             ))}
           </div>
         </div>

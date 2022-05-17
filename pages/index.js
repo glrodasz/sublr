@@ -20,7 +20,9 @@ import subscriptions from "../data/subscriptions.json";
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 
+// FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
 import useMedia from "../hooks/useMedia";
+import Autocomplete from "../components/Autocomplete";
 
 export default function Home() {
   const [time, setTime] = useState("YEARLY");
@@ -98,7 +100,6 @@ export default function Home() {
                 { text: "SEK", value: "SEK" },
               ]}
             />
-
             <Filter
               label="Time"
               value={time}
@@ -110,21 +111,24 @@ export default function Home() {
                 { text: "Monthly", value: "MONTHLY" },
               ]}
             />
-              <Filter
-                label="Cards"
-                value={card}
-                setValue={setCard}
-                options={[
-                  { text: "All", value: "" },
-                  ...cards.map((card) => ({
-                    text: `${card.split("_")[1]} (${
-                      CREDIT_CARD_TYPES[card.split("_")[0]]
-                    })`,
-                    value: card,
-                  })),
-                ]}
-                isHiddenInMobile
-              />
+            <Filter
+              label="Cards"
+              value={card}
+              setValue={setCard}
+              options={[
+                { text: "All", value: "" },
+                ...cards.map((card) => ({
+                  text: `${card.split("_")[1]} (${
+                    CREDIT_CARD_TYPES[card.split("_")[0]]
+                  })`,
+                  value: card,
+                })),
+              ]}
+              isHiddenInMobile
+            />
+            <Filter label="Tags" isHiddenInMobile>
+              <Autocomplete options={["Projects", "Paypal"]} values={null} />
+            </Filter>
           </section>
         </div>
       </nav>
