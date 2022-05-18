@@ -29,6 +29,9 @@ export default function Home() {
   const [currency, setCurrency] = useState("USD");
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
+  const [tags, setTags] = useState("")
+
+
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
   const isMobile = useMedia(["(max-width: 799px)"], [true]);
 
@@ -54,6 +57,14 @@ export default function Home() {
     { monthly: 0, yearly: 0 }
   );
 
+  const tagOptions = [
+    ...new Set(
+      subscriptions.flatMap((subscription) =>
+        subscription.tags.map((tag) => tag.toLowerCase())
+      )
+    ),
+  ];
+
   return (
     <>
       <Head>
@@ -67,6 +78,12 @@ export default function Home() {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/jgthms/minireset.css@master/minireset.min.css"
         ></link>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Kanit:wght@600&family=Open+Sans:wght@500&display=swap"
+          rel="stylesheet"
+        />
       </Head>
       <nav>
         <div className="container">
@@ -127,7 +144,7 @@ export default function Home() {
               isHiddenInMobile
             />
             <Filter label="Tags" isHiddenInMobile>
-              <Autocomplete options={["Projects", "Paypal"]} values={null} />
+              <Autocomplete options={tagOptions} values={tags} setValues={setTags} />
             </Filter>
           </section>
         </div>

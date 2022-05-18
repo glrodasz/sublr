@@ -11,6 +11,7 @@ const Tag = ({ children }) => (
         font-size: 14px;
         text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
         text-transform: capitalize;
+        color: white;
       }
     `}</style>
   </>
