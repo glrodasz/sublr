@@ -18,6 +18,11 @@ input {
   font-family: "Open Sans", sans-serif;
 }
 
+select:focus,
+input:focus {
+  outline: 1px auto #e11d48;
+}
+
 h1,
 h2,
 h3,
