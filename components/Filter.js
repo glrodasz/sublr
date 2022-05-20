@@ -1,4 +1,5 @@
 import React from "react";
+import Icon from "./Icon";
 
 const Filter = ({
   label,
@@ -15,13 +16,7 @@ const Filter = ({
       <div
         className={`filter ${isHiddenInMobile ? "is-hidden-in-mobile" : ""}`}
       >
-        {showIcon ? (
-          <span className="icon">
-            <img src={`/icons/${icon}.svg`} />
-          </span>
-        ) : (
-          <label>{label}</label>
-        )}
+        {showIcon ? <Icon name={icon} /> : <label>{label}</label>}
 
         {children ? (
           children

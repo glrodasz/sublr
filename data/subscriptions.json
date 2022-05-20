@@ -108,18 +108,6 @@
     }
   },
   {
-    "unsplashId": "7egjL_Najrc",
-    "title": "HBO Max",
-    "tags": ["entertainment", "paypal"],
-    "price": 89,
-    "currency": "SEK",
-    "time": "MONTHLY",
-    "creditCard": {
-      "type": "MASTERCARD",
-      "number": 1490
-    }
-  },
-  {
     "unsplashId": "UVfvFrp4x4E",
     "title": "Netflix",
     "tags": ["entertainment", "essential"],
@@ -144,35 +132,11 @@
     }
   },
   {
-    "unsplashId": "-yBvef_mAaQ",
-    "title": "Metricool",
-    "tags": ["projects", "paypal"],
-    "price": 18.75,
-    "currency": "EUR",
-    "time": "MONTHLY",
-    "creditCard": {
-      "type": "MASTERCARD",
-      "number": 1490
-    }
-  },
-  {
     "unsplashId": "wKeZstqxKTQ",
     "title": "Amazon Prime",
     "tags": ["entertainment"],
     "price": 59,
     "currency": "SEK",
-    "time": "MONTHLY",
-    "creditCard": {
-      "type": "MASTERCARD",
-      "number": 1490
-    }
-  },
-  {
-    "unsplashId": "bXqOMf5tvDk",
-    "title": "Zoom",
-    "tags": ["work", "paypal"],
-    "price": 14.99,
-    "currency": "USD",
     "time": "MONTHLY",
     "creditCard": {
       "type": "MASTERCARD",
@@ -229,22 +193,10 @@
   },
   {
     "unsplashId": "niUkImZcSP8",
-    "title": "YouTube Premium",
-    "tags": ["non-essential", "family"],
-    "price": 179,
+    "title": "YouTube Premium Lite",
+    "tags": ["non-essential"],
+    "price": 69,
     "currency": "SEK",
-    "time": "MONTHLY",
-    "creditCard": {
-      "type": "MASTERCARD",
-      "number": 1490
-    }
-  },
-  {
-    "unsplashId": "pZudVp-chcY",
-    "title": "Skype",
-    "tags": ["non-essential", "paypal"],
-    "price": 14,
-    "currency": "EUR",
     "time": "MONTHLY",
     "creditCard": {
       "type": "MASTERCARD",

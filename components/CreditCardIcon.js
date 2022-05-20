@@ -1,14 +1,15 @@
 import React from "react";
+import Icon from "./Icon";
 
-import { getCreditCardType  } from "../helpers";
+import { getCreditCardType } from "../helpers";
 
 const CreditCardIcon = ({ type, number }) => {
+  const iconName = getCreditCardType(type).toLowerCase();
+
   return (
     <>
       <div className="credit-card">
-        <span className="icon">
-          <img src={`/icons/${getCreditCardType(type).toLowerCase()}.svg`} />
-        </span>
+        <Icon name={iconName} />
         <div className="credit-card-number">{number}</div>
       </div>
       <style jsx>{`
@@ -18,19 +19,10 @@ const CreditCardIcon = ({ type, number }) => {
           align-items: center;
         }
 
-        .credit-card .icon {
-          width: 35px;
-          line-height: 0;
-        }
-
-        .credit-card .icon img {
-          width: 100%;
-        }
-
         .credit-card-number {
           font-weight: bold;
           font-size: 22px;
-          color: #79686D;
+          color: #79686d;
         }
       `}</style>
     </>

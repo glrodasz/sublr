@@ -5,6 +5,8 @@ const pluralize = (length, word) => {
   return length === 1 ? word : `${word}s`;
 };
 
+const MORE_KEY = Symbol("more");
+
 const Autocomplete = ({ options, values, setValues }) => {
   const [isEditable, setIsEditable] = useState(false);
   const [filter, setFilter] = useState("");
@@ -32,10 +34,26 @@ const Autocomplete = ({ options, values, setValues }) => {
   const hasValues = !!values.length;
   const [firstTag, secondTag, ...tags] = values;
   const summaryValues = [
-    firstTag,
-    secondTag,
-    !!tags.length && `${tags.length} more ${pluralize(tags.length, "tag")}`,
+    { label: firstTag, value: firstTag },
+    { label: secondTag, value: secondTag },
+    {
+      label:
+        !!tags.length && `${tags.length} more ${pluralize(tags.length, "tag")}`,
+      value: MORE_KEY,
+      isLowerCase: true,
+    },
   ];
+
+  const handlerCloseTag = (valueToRemove) => (event) => {
+    event.stopPropagation();
+
+    if (valueToRemove === MORE_KEY) {
+      const [firstTag, secondTag] = values;
+      setValues([firstTag, secondTag]);
+    } else {
+      setValues(values.filter((value) => value !== valueToRemove));
+    }
+  };
 
   if (isEditable) {
     return (
@@ -49,8 +67,16 @@ const Autocomplete = ({ options, values, setValues }) => {
         >
           {!!values?.length &&
             summaryValues
-              .filter(Boolean)
-              .map((value) => <Tag key={value}>{value}</Tag>)}
+              .filter(({ label }) => Boolean(label))
+              .map(({ value, label, isLowerCase }) => (
+                <Tag
+                  key={label}
+                  onClose={handlerCloseTag(value)}
+                  isLowerCase={isLowerCase}
+                >
+                  {label}
+                </Tag>
+              ))}
           <input
             ref={inputRef}
             list="tags"
@@ -68,8 +94,8 @@ const Autocomplete = ({ options, values, setValues }) => {
                   onClick={(event) => {
                     event.stopPropagation();
                     setValues([...new Set([...values, item])]);
-                    setFilter("")
-                    inputRef.current.focus()
+                    setFilter("");
+                    inputRef.current.focus();
                   }}
                 >
                   {item}
@@ -87,11 +113,11 @@ const Autocomplete = ({ options, values, setValues }) => {
             height: 28px;
             align-items: center;
             min-width: 200px;
-            max-width: 400px;
             background: white;
             border: 1px solid white;
             outline: 1px auto white;
             border-radius: 4px;
+            padding: 0 5px;
           }
 
           .container:focus-within {
@@ -104,9 +130,8 @@ const Autocomplete = ({ options, values, setValues }) => {
             border: none;
             padding: 0 8px;
             font-size: 16px;
-            width: 100px;
+            width: ${!values?.length ? "100%" : "100px"};
             outline: none;
-            border: 2px dashed slateblue;
           }
 
           .options {
@@ -151,8 +176,16 @@ const Autocomplete = ({ options, values, setValues }) => {
       >
         {!!values?.length
           ? summaryValues
-              .filter(Boolean)
-              .map((value) => <Tag key={value}>{value}</Tag>)
+              .filter(({ label }) => Boolean(label))
+              .map(({ value, label, isLowerCase }) => (
+                <Tag
+                  key={label}
+                  onClose={handlerCloseTag(value)}
+                  isLowerCase={isLowerCase}
+                >
+                  {label}
+                </Tag>
+              ))
           : "Search..."}
       </div>
       <style jsx>{`

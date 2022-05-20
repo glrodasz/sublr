@@ -29,8 +29,7 @@ export default function Home() {
   const [currency, setCurrency] = useState("USD");
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
-  const [tags, setTags] = useState("")
-
+  const [tags, setTags] = useState("");
 
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
   const isMobile = useMedia(["(max-width: 799px)"], [true]);
@@ -144,7 +143,11 @@ export default function Home() {
               isHiddenInMobile
             />
             <Filter label="Tags" isHiddenInMobile>
-              <Autocomplete options={tagOptions} values={tags} setValues={setTags} />
+              <Autocomplete
+                options={tagOptions}
+                values={tags}
+                setValues={setTags}
+              />
             </Filter>
           </section>
         </div>
@@ -191,9 +194,15 @@ export default function Home() {
           <Subtitle>Subscriptions</Subtitle>
           <div className="cards-container">
             {subscriptions
-              .filter(({ creditCard }) => {
+              .filter(({ creditCard, tags: subscriptionTag }) => {
                 if (card) {
                   return `${creditCard.type}_${creditCard.number}` === card;
+                }
+
+                if (!!tags.length) {
+                  return tags
+                    .map((tag) => subscriptionTag.includes(tag))
+                    .find(Boolean);
                 }
 
                 return true;
