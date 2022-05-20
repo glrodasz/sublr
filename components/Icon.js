@@ -1,5 +1,11 @@
 import React from "react";
 
+const iconSizesMap = {
+  "xs" : 13,
+  "sm": 20,
+  "md": 35
+}
+
 const Icon = ({ name, onClick, size = "md" }) => {
   return (
     <>
@@ -8,7 +14,7 @@ const Icon = ({ name, onClick, size = "md" }) => {
       </span>
       <style jsx>{`
         .icon {
-          width: ${size === "md" ? 35 : 13}px;
+          width: ${iconSizesMap[size]}px;
           line-height: 0;
           ${onClick && "cursor: pointer;"}
         }

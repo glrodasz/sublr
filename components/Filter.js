@@ -16,7 +16,7 @@ const Filter = ({
       <div
         className={`filter ${isHiddenInMobile ? "is-hidden-in-mobile" : ""}`}
       >
-        {showIcon ? <Icon name={icon} /> : <label>{label}</label>}
+        {showIcon ? <Icon name={icon} size="sm" /> : <label>{label}</label>}
 
         {children ? (
           children
