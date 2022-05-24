@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -15,7 +15,7 @@ import {
 
 import { CREDIT_CARD_TYPES } from "../constants";
 
-import subscriptions from "../data/subscriptions.json";
+// import subscriptions from "../data/subscriptions.json";
 
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
@@ -23,6 +23,7 @@ import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
 import useMedia from "../hooks/useMedia";
 import Autocomplete from "../components/Autocomplete";
+import useSubscriptions from "../hooks/useSubscriptions";
 
 export default function Home() {
   const [time, setTime] = useState("YEARLY");
@@ -30,11 +31,15 @@ export default function Home() {
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
   const [tags, setTags] = useState("");
+  const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
+  const { subscriptions, remove } = useSubscriptions();
+  const deleteConfirmationDialogRef = useRef(null);
 
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
   const isMobile = useMedia(["(max-width: 799px)"], [true]);
 
   const { rates } = useCurrencyExchangeRates();
+
   const grouppedMonthlySubscriptions = getMonthlySubscriptionGrouppedByCard(
     subscriptions,
     currency,
@@ -63,6 +68,11 @@ export default function Home() {
       )
     ),
   ];
+
+  // TODO: Move this to the body and create the component pattern Loading/Children
+  if (!subscriptions?.length) {
+    return "Loading...";
+  }
 
   return (
     <>
@@ -236,7 +246,7 @@ export default function Home() {
               .map((subscription) => {
                 return (
                   <CardSubscription
-                    key={subscription.title}
+                    key={subscription.id}
                     unsplashId={subscription.unsplashId}
                     title={subscription.title}
                     tags={subscription.tags}
@@ -244,10 +254,23 @@ export default function Home() {
                     creditCard={subscription.creditCard}
                     time={subscription.time}
                     price={subscription.price.toFixed(2)}
+                    onRemove={() => {
+                      deleteConfirmationDialogRef.current.showModal();
+                      setCurrentSubscriptionId(subscription.id);
+                    }}
                   />
                 );
               })}
           </div>
+          <dialog ref={deleteConfirmationDialogRef}>
+            <form method="dialog">
+              <p>Are you sure that you want to delete it?</p>
+              <button>Cancel</button>
+              <button onClick={() => remove(currentSubscriptionId)}>
+                Confirm
+              </button>
+            </form>
+          </dialog>
         </section>
       </main>
 

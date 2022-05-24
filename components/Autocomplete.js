@@ -212,5 +212,3 @@ const Autocomplete = ({ options, values, setValues }) => {
 };
 
 export default Autocomplete;
-{
-}

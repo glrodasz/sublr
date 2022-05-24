@@ -2,10 +2,11 @@ import React from "react";
 
 import CreditCardIcon from "./CreditCardIcon";
 import Subscription from "./Subscription";
-import Card from './Card'
+import Card from "./Card";
 import Tag from "./Tag";
 
 import { DEFAULT_UNSPLASH_ID } from "../constants";
+import Icon from "./Icon";
 
 const CardSubscription = ({
   unsplashId = DEFAULT_UNSPLASH_ID,
@@ -15,6 +16,7 @@ const CardSubscription = ({
   currency,
   time,
   creditCard,
+  onRemove,
 }) => {
   return (
     <>
@@ -28,10 +30,11 @@ const CardSubscription = ({
           <h1 className="title">{title}</h1>
           <div className="tags">
             {tags.map((tag) => (
-              <Tag key={tag}>
-                {tag}
-              </Tag>
+              <Tag key={tag}>{tag}</Tag>
             ))}
+          </div>
+          <div className="remove">
+            <Icon name="cross" onClick={onRemove} size="sm" />
           </div>
         </div>
         <div className="content">
@@ -94,6 +97,20 @@ const CardSubscription = ({
           flex-direction: column;
           padding: 20px;
           gap: 10px;
+        }
+
+        .remove {
+          position: absolute;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          top: 10px;
+          right: 10px;
+          width: 20px;
+          padding: 5px;
+          height: 20px;
+          background: #000;
+          border-radius: 50%;
         }
       `}</style>
     </>
