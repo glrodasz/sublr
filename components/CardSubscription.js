@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import CreditCardIcon from "./CreditCardIcon";
 import Subscription from "./Subscription";
@@ -49,9 +49,17 @@ const CardSubscription = ({
   creditCard,
   onRemove,
   onUpdate,
-  onChange
+  onRefresh,
+  onChange,
+  isUpdated = 0,
 }) => {
   const [side, setSide] = useState(CardSides.Frontside);
+
+  useEffect(() => {
+    if (isUpdated) {
+      setSide(CardSides.Frontside);
+    }
+  }, [isUpdated]);
 
   return (
     <>
@@ -68,7 +76,7 @@ const CardSubscription = ({
               }}
             >
               <div className="title">
-              <Input id="title" value={title} onChange={onChange} />
+                <Input id="title" value={title} onChange={onChange} />
               </div>
               <div className="tags">
                 {tags.map((tag) => (
@@ -86,9 +94,16 @@ const CardSubscription = ({
               />
               <CreditCardIcon {...creditCard} isEditable onChange={onChange} />
             </div>
-            <button onClick={onUpdate}>Update</button>
-            <div className="remove">
-              <Icon name="cross" onClick={onRemove} size="sm" />
+            <div className="actions">
+              <div className="circle-button update" onClick={onUpdate}>
+                <Icon name="check" size="lg" />
+              </div>
+              <div className="circle-button refresh" onClick={onRefresh}>
+                <Icon name="refresh" size="lg" />
+              </div>
+              <div className="circle-button cancel" onClick={onRemove}>
+                <Icon name="trash" size="lg" />
+              </div>
             </div>
           </div>
         }
@@ -172,18 +187,39 @@ const CardSubscription = ({
           position: relative;
         }
 
-        .remove {
+        .actions {
           position: absolute;
+          top: 10px;
+          right: 10px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .circle-button {
+          position: relative;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          top: 10px;
-          right: 10px;
-          width: 20px;
+          width: 28px;
+          height: 28px;
           padding: 5px;
-          height: 20px;
-          background: #000;
           border-radius: 50%;
+          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+            0 4px 6px -4px rgb(0 0 0 / 0.1);
+          cursor: pointer;
+        }
+
+        .circle-button.update {
+          background: #bbf7d0;
+        }
+
+        .circle-button.refresh {
+          background: #fff;
+        }
+
+        .circle-button.cancel {
+          background: #fecaca;
         }
       `}</style>
     </>

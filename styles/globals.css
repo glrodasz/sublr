@@ -11,11 +11,20 @@ body {
   margin: 0;
   font-family: "Open Sans", sans-serif;
   background-color: #fff1f2;
-  font-size: 16px;
+  font-size: 18px;
 }
 
+select,
 input {
   font-family: "Open Sans", sans-serif;
+  height: 28px;
+  line-height: 1;
+  font-size: 20px;
+  width: 100%;
+}
+
+select {
+  width: min-content;
 }
 
 select:focus,

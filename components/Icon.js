@@ -3,7 +3,8 @@ import React from "react";
 const iconSizesMap = {
   "xs" : 13,
   "sm": 20,
-  "md": 35
+  "md": 35,
+  "lg": 45,
 }
 
 const Icon = ({ name, onClick, size = "md" }) => {

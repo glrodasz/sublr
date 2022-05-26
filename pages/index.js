@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -7,15 +7,7 @@ import Price from "../components/Price";
 import CreditCard from "../components/CreditCard";
 import Filter from "../components/Filter";
 
-import {
-  getMonthlySubscriptionGrouppedByCard,
-  getSummaryData,
-  getUsdPrice,
-} from "../helpers";
-
 import { CREDIT_CARD_TYPES } from "../constants";
-
-// import subscriptions from "../data/subscriptions.json";
 
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
@@ -25,8 +17,18 @@ import useMedia from "../hooks/useMedia";
 import Autocomplete from "../components/Autocomplete";
 import useSubscriptions from "../hooks/useSubscriptions";
 
+import {
+  getCreditCardInfoFromCurrentSubscription,
+  getMonthlySubscriptionGrouppedByCard,
+  getSummaryData,
+  getSummaryTotal,
+  getUsdPrice,
+  shouldUpdateSubscriptionPrice,
+} from "../helpers";
+
 export default function Home() {
-  // Filters
+  // TODO: Refactor to a custom hook called useFilters and use an
+  // object to map the filters
   const [time, setTime] = useState("YEARLY");
   const [currency, setCurrency] = useState("USD");
   const [sortBy, setSortBy] = useState("PRICE");
@@ -36,13 +38,16 @@ export default function Home() {
   // CRUD
   const { subscriptions, remove, update } = useSubscriptions();
 
+  // Temporal states
   const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
-  const [currentSubscription, setCurrentSubscription] = useState({});
+  const [changedSubscriptions, setChangedSubscriptions] = useState({});
+  const [updatedSubscriptions, setUpdatedSubscriptions] = useState({});
 
   // Dialogs
   const deleteConfirmationDialogRef = useRef(null);
   const updateConfirmationDialogRef = useRef(null);
 
+  // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
   const isMobile = useMedia(["(max-width: 799px)"], [true]);
 
@@ -54,20 +59,9 @@ export default function Home() {
     rates
   );
 
-  const [cards] = useState(Object.keys(grouppedMonthlySubscriptions));
-
+  const cards = Object.keys(grouppedMonthlySubscriptions);
   const summaryData = getSummaryData(grouppedMonthlySubscriptions);
-
-  // TODO: Move to a helper function
-  const summaryTotal = summaryData.reduce(
-    (total, data) => {
-      total.monthly = total.monthly + data.monthly.price;
-      total.yearly = total.yearly + data.yearly.price;
-
-      return total;
-    },
-    { monthly: 0, yearly: 0 }
-  );
+  const summaryTotal = getSummaryTotal(summaryData);
 
   const tagOptions = [
     ...new Set(
@@ -115,9 +109,9 @@ export default function Home() {
               value={sortBy}
               setValue={setSortBy}
               options={[
-                { text: "Price", value: "PRICE" },
-                { text: "Name", value: "NAME" },
-                { text: "Card", value: "CARD" },
+                { label: "Price", value: "PRICE" },
+                { label: "Name", value: "NAME" },
+                { label: "Card", value: "CARD" },
               ]}
               isHiddenInMobile
             />
@@ -128,10 +122,10 @@ export default function Home() {
               showIcon={isMobile}
               setValue={setCurrency}
               options={[
-                { text: "USD", value: "USD" },
-                { text: "COP", value: "COP" },
-                { text: "EUR", value: "EUR" },
-                { text: "SEK", value: "SEK" },
+                { label: "USD", value: "USD" },
+                { label: "COP", value: "COP" },
+                { label: "EUR", value: "EUR" },
+                { label: "SEK", value: "SEK" },
               ]}
             />
             <Filter
@@ -141,8 +135,8 @@ export default function Home() {
               showIcon={isMobile}
               setValue={setTime}
               options={[
-                { text: "Yearly", value: "YEARLY" },
-                { text: "Monthly", value: "MONTHLY" },
+                { label: "Yearly", value: "YEARLY" },
+                { label: "Monthly", value: "MONTHLY" },
               ]}
             />
             <Filter
@@ -150,9 +144,9 @@ export default function Home() {
               value={card}
               setValue={setCard}
               options={[
-                { text: "All", value: "" },
+                { label: "All", value: "" },
                 ...cards.map((card) => ({
-                  text: `${card.split("_")[1]} (${
+                  label: `${card.split("_")[1]} (${
                     CREDIT_CARD_TYPES[card.split("_")[0]]
                   })`,
                   value: card,
@@ -254,13 +248,13 @@ export default function Home() {
               .map((subscription) => {
                 const mergedSubscription = {
                   ...subscription,
-                  ...currentSubscription[subscription.id],
+                  ...changedSubscriptions[subscription.id],
                   creditCard: {
                     type:
-                      currentSubscription[subscription.id]?.creditCardType ??
+                      changedSubscriptions[subscription.id]?.creditCardType ??
                       subscription.creditCard.type,
                     number:
-                      currentSubscription[subscription.id]?.creditCardNumber ??
+                      changedSubscriptions[subscription.id]?.creditCardNumber ??
                       subscription.creditCard.number,
                   },
                 };
@@ -275,6 +269,7 @@ export default function Home() {
                     creditCard={mergedSubscription.creditCard}
                     time={mergedSubscription.time}
                     price={mergedSubscription.price}
+                    isUpdated={updatedSubscriptions[subscription.id]}
                     onRemove={(event) => {
                       event.stopPropagation();
                       deleteConfirmationDialogRef.current.showModal();
@@ -285,11 +280,12 @@ export default function Home() {
                       updateConfirmationDialogRef.current.showModal();
                       setCurrentSubscriptionId(subscription.id);
                     }}
+                    onRefresh={() => {}}
                     onChange={({ id, value }) =>
-                      setCurrentSubscription({
-                        ...currentSubscription,
+                      setChangedSubscriptions({
+                        ...changedSubscriptions,
                         [subscription.id]: {
-                          ...currentSubscription[subscription.id],
+                          ...changedSubscriptions[subscription.id],
                           ...{ [id]: value },
                         },
                       })
@@ -312,21 +308,25 @@ export default function Home() {
               <p>Are you sure that you want to update it?</p>
               <button>Cancel</button>
               <button
-                onClick={() =>
+                onClick={() => {
                   update(currentSubscriptionId, {
-                    ...currentSubscription[currentSubscriptionId],
+                    ...changedSubscriptions[currentSubscriptionId],
+                    ...shouldUpdateSubscriptionPrice(
+                      changedSubscriptions[currentSubscriptionId]
+                    ),
+                    ...getCreditCardInfoFromCurrentSubscription(
+                      changedSubscriptions[currentSubscriptionId]
+                    ),
+                  });
+                  setUpdatedSubscriptions({
+                    ...updatedSubscriptions,
                     ...{
-                      // FIXME: Only add if creditCardType or creditCardNumber exist
-                      creditCard: {
-                        type: currentSubscription[currentSubscriptionId]
-                          ?.creditCardType,
-                        number:
-                          currentSubscription[currentSubscriptionId]
-                            ?.creditCardNumber,
-                      },
+                      [currentSubscriptionId]:
+                        (updatedSubscriptions?.[currentSubscriptionId] ?? 0) +
+                        1,
                     },
-                  })
-                }
+                  });
+                }}
               >
                 Confirm
               </button>

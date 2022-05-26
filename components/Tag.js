@@ -15,7 +15,7 @@ const Tag = ({ children, onClose, isLowerCase }) => (
       .tag {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        gap: 5px;
         background: #475569;
         padding: 2px 10px;
         border-radius: 14px;

@@ -9,15 +9,14 @@ const MORE_KEY = Symbol("more");
 
 const Autocomplete = ({ options, values, setValues }) => {
   const [isEditable, setIsEditable] = useState(false);
-  const [filter, setFilter] = useState("");
+  const [query, setQuery] = useState("");
   const inputRef = useRef(null);
 
-  // TODO: Think about a better name to avoid confusions with the filter, setFilter
   const fileteredOptions = options
     .filter((option) => !values.includes(option))
     .filter((option) => {
-      if (filter?.length) {
-        return option.includes(filter);
+      if (query?.length) {
+        return option.includes(query.toLocaleLowerCase());
       }
       return option;
     });
@@ -25,7 +24,7 @@ const Autocomplete = ({ options, values, setValues }) => {
   useEffect(() => {
     const closeOptions = () => {
       setIsEditable(false);
-      setFilter("");
+      setQuery("");
     };
     window.addEventListener("click", closeOptions);
     return () => window.removeEventListener("click", closeOptions);
@@ -83,8 +82,8 @@ const Autocomplete = ({ options, values, setValues }) => {
             type="text"
             autoFocus
             placeholder={!hasValues && "Search..."}
-            value={filter}
-            onChange={(event) => setFilter(event.currentTarget.value)}
+            value={query}
+            onChange={(event) => setQuery(event.currentTarget.value)}
           />
           {!!fileteredOptions?.length && (
             <div className="options">
@@ -94,7 +93,7 @@ const Autocomplete = ({ options, values, setValues }) => {
                   onClick={(event) => {
                     event.stopPropagation();
                     setValues([...new Set([...values, item])]);
-                    setFilter("");
+                    setQuery("");
                     inputRef.current.focus();
                   }}
                 >

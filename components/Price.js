@@ -37,12 +37,17 @@ const Price = ({ children, currency, size, decimals = 2, isEditable, onChange })
       </div>
       <style jsx>{`
         .price {
+          display: inline-flex;
+          align-items: center;
           color: #2d0612;
           font-weight: bold;
+          gap: 10px;
           white-space: nowrap;
         }
 
         .currency {
+          display: inline-flex;
+          align-items: center;
           color: #b87a85;
         }
 

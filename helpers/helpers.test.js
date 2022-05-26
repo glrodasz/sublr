@@ -3,7 +3,7 @@ import {
   getTimeDescription,
   getUsdPrice,
   getMonthlySubscriptionGrouppedByCard,
-} from "./helpers";
+} from ".";
 
 jest.mock("./constants", () => {
   return {

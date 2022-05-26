@@ -26,10 +26,10 @@ const Filter = ({
               {options.map((option) => {
                 return (
                   <option
-                    key={option.text}
+                    key={option.label}
                     value={option.value}
                   >
-                    {option.text}
+                    {option.label}
                   </option>
                 );
               })}
@@ -52,11 +52,12 @@ const Filter = ({
         }
 
         select {
-          padding: 4px 8px;
+          padding: 4px 25px 4px 8px;
           border-radius: 4px;
           -webkit-appearance: none;
           -moz-appearance: none;
-          width: 80px;
+          min-width: 80px;
+          width: min-content;
           cursor: pointer;
           border: none;
           color: #2d0612;
