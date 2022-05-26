@@ -17,10 +17,14 @@ body {
 select,
 input {
   font-family: "Open Sans", sans-serif;
-  height: 28px;
+  height: 36px;
   line-height: 1;
   font-size: 20px;
   width: 100%;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 5px 15px;
+  vertical-align: middle;
 }
 
 select {
@@ -52,4 +56,42 @@ a {
 
 #__next {
   height: 100%;
+}
+
+
+form[method="dialog"] {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+form[method="dialog"] button:first-of-type {
+  background: #dcfce7;
+}
+
+form[method="dialog"] button:last-of-type {
+  background: #fee2e2;
+}
+
+form[method="dialog"] > p {
+  margin-bottom: 20px;
+  color: #2d0612;
+}
+
+dialog {
+  min-height: 200px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+  0 4px 6px -4px rgb(0 0 0 / 0.1);
+  padding: 50px 40px;
+  font-size: 28px;
+}
+
+dialog button {
+  border: 1px solid #ccc;
+  padding: 8px 40px;
+  font-size: 22px;
+  border-radius: 4px;
+  cursor: pointer;
 }

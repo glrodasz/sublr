@@ -48,6 +48,7 @@ const CreditCardIcon = ({ type, number, setValue, isEditable, onChange }) => {
           font-weight: bold;
           font-size: 22px;
           color: #79686d;
+          width: 100%;
         }
       `}</style>
     </>

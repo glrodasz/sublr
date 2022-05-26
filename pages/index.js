@@ -297,16 +297,15 @@ export default function Home() {
           <dialog ref={deleteConfirmationDialogRef}>
             <form method="dialog">
               <p>Are you sure that you want to delete it?</p>
-              <button>Cancel</button>
               <button onClick={() => remove(currentSubscriptionId)}>
                 Confirm
               </button>
+              <button>Cancel</button>
             </form>
           </dialog>
           <dialog ref={updateConfirmationDialogRef}>
             <form method="dialog">
               <p>Are you sure that you want to update it?</p>
-              <button>Cancel</button>
               <button
                 onClick={() => {
                   update(currentSubscriptionId, {
@@ -330,6 +329,7 @@ export default function Home() {
               >
                 Confirm
               </button>
+              <button>Cancel</button>
             </form>
           </dialog>
         </section>

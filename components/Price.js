@@ -4,7 +4,14 @@ import Select from "./Select";
 
 import { LANG_PER_CURRENCY } from "../constants";
 
-const Price = ({ children, currency, size, decimals = 2, isEditable, onChange }) => {
+const Price = ({
+  children,
+  currency,
+  size,
+  decimals = 2,
+  isEditable,
+  onChange,
+}) => {
   const price = new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
     style: "currency",
     currency,
@@ -14,9 +21,17 @@ const Price = ({ children, currency, size, decimals = 2, isEditable, onChange })
 
   return (
     <>
-      <div className={`container ${size ? `size-${size}` : ""}`}>
+      <div
+        className={`container ${isEditable ? "is-editable" : ""} ${
+          size ? `size-${size}` : ""
+        }`}
+      >
         <span className="price">
-          {isEditable ? <Input id="price" value={children} onChange={onChange} /> : price}{" "}
+          {isEditable ? (
+            <Input id="price" value={children} onChange={onChange} />
+          ) : (
+            price
+          )}{" "}
           <span className="currency">
             (
             {isEditable ? (
@@ -31,7 +46,8 @@ const Price = ({ children, currency, size, decimals = 2, isEditable, onChange })
               />
             ) : (
               currency
-            )})
+            )}
+            )
           </span>
         </span>
       </div>
@@ -43,12 +59,17 @@ const Price = ({ children, currency, size, decimals = 2, isEditable, onChange })
           font-weight: bold;
           gap: 10px;
           white-space: nowrap;
+          width: 100%;
         }
 
         .currency {
           display: inline-flex;
           align-items: center;
           color: #b87a85;
+        }
+
+        .container.is-editable {
+          width: 100%;
         }
 
         .size-sm {
