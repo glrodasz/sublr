@@ -2,16 +2,45 @@ import React from "react";
 
 import { getTimeDescription } from "../helpers";
 import Price from "./Price";
+import Select from "./Select";
 
-const Subscription = ({ price, currency, time, size = "md", decimals }) => {
+import { TIME_DESCRIPTION } from "../constants";
+
+const Subscription = ({
+  price,
+  currency,
+  time,
+  size = "md",
+  decimals,
+  isEditable,
+  onChange
+}) => {
   return (
     <>
       <div className="subscription">
-        <Price currency={currency} size={size} decimals={decimals}>
+        <Price
+          currency={currency}
+          size={size}
+          decimals={decimals}
+          isEditable={isEditable}
+          onChange={onChange}
+        >
           {price}
         </Price>
+
         <span className={`time ${size ? `size-${size}` : ""}`}>
-          {getTimeDescription(time)}
+          {isEditable ? (
+            <Select
+              id="time"
+              value={time}
+              onChange={onChange}
+              options={Object.entries(TIME_DESCRIPTION).map(
+                ([value, label]) => ({ label, value })
+              )}
+            />
+          ) : (
+            getTimeDescription(time)
+          )}
         </span>
       </div>
       <style jsx>{`

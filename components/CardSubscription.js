@@ -1,12 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 
 import CreditCardIcon from "./CreditCardIcon";
 import Subscription from "./Subscription";
 import Card from "./Card";
 import Tag from "./Tag";
+import Input from "./Input";
 
 import { DEFAULT_UNSPLASH_ID } from "../constants";
 import Icon from "./Icon";
+
+const FRONTSIDE = Symbol("frontside");
+const BACKSIDE = Symbol("backside");
+
+const CardSides = {
+  Frontside: FRONTSIDE,
+  Backside: BACKSIDE,
+};
+
+const getCardSidesString = (side) => {
+  if (side === CardSides.Frontside) {
+    return "frontside";
+  }
+
+  if (side === CardSides.Backside) {
+    return "backside";
+  }
+};
+
+const handleClick =
+  ({ side, setSide }) =>
+  () => {
+    if (side === CardSides.Frontside) {
+      setSide(CardSides.Backside);
+    }
+
+    if (side === CardSides.Backside) {
+      setSide(CardSides.Frontside);
+    }
+  };
 
 const CardSubscription = ({
   unsplashId = DEFAULT_UNSPLASH_ID,
@@ -17,10 +48,51 @@ const CardSubscription = ({
   time,
   creditCard,
   onRemove,
+  onUpdate,
+  onChange
 }) => {
+  const [side, setSide] = useState(CardSides.Frontside);
+
   return (
     <>
-      <Card>
+      <Card
+        height={310}
+        onClick={handleClick({ side, setSide })}
+        side={getCardSidesString(side)}
+        backsideContent={
+          <div className="backside-content">
+            <div
+              className="cover"
+              style={{
+                backgroundImage: `url(https://source.unsplash.com/${unsplashId})`,
+              }}
+            >
+              <div className="title">
+              <Input id="title" value={title} onChange={onChange} />
+              </div>
+              <div className="tags">
+                {tags.map((tag) => (
+                  <Tag key={tag}>{tag}</Tag>
+                ))}
+              </div>
+            </div>
+            <div className="content">
+              <Subscription
+                price={price}
+                currency={currency}
+                time={time}
+                onChange={onChange}
+                isEditable
+              />
+              <CreditCardIcon {...creditCard} isEditable onChange={onChange} />
+            </div>
+            <button onClick={onUpdate}>Update</button>
+            <div className="remove">
+              <Icon name="cross" onClick={onRemove} size="sm" />
+            </div>
+          </div>
+        }
+      >
         <div
           className="cover"
           style={{
@@ -32,9 +104,6 @@ const CardSubscription = ({
             {tags.map((tag) => (
               <Tag key={tag}>{tag}</Tag>
             ))}
-          </div>
-          <div className="remove">
-            <Icon name="cross" onClick={onRemove} size="sm" />
           </div>
         </div>
         <div className="content">
@@ -97,6 +166,10 @@ const CardSubscription = ({
           flex-direction: column;
           padding: 20px;
           gap: 10px;
+        }
+
+        .backside-content {
+          position: relative;
         }
 
         .remove {

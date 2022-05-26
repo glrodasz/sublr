@@ -26,14 +26,22 @@ import Autocomplete from "../components/Autocomplete";
 import useSubscriptions from "../hooks/useSubscriptions";
 
 export default function Home() {
+  // Filters
   const [time, setTime] = useState("YEARLY");
   const [currency, setCurrency] = useState("USD");
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
   const [tags, setTags] = useState("");
+
+  // CRUD
+  const { subscriptions, remove, update } = useSubscriptions();
+
   const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
-  const { subscriptions, remove } = useSubscriptions();
+  const [currentSubscription, setCurrentSubscription] = useState({});
+
+  // Dialogs
   const deleteConfirmationDialogRef = useRef(null);
+  const updateConfirmationDialogRef = useRef(null);
 
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
   const isMobile = useMedia(["(max-width: 799px)"], [true]);
@@ -244,20 +252,48 @@ export default function Home() {
                 return 0;
               })
               .map((subscription) => {
+                const mergedSubscription = {
+                  ...subscription,
+                  ...currentSubscription[subscription.id],
+                  creditCard: {
+                    type:
+                      currentSubscription[subscription.id]?.creditCardType ??
+                      subscription.creditCard.type,
+                    number:
+                      currentSubscription[subscription.id]?.creditCardNumber ??
+                      subscription.creditCard.number,
+                  },
+                };
+
                 return (
                   <CardSubscription
                     key={subscription.id}
-                    unsplashId={subscription.unsplashId}
-                    title={subscription.title}
-                    tags={subscription.tags}
-                    currency={subscription.currency}
-                    creditCard={subscription.creditCard}
-                    time={subscription.time}
-                    price={subscription.price.toFixed(2)}
-                    onRemove={() => {
+                    unsplashId={mergedSubscription.unsplashId}
+                    title={mergedSubscription.title}
+                    tags={mergedSubscription.tags}
+                    currency={mergedSubscription.currency}
+                    creditCard={mergedSubscription.creditCard}
+                    time={mergedSubscription.time}
+                    price={mergedSubscription.price}
+                    onRemove={(event) => {
+                      event.stopPropagation();
                       deleteConfirmationDialogRef.current.showModal();
                       setCurrentSubscriptionId(subscription.id);
                     }}
+                    onUpdate={(event) => {
+                      event.stopPropagation();
+                      updateConfirmationDialogRef.current.showModal();
+                      setCurrentSubscriptionId(subscription.id);
+                    }}
+                    onChange={({ id, value }) =>
+                      setCurrentSubscription({
+                        ...currentSubscription,
+                        [subscription.id]: {
+                          ...currentSubscription[subscription.id],
+                          ...{ [id]: value },
+                        },
+                      })
+                    }
                   />
                 );
               })}
@@ -267,6 +303,31 @@ export default function Home() {
               <p>Are you sure that you want to delete it?</p>
               <button>Cancel</button>
               <button onClick={() => remove(currentSubscriptionId)}>
+                Confirm
+              </button>
+            </form>
+          </dialog>
+          <dialog ref={updateConfirmationDialogRef}>
+            <form method="dialog">
+              <p>Are you sure that you want to update it?</p>
+              <button>Cancel</button>
+              <button
+                onClick={() =>
+                  update(currentSubscriptionId, {
+                    ...currentSubscription[currentSubscriptionId],
+                    ...{
+                      // FIXME: Only add if creditCardType or creditCardNumber exist
+                      creditCard: {
+                        type: currentSubscription[currentSubscriptionId]
+                          ?.creditCardType,
+                        number:
+                          currentSubscription[currentSubscriptionId]
+                            ?.creditCardNumber,
+                      },
+                    },
+                  })
+                }
+              >
                 Confirm
               </button>
             </form>

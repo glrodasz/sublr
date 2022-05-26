@@ -22,13 +22,12 @@ const Filter = ({
           children
         ) : (
           <div className="select-container">
-            <select onChange={(event) => setValue(event.currentTarget.value)}>
+            <select value={value} onChange={(event) => setValue(event.currentTarget.value)}>
               {options.map((option) => {
                 return (
                   <option
                     key={option.text}
                     value={option.value}
-                    selected={option.value === value}
                   >
                     {option.text}
                   </option>

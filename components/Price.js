@@ -1,24 +1,38 @@
 import React from "react";
+import Input from "./Input";
+import Select from "./Select";
 
-const LANG_PER_CURRENCY = {
-  USD: "en-US",
-  COP: "es-CO",
-  SEK: "en-SE",
-  EUR: "en-IE",
-};
+import { LANG_PER_CURRENCY } from "../constants";
 
-const Price = ({ children, currency, size, decimals = 2 }) => {
+const Price = ({ children, currency, size, decimals = 2, isEditable, onChange }) => {
+  const price = new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
+    style: "currency",
+    currency,
+    maximumFractionDigits: decimals,
+    minimumFractionDigits: 0,
+  }).format(Number(children).toFixed(2));
+
   return (
     <>
       <div className={`container ${size ? `size-${size}` : ""}`}>
         <span className="price">
-          {new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
-            style: "currency",
-            currency,
-            maximumFractionDigits: decimals,
-            minimumFractionDigits: 0,
-          }).format(children)}{" "}
-          <span className="currency">({currency})</span>
+          {isEditable ? <Input id="price" value={children} onChange={onChange} /> : price}{" "}
+          <span className="currency">
+            (
+            {isEditable ? (
+              <Select
+                id="currency"
+                value={currency}
+                onChange={onChange}
+                options={Object.keys(LANG_PER_CURRENCY).map((key) => ({
+                  value: key,
+                  label: key,
+                }))}
+              />
+            ) : (
+              currency
+            )})
+          </span>
         </span>
       </div>
       <style jsx>{`
@@ -53,7 +67,6 @@ const Price = ({ children, currency, size, decimals = 2 }) => {
             font-size: var(--font-size-md);
           }
         }
-
       `}</style>
     </>
   );

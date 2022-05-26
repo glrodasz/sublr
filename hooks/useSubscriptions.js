@@ -41,7 +41,7 @@ const useSubscriptions = () => {
   };
 
   const update = async (id, subscription) => {
-    return await setDoc(doc(db, COLLECTION_NAME, id), subscription);
+    return await setDoc(doc(db, COLLECTION_NAME, id), subscription, { merge: true });
   };
 
   return { subscriptions, create, remove, update };

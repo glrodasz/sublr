@@ -11,6 +11,14 @@ export const TIME_ATTRIBUTE = {
 };
 
 export const CREDIT_CARD_TYPES = {
-  VISA: "VISA",
   MASTERCARD: "MasterCard",
+  VISA: "VISA",
+};
+
+
+export const LANG_PER_CURRENCY = {
+  USD: "en-US",
+  COP: "es-CO",
+  SEK: "en-SE",
+  EUR: "en-IE",
 };
