@@ -3,11 +3,11 @@ import Icon from "./Icon";
 import Select from "./Select";
 import Input from "./Input";
 
-import { getCreditCardType } from "../helpers";
 import { CREDIT_CARD_TYPES } from "../constants";
+import { getCreditCardIconName } from "../helpers";
 
 const CreditCardIcon = ({ type, number, setValue, isEditable, onChange }) => {
-  const iconName = getCreditCardType(type).toLowerCase();
+  const iconName = getCreditCardIconName(type);
 
   return (
     <>

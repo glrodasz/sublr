@@ -8,7 +8,7 @@ import CreditCard from "../components/CreditCard";
 import Filter from "../components/Filter";
 
 import { CREDIT_CARD_TYPES } from "../constants";
-
+import { getCreditCardType } from "../helpers";
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 
@@ -104,6 +104,7 @@ export default function Home() {
                 src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`}
               ></img>
             </figure>
+            <div className="filters">
             <Filter
               label="Sort by"
               value={sortBy}
@@ -118,8 +119,7 @@ export default function Home() {
             <Filter
               label="Currency"
               value={currency}
-              icon={"coin"}
-              showIcon={isMobile}
+              hideLabel={isMobile}
               setValue={setCurrency}
               options={[
                 { label: "USD", value: "USD" },
@@ -131,8 +131,7 @@ export default function Home() {
             <Filter
               label="Time"
               value={time}
-              icon={"time"}
-              showIcon={isMobile}
+              hideLabel={isMobile}
               setValue={setTime}
               options={[
                 { label: "Yearly", value: "YEARLY" },
@@ -161,6 +160,7 @@ export default function Home() {
                 setValues={setTags}
               />
             </Filter>
+            </div>
           </section>
         </div>
       </nav>
@@ -362,8 +362,8 @@ export default function Home() {
 
         .row {
           flex-direction: row;
-          flex-wrap: wrap;
-          gap: 20px 30px;
+          align-items: center;
+          gap: 10px 50px;
         }
 
         .evenly {
@@ -398,6 +398,13 @@ export default function Home() {
             0 -4px -6px 4px rgb(0 0 0 / 0.1);
         }
 
+        .filters {
+          display: flex;
+          width: 100%;
+          gap: 15px 20px;
+          flex-wrap: wrap;
+        }
+
         @media only screen and (min-width: 800px) {
           .container {
             max-width: 900px;
@@ -410,7 +417,7 @@ export default function Home() {
 
         @media only screen and (min-width: 1000px) {
           .container {
-            max-width: 1310px;
+            max-width: 1410px;
           }
 
           .cards-container {

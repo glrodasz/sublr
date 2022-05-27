@@ -109,14 +109,14 @@ const Autocomplete = ({ options, values, setValues }) => {
             display: inline-flex;
             flex-wrap: wrap;
             gap: 4px;
-            height: 28px;
+            height: var(--input-height);
             align-items: center;
             min-width: 200px;
             background: white;
             border: 1px solid white;
             outline: 1px auto white;
             border-radius: 4px;
-            padding: 0 5px;
+            padding: 0 8px;
           }
 
           .container:focus-within {
@@ -127,7 +127,7 @@ const Autocomplete = ({ options, values, setValues }) => {
             height: 100%;
             width: auto;
             border: none;
-            padding: 0 8px;
+            padding: 0;
             font-size: 16px;
             width: ${!values?.length ? "100%" : "100px"};
             outline: none;
@@ -196,14 +196,14 @@ const Autocomplete = ({ options, values, setValues }) => {
           background: #fff;
           border-radius: 4px;
           padding: 0 8px;
-          min-width: 180px;
           color: #2d0612;
-          height: 28px;
+          height: var(--input-height);
           font-size: 16px;
           border: 1px solid white;
           outline: 1px auto white;
           min-width: 200px;
-          max-width: 400px;
+          max-width: 500px;
+          padding-right: ${!!values.length ? '108px' : "8px"}
         }
       `}</style>
     </>

@@ -1,11 +1,9 @@
 import React from "react";
-import Icon from "./Icon";
 
 const Filter = ({
   label,
   options,
-  icon,
-  showIcon,
+  hideLabel,
   value,
   setValue,
   isHiddenInMobile,
@@ -16,19 +14,19 @@ const Filter = ({
       <div
         className={`filter ${isHiddenInMobile ? "is-hidden-in-mobile" : ""}`}
       >
-        {showIcon ? <Icon name={icon} size="sm" /> : <label>{label}</label>}
+        {!hideLabel && <label>{label}</label>}
 
         {children ? (
           children
         ) : (
           <div className="select-container">
-            <select value={value} onChange={(event) => setValue(event.currentTarget.value)}>
+            <select
+              value={value}
+              onChange={(event) => setValue(event.currentTarget.value)}
+            >
               {options.map((option) => {
                 return (
-                  <option
-                    key={option.label}
-                    value={option.value}
-                  >
+                  <option key={option.label} value={option.value}>
                     {option.label}
                   </option>
                 );
@@ -70,7 +68,7 @@ const Filter = ({
         .select-container::after {
           position: absolute;
           inset: 0;
-          top: 2px;
+          top: 7px;
           left: auto;
           right: 5px;
           content: "▼";

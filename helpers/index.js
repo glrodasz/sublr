@@ -7,3 +7,4 @@ export { getSummaryTotal } from "./getSummaryTotal";
 export { getTimeDescription } from "./getTimeDescription";
 export { getUsdPrice } from "./getUsdPrice";
 export { shouldUpdateSubscriptionPrice } from "./shouldUpdateSubscriptionPrice";
+export { getCreditCardIconName } from "./getCreditCardIconName";
