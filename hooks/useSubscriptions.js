@@ -6,8 +6,10 @@ import {
   query,
   setDoc,
   doc,
+  where
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
+import { signInWithCustomToken } from 'firebase/auth'
 import { useState, useEffect } from "react";
 
 const COLLECTION_NAME = "subscriptions";
@@ -18,8 +20,13 @@ const useSubscriptions = () => {
   useEffect(() => {
     let unsubscribe;
 
+    // TODO: Add try catch to handle errors
     async function getSubscritions() {
-      const queryCollection = await query(collection(db, COLLECTION_NAME));
+      const { firebaseToken } = await fetch("/api/firebase").then((data) =>
+        data.json()
+      );
+      const userCredentials = await signInWithCustomToken(auth, firebaseToken);
+      const queryCollection = await query(collection(db, COLLECTION_NAME), where("userId", "==", userCredentials.user.uid));
       unsubscribe = onSnapshot(queryCollection, (querySnapshot) => {
         setSubscriptions(
           querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
@@ -41,7 +48,9 @@ const useSubscriptions = () => {
   };
 
   const update = async (id, subscription) => {
-    return await setDoc(doc(db, COLLECTION_NAME, id), subscription, { merge: true });
+    return await setDoc(doc(db, COLLECTION_NAME, id), subscription, {
+      merge: true,
+    });
   };
 
   return { subscriptions, create, remove, update };

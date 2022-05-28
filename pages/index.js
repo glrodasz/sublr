@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -8,9 +8,11 @@ import CreditCard from "../components/CreditCard";
 import Filter from "../components/Filter";
 
 import { CREDIT_CARD_TYPES } from "../constants";
-import { getCreditCardType } from "../helpers";
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
+import { useUser } from "@auth0/nextjs-auth0";
+import { auth } from "../firebase";
+import { signInWithCustomToken } from "firebase/auth";
 
 // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
 import useMedia from "../hooks/useMedia";
@@ -26,6 +28,7 @@ import {
   shouldUpdateSubscriptionPrice,
 } from "../helpers";
 
+
 export default function Home() {
   // TODO: Refactor to a custom hook called useFilters and use an
   // object to map the filters
@@ -34,6 +37,9 @@ export default function Home() {
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
   const [tags, setTags] = useState("");
+
+  // User
+  const { user, error: userError, loading: userLoading } = useUser();
 
   // CRUD
   const { subscriptions, remove, update } = useSubscriptions();
@@ -105,62 +111,72 @@ export default function Home() {
               ></img>
             </figure>
             <div className="filters">
-            <Filter
-              label="Sort by"
-              value={sortBy}
-              setValue={setSortBy}
-              options={[
-                { label: "Price", value: "PRICE" },
-                { label: "Name", value: "NAME" },
-                { label: "Card", value: "CARD" },
-              ]}
-              isHiddenInMobile
-            />
-            <Filter
-              label="Currency"
-              value={currency}
-              hideLabel={isMobile}
-              setValue={setCurrency}
-              options={[
-                { label: "USD", value: "USD" },
-                { label: "COP", value: "COP" },
-                { label: "EUR", value: "EUR" },
-                { label: "SEK", value: "SEK" },
-              ]}
-            />
-            <Filter
-              label="Time"
-              value={time}
-              hideLabel={isMobile}
-              setValue={setTime}
-              options={[
-                { label: "Yearly", value: "YEARLY" },
-                { label: "Monthly", value: "MONTHLY" },
-              ]}
-            />
-            <Filter
-              label="Cards"
-              value={card}
-              setValue={setCard}
-              options={[
-                { label: "All", value: "" },
-                ...cards.map((card) => ({
-                  label: `${card.split("_")[1]} (${
-                    CREDIT_CARD_TYPES[card.split("_")[0]]
-                  })`,
-                  value: card,
-                })),
-              ]}
-              isHiddenInMobile
-            />
-            <Filter label="Tags" isHiddenInMobile>
-              <Autocomplete
-                options={tagOptions}
-                values={tags}
-                setValues={setTags}
+              {/* TODO: show only in Desktop */}
+              <Filter
+                label="Sort by"
+                value={sortBy}
+                setValue={setSortBy}
+                options={[
+                  { label: "Price", value: "PRICE" },
+                  { label: "Name", value: "NAME" },
+                  { label: "Card", value: "CARD" },
+                ]}
+                isHiddenInMobile
               />
-            </Filter>
+              <Filter
+                label="Currency"
+                value={currency}
+                hideLabel={isMobile}
+                setValue={setCurrency}
+                options={[
+                  { label: "USD", value: "USD" },
+                  { label: "COP", value: "COP" },
+                  { label: "EUR", value: "EUR" },
+                  { label: "SEK", value: "SEK" },
+                ]}
+              />
+              <Filter
+                label="Time"
+                value={time}
+                hideLabel={isMobile}
+                setValue={setTime}
+                options={[
+                  { label: "Yearly", value: "YEARLY" },
+                  { label: "Monthly", value: "MONTHLY" },
+                ]}
+              />
+
+              {/* TODO: show only in Desktop */}
+              <Filter
+                label="Cards"
+                value={card}
+                setValue={setCard}
+                options={[
+                  { label: "All", value: "" },
+                  ...cards.map((card) => ({
+                    label: `${card.split("_")[1]} (${
+                      CREDIT_CARD_TYPES[card.split("_")[0]]
+                    })`,
+                    value: card,
+                  })),
+                ]}
+                isHiddenInMobile
+              />
+
+              {/* TODO: show only in Desktop */}
+              <Filter label="Tags" isHiddenInMobile>
+                <Autocomplete
+                  options={tagOptions}
+                  values={tags}
+                  setValues={setTags}
+                />
+              </Filter>
             </div>
+            {user && (
+              <div className="avatar">
+                <img src={user.picture} />
+              </div>
+            )}
           </section>
         </div>
       </nav>
@@ -405,6 +421,18 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
+        .avatar {
+          display: inline-flex;
+          width: 50px;
+          border-radius: 50%;
+          border: 2px solid white;
+        }
+
+        .avatar > img {
+          width: 100%;
+          border-radius: 50%;
+        }
+
         @media only screen and (min-width: 800px) {
           .container {
             max-width: 900px;
@@ -417,7 +445,7 @@ export default function Home() {
 
         @media only screen and (min-width: 1000px) {
           .container {
-            max-width: 1410px;
+            max-width: 1440px;
           }
 
           .cards-container {
