@@ -1,5 +1,6 @@
 import Head from "next/head";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import { withPageAuthRequired } from '@auth0/nextjs-auth0';
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -11,8 +12,6 @@ import { CREDIT_CARD_TYPES } from "../constants";
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
 import { useUser } from "@auth0/nextjs-auth0";
-import { auth } from "../firebase";
-import { signInWithCustomToken } from "firebase/auth";
 
 // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
 import useMedia from "../hooks/useMedia";
@@ -27,7 +26,9 @@ import {
   getUsdPrice,
   shouldUpdateSubscriptionPrice,
 } from "../helpers";
+import CardPlaceholder from "../components/CardPlaceholder";
 
+export const getServerSideProps = withPageAuthRequired();
 
 export default function Home() {
   // TODO: Refactor to a custom hook called useFilters and use an
@@ -42,7 +43,7 @@ export default function Home() {
   const { user, error: userError, loading: userLoading } = useUser();
 
   // CRUD
-  const { subscriptions, remove, update } = useSubscriptions();
+  const { subscriptions, create, remove, update } = useSubscriptions();
 
   // Temporal states
   const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
@@ -78,7 +79,7 @@ export default function Home() {
   ];
 
   // TODO: Move this to the body and create the component pattern Loading/Children
-  if (!subscriptions?.length) {
+  if (subscriptions == null) {
     return "Loading...";
   }
 
@@ -181,42 +182,46 @@ export default function Home() {
         </div>
       </nav>
       <main className="container">
-        <section className="row">
-          {(isDesktop || time === "MONTHLY") && (
-            <article>
-              <Subtitle>Total Monthly</Subtitle>
-              <Price currency={currency} decimals={0} size="lg">
-                {summaryTotal.monthly}
-              </Price>
-            </article>
-          )}
-          {(isDesktop || time === "YEARLY") && (
-            <article>
-              <Subtitle>Total Yearly</Subtitle>
-              <Price currency={currency} decimals={0} size="lg">
-                {summaryTotal.yearly}
-              </Price>
-            </article>
-          )}
-        </section>
+        {subscriptions.length >= 1 && (
+          <section className="row">
+            {(isDesktop || time === "MONTHLY") && (
+              <article>
+                <Subtitle>Total Monthly</Subtitle>
+                <Price currency={currency} decimals={0} size="lg">
+                  {summaryTotal.monthly}
+                </Price>
+              </article>
+            )}
+            {(isDesktop || time === "YEARLY") && (
+              <article>
+                <Subtitle>Total Yearly</Subtitle>
+                <Price currency={currency} decimals={0} size="lg">
+                  {summaryTotal.yearly}
+                </Price>
+              </article>
+            )}
+          </section>
+        )}
 
-        <section>
-          <Subtitle>Cards {time}</Subtitle>
-          <div className="cards-container">
-            {summaryData.map((data) => {
-              return (
-                <CreditCard
-                  key={data.key}
-                  number={data.creditCard.number}
-                  type={data.creditCard.type}
-                  currency={data[TIME_ATTRIBUTE[time]].currency}
-                  price={data[TIME_ATTRIBUTE[time]].price}
-                  decimals={0}
-                />
-              );
-            })}
-          </div>
-        </section>
+        {subscriptions.length >=1 && (
+          <section>
+            <Subtitle>Cards {time}</Subtitle>
+            <div className="cards-container">
+              {summaryData.map((data) => {
+                return (
+                  <CreditCard
+                    key={data.key}
+                    number={data.creditCard.number}
+                    type={data.creditCard.type}
+                    currency={data[TIME_ATTRIBUTE[time]].currency}
+                    price={data[TIME_ATTRIBUTE[time]].price}
+                    decimals={0}
+                  />
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <section>
           <Subtitle>Subscriptions</Subtitle>
@@ -296,7 +301,6 @@ export default function Home() {
                       updateConfirmationDialogRef.current.showModal();
                       setCurrentSubscriptionId(subscription.id);
                     }}
-                    onRefresh={() => {}}
                     onChange={({ id, value }) =>
                       setChangedSubscriptions({
                         ...changedSubscriptions,
@@ -309,6 +313,24 @@ export default function Home() {
                   />
                 );
               })}
+            <CardPlaceholder
+              text="Add new subscription"
+              onClick={() => {
+                create({
+                  unsplashId: "wn7dOzUh3Rs",
+                  title: "",
+                  tags: [],
+                  price: 0,
+                  currency: "USD",
+                  time: "",
+                  creditCard: {
+                    type: "MASTERCARD",
+                    number: 0,
+                  },
+                  userId: user.sub,
+                });
+              }}
+            />
           </div>
           <dialog ref={deleteConfirmationDialogRef}>
             <form method="dialog">

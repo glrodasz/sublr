@@ -32,3 +32,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## Firebase Rules
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /subscriptions/{sub} {
+	  allow read: if request.auth.uid == resource.data.userId
+      allow write: if request.auth.uid == request.resource.data.userId
+      allow delete: if request.auth.uid == resource.data.userId
+    }
+  }
+}
+```

@@ -30,6 +30,7 @@ const CreditCardIcon = ({ type, number, setValue, isEditable, onChange }) => {
               id="creditCardNumber"
               type="number"
               value={number}
+              maxLength={4}
               onChange={onChange}
             />
           ) : (

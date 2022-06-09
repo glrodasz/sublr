@@ -8,6 +8,7 @@ import Input from "./Input";
 
 import { DEFAULT_UNSPLASH_ID } from "../constants";
 import Icon from "./Icon";
+import BacksideCardSubscription from "./BacksideCardSubscription";
 
 const FRONTSIDE = Symbol("frontside");
 const BACKSIDE = Symbol("backside");
@@ -68,44 +69,19 @@ const CardSubscription = ({
         onClick={handleClick({ side, setSide })}
         side={getCardSidesString(side)}
         backsideContent={
-          <div className="backside-content">
-            <div
-              className="cover"
-              style={{
-                backgroundImage: `url(https://source.unsplash.com/${unsplashId})`,
-              }}
-            >
-              <div className="title">
-                <Input id="title" value={title} onChange={onChange} />
-              </div>
-              <div className="tags">
-                {tags.map((tag) => (
-                  <Tag key={tag}>{tag}</Tag>
-                ))}
-              </div>
-            </div>
-            <div className="content">
-              <Subscription
-                price={price}
-                currency={currency}
-                time={time}
-                onChange={onChange}
-                isEditable
-              />
-              <CreditCardIcon {...creditCard} isEditable onChange={onChange} />
-            </div>
-            <div className="actions">
-              <div className="circle-button update" onClick={onUpdate}>
-                <Icon name="check" size="lg" />
-              </div>
-              <div className="circle-button refresh" onClick={onRefresh}>
-                <Icon name="refresh" size="lg" />
-              </div>
-              <div className="circle-button cancel" onClick={onRemove}>
-                <Icon name="trash" size="lg" />
-              </div>
-            </div>
-          </div>
+          <BacksideCardSubscription
+            unsplashId={unsplashId}
+            title={title}
+            tags={tags}
+            price={price}
+            currency={currency}
+            time={time}
+            creditCard={creditCard}
+            onChange={onChange}
+            onRemove={onRemove}
+            onUpdate={onUpdate}
+            onRefresh={onRefresh}
+          />
         }
       >
         <div
@@ -181,45 +157,6 @@ const CardSubscription = ({
           flex-direction: column;
           padding: 20px;
           gap: 10px;
-        }
-
-        .backside-content {
-          position: relative;
-        }
-
-        .actions {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .circle-button {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 28px;
-          height: 28px;
-          padding: 5px;
-          border-radius: 50%;
-          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-            0 4px 6px -4px rgb(0 0 0 / 0.1);
-          cursor: pointer;
-        }
-
-        .circle-button.update {
-          background: #bbf7d0;
-        }
-
-        .circle-button.refresh {
-          background: #fff;
-        }
-
-        .circle-button.cancel {
-          background: #fecaca;
         }
       `}</style>
     </>

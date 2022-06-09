@@ -1,5 +1,13 @@
 import React from "react";
 
+const classNames = (obj) => {
+  const classes = Object.entries(obj)
+    .filter((entry) => Boolean(entry[1]))
+    .map((entry) => entry[0]);
+
+  return classes.join(" ");
+};
+
 const Card = ({
   children,
   height,
@@ -12,9 +20,12 @@ const Card = ({
     <>
       <div
         onClick={onClick}
-        className={`card ${backsideContent ? "flipping" : ""} ${
-          side ? side : ""
-        }${isInline ? "is-inline" : ""}`}
+        className={`card ${classNames({
+          "flipping": backsideContent,
+          "is-inline": isInline,
+          "is-clickable": onClick,
+          [side]: side
+        })}`}
       >
         <div className={`frontside-content`}>{children}</div>
         {backsideContent && (

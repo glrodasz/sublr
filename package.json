@@ -23,6 +23,7 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.1.1",
+    "dotenv": "^16.0.1",
     "eslint": "8.10.0",
     "eslint-config-next": "12.1.0",
     "jest": "^27.5.1"
