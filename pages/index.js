@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useState, useRef } from "react";
-import { withPageAuthRequired } from '@auth0/nextjs-auth0';
+import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -87,21 +87,6 @@ export default function Home() {
     <>
       <Head>
         <title>Sublr</title>
-        <meta
-          name="description"
-          content="Keep your subscriptions summary in one place"
-        />
-        <link rel="icon" href="/favicon.ico" />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/jgthms/minireset.css@master/minireset.min.css"
-        ></link>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Kanit:wght@600&family=Open+Sans:wght@500&display=swap"
-          rel="stylesheet"
-        />
       </Head>
       <nav>
         <div className="container">
@@ -203,7 +188,7 @@ export default function Home() {
           </section>
         )}
 
-        {subscriptions.length >=1 && (
+        {subscriptions.length >= 1 && (
           <section>
             <Subtitle>Cards {time}</Subtitle>
             <div className="cards-container">
