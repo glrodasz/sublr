@@ -291,7 +291,7 @@ export default function Home() {
                         ...changedSubscriptions,
                         [subscription.id]: {
                           ...changedSubscriptions[subscription.id],
-                          ...{ [id]: value },
+                          ...{ [id]: value.slice(-4) },
                         },
                       })
                     }
