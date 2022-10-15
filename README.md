@@ -66,4 +66,15 @@ service cloud.firestore {
 ```
 ## Preview
 
+You can see the login page given or login using github.
+![Log-in-Sublr-Web (1)](https://user-images.githubusercontent.com/107571990/195987207-b9f69fd7-596a-494b-b542-50e1c2fb802c.png)
+
+You can add your expenses and track it.
+![Sublr (3)](https://user-images.githubusercontent.com/107571990/195987233-d0712ca4-66a5-4379-986e-d46bf0dbf1b0.png)
+
+You can add your catagories and change and markdown your expenses. 
+<img width="1113" alt="sublr 1" src="https://user-images.githubusercontent.com/107571990/195987142-5095d421-f77e-4daf-9530-556458183e15.png">
+
+
+
 
