@@ -27,6 +27,7 @@ import {
   shouldUpdateSubscriptionPrice,
 } from "../helpers";
 import CardPlaceholder from "../components/CardPlaceholder";
+import HomeSkeleton from "../components/HomeSkeleton";
 
 export const getServerSideProps = withPageAuthRequired();
 
@@ -43,7 +44,8 @@ export default function Home() {
   const { user, error: userError, loading: userLoading } = useUser();
 
   // CRUD
-  const { subscriptions, create, remove, update } = useSubscriptions();
+  const { subscriptions, create, remove, update, finishedFirstFetch } =
+    useSubscriptions();
 
   // Temporal states
   const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
@@ -79,8 +81,8 @@ export default function Home() {
   ];
 
   // TODO: Move this to the body and create the component pattern Loading/Children
-  if (subscriptions == null) {
-    return "Loading...";
+  if (!finishedFirstFetch || false) {
+    return <HomeSkeleton />;
   }
 
   return (
