@@ -81,7 +81,7 @@ export default function Home() {
   ];
 
   // TODO: Move this to the body and create the component pattern Loading/Children
-  if (!finishedFirstFetch || false) {
+  if (!finishedFirstFetch) {
     return <HomeSkeleton />;
   }
 
