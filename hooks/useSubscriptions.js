@@ -6,16 +6,17 @@ import {
   query,
   setDoc,
   doc,
-  where
+  where,
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
-import { signInWithCustomToken } from 'firebase/auth'
+import { signInWithCustomToken } from "firebase/auth";
 import { useState, useEffect } from "react";
 
 const COLLECTION_NAME = "subscriptions";
 
 const useSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState([]);
+  const [finishedFirstFetch, setFinishedFirstFetch] = useState(false);
 
   useEffect(() => {
     let unsubscribe;
@@ -26,11 +27,16 @@ const useSubscriptions = () => {
         data.json()
       );
       const userCredentials = await signInWithCustomToken(auth, firebaseToken);
-      const queryCollection = await query(collection(db, COLLECTION_NAME), where("userId", "==", userCredentials.user.uid));
+      const queryCollection = await query(
+        collection(db, COLLECTION_NAME),
+        where("userId", "==", userCredentials.user.uid)
+      );
+
       unsubscribe = onSnapshot(queryCollection, (querySnapshot) => {
         setSubscriptions(
           querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
         );
+        setFinishedFirstFetch(true);
       });
     }
 
@@ -53,7 +59,7 @@ const useSubscriptions = () => {
     });
   };
 
-  return { subscriptions, create, remove, update };
+  return { subscriptions, create, remove, update, finishedFirstFetch };
 };
 
 export default useSubscriptions;
