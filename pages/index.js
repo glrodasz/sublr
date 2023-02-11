@@ -288,15 +288,20 @@ export default function Home() {
                       updateConfirmationDialogRef.current.showModal();
                       setCurrentSubscriptionId(subscription.id);
                     }}
-                    onChange={({ id, value }) =>
+                    onChange={({ id, value }) => {
+                      const newValue =
+                        id === "creditCardNumber" ? value.slice(-4) : value;
+
                       setChangedSubscriptions({
                         ...changedSubscriptions,
                         [subscription.id]: {
                           ...changedSubscriptions[subscription.id],
-                          ...{ [id]: value.slice(-4) },
+                          ...{
+                            [id]: newValue,
+                          },
                         },
-                      })
-                    }
+                      });
+                    }}
                   />
                 );
               })}
