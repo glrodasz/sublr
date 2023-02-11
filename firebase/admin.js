@@ -1,9 +1,14 @@
 const admin = require("firebase-admin");
-const serviceAccount = require("./serviceAccountKey.json");
 
 if (!admin.apps.length) {
+  let serviceAccountKey = fs.readFileSync("./serviceAccountKey.dev.json")
+
+  if(process.env.NODE_ENV === 'production') {
+    serviceAccountKey = fs.readFileSync("./serviceAccountKey.prod.json")
+  }
+  
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert(serviceAccountKey),
     databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`,
   });
 }
