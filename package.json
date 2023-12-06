@@ -2,6 +2,9 @@
   "name": "sublr",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "seed": "node scripts/firebase/firestoreSeed.js",
     "dev": "next dev",
