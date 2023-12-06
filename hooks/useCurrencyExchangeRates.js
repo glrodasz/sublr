@@ -3,10 +3,6 @@ import { useEffect, useState } from "react";
 const request = (url, options) =>
   fetch(url, options).then((data) => data.json());
 
-const RATES_FROM_USD = ["COP", "SEK", "EUR"];
-
-const getExchangeRatesApiUrl = (rates) =>
-  `https://api.exchangerate.host/latest?symbols=${rates.join(",")}&base=USD`;
 
 const getRatesFromSessionStorage = () => {
   try {
@@ -24,9 +20,9 @@ const useCurrencyExchangeRates = () => {
   useEffect(() => {
     async function requestExchange() {
       try {
-        const data = await request(getExchangeRatesApiUrl(RATES_FROM_USD));
+        const data = await request("api/currencies");
 
-        setRates({ ...data.rates });
+        setRates(data);
       } catch (erorr) {
         console.error(error);
       }
