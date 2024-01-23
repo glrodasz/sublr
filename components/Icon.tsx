@@ -1,4 +1,5 @@
 import React from "react";
+import Image from 'next/image'
 
 const iconSizesMap = {
   "xs" : 13,
@@ -7,11 +8,20 @@ const iconSizesMap = {
   "lg": 45,
 }
 
-const Icon = ({ name, onClick, size = "md" }) => {
+interface IconProps {
+  name: string;
+  onClick?: () => void;
+  size?: keyof typeof iconSizesMap;
+}
+
+const Icon: React.FC<IconProps> = ({ name, onClick, size = "md" }) => {
   return (
     <>
       <span className="icon" onClick={onClick}>
-        <img src={`/icons/${name}.svg`} />
+        <Image
+          src={`/icons/${name}.svg`}
+          alt={name}
+        />
       </span>
       <style jsx>{`
         .icon {

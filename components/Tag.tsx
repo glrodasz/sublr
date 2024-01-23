@@ -1,13 +1,18 @@
 import React from "react";
 import Icon from "./Icon";
 
-const Tag = ({ children, onClose, isLowerCase }) => (
+interface TagProps {
+  children: React.ReactNode;
+  onClose?: () => void;
+  isLowerCase?: boolean;
+}
+
+const Tag: React.FC<TagProps> = ({ children, onClose, isLowerCase = false }) => (
   <>
     <div className="tag">
       <span>{children}</span>
       {onClose && (
         <Icon name="cross" onClick={onClose} size="xs">
-          X
         </Icon>
       )}
     </div>
