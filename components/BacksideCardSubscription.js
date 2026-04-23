@@ -159,15 +159,23 @@ const BacksideCardSubscription = ({
         }
 
         .circle-button.update {
-          background: #bbf7d0;
+          background: var(--accent, #7cffb2);
+          color: #0a0a0f;
         }
 
         .circle-button.refresh {
-          background: #fff;
+          background: var(--bg-2, #1c1c26);
+          border: 1px solid var(--line, #2a2a38);
         }
 
         .circle-button.cancel {
-          background: #fecaca;
+          background: color-mix(in srgb, var(--accent-hot, #ff3d68) 25%, transparent);
+          border: 1px solid var(--accent-hot, #ff3d68);
+        }
+
+        :global(input),
+        :global(select) {
+          max-width: 100%;
         }
       `}</style>
     </>

@@ -4,10 +4,17 @@ import Select from "./Select";
 
 import { LANG_PER_CURRENCY } from "../constants";
 
+const sizeClass = {
+  sm: "size-sm",
+  md: "size-md",
+  lg: "size-lg",
+  xl: "size-xl",
+};
+
 const Price = ({
   children,
   currency,
-  size,
+  size = "md",
   decimals = 2,
   isEditable,
   onChange,
@@ -23,65 +30,96 @@ const Price = ({
     <>
       <div
         className={`container ${isEditable ? "is-editable" : ""} ${
-          size ? `size-${size}` : ""
+          size ? sizeClass[size] || "" : ""
         }`}
       >
-        <span className="price">
+        <span className="amount mono tabular-nums">
           {isEditable ? (
-            <Input id="price" value={children} onChange={onChange} />
+            <Input id="price" value={children} onChange={onChange} className="mono" />
           ) : (
             price
-          )}{" "}
-          <span className="currency">
-            (
-            {isEditable ? (
-              <Select
-                id="currency"
-                value={currency}
-                onChange={onChange}
-                options={Object.keys(LANG_PER_CURRENCY).map((key) => ({
-                  value: key,
-                  label: key,
-                }))}
-              />
-            ) : (
-              currency
-            )}
-            )
-          </span>
+          )}
+        </span>
+        <span className="currency-pill" aria-label={`Currency ${currency}`}>
+          {isEditable ? (
+            <Select
+              id="currency"
+              value={currency}
+              onChange={onChange}
+              options={Object.keys(LANG_PER_CURRENCY).map((key) => ({
+                value: key,
+                label: key,
+              }))}
+            />
+          ) : (
+            <span className="currency-code">{currency}</span>
+          )}
         </span>
       </div>
       <style jsx>{`
-        .price {
+        .container {
           display: inline-flex;
+          flex-wrap: wrap;
           align-items: center;
-          color: #2d0612;
-          font-weight: bold;
-          gap: 10px;
-          white-space: nowrap;
-          width: 100%;
+          gap: 10px 12px;
+          max-width: 100%;
         }
 
-        .currency {
-          display: inline-flex;
-          align-items: center;
-          color: #b87a85;
+        .amount {
+          color: var(--fg-0, #f5f5fa);
+          font-weight: 600;
+          white-space: nowrap;
         }
 
         .container.is-editable {
           width: 100%;
         }
 
+        .container.is-editable .amount {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .currency-pill {
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .currency-code {
+          display: inline-flex;
+          align-items: center;
+          padding: 4px 10px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          font-family: var(--font-mono, ui-monospace, monospace);
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--fg-0, #f5f5fa);
+          border: 1px solid var(--line-strong, #3a3a4d);
+          border-radius: 999px;
+          background: var(--bg-2, #1c1c26);
+        }
+
+        :global(.is-editable) .currency-pill :global(select) {
+          min-width: 88px;
+        }
+
         .size-sm {
-          font-size: 22px;
+          font-size: 1.125rem;
         }
 
         .size-md {
-          font-size: 30px;
+          font-size: 1.5rem;
         }
 
         .size-lg {
-          font-size: 35px;
+          font-size: 2rem;
+        }
+
+        .size-xl {
+          font-size: clamp(2.75rem, 8vw, 5.5rem);
+          line-height: 1.05;
+          font-weight: 700;
         }
 
         @media only screen and (min-width: 1000px) {

@@ -3,7 +3,7 @@ import css from "styled-jsx/css";
 // POSSIBLE FEAT: REMOVE OR CHANGE ANIMATION BASED ON USER'S "prefers-reduced-motion" VALUE
 const skeletonStyles = css.global`
   .skeleton {
-    background: #d9d9d9;
+    background: var(--bg-2, #1c1c26);
     position: relative;
     overflow: hidden;
   }
@@ -19,24 +19,30 @@ const skeletonStyles = css.global`
     background-image: linear-gradient(
       to right,
       rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.15) 20%,
-      rgba(255, 255, 255, 0.2) 60%,
+      rgba(255, 255, 255, 0.04) 20%,
+      rgba(255, 255, 255, 0.1) 60%,
       rgba(255, 255, 255, 0)
     );
     animation: shimmer 1s infinite;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton::after {
+      animation: none;
+    }
+  }
+
   .skeleton.dark {
-    background: #5a5a5a;
+    background: var(--bg-3, #242433);
   }
 
   .skeleton.dark::after {
     background-image: linear-gradient(
       to right,
-      rgba(60, 60, 60, 0) 0%,
-      rgba(60, 60, 60, 0.15) 20%,
-      rgba(60, 60, 60, 0.2) 60%,
-      rgba(60, 60, 60, 0)
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.03) 20%,
+      rgba(255, 255, 255, 0.08) 60%,
+      rgba(255, 255, 255, 0)
     );
   }
 

@@ -9,10 +9,12 @@ const Input = ({
   onChange = noop,
   onBlur = noop,
   maxLength,
-  placeholder
+  placeholder,
+  className = "",
 }) => {
   return (
     <input
+      className={className}
       id={id}
       type={type}
       value={value}

@@ -1,10 +1,14 @@
 import React from "react";
 
-import { getTimeDescription } from "../helpers";
 import Price from "./Price";
 import Select from "./Select";
 
 import { TIME_DESCRIPTION } from "../constants";
+
+const PERIOD_PILL = {
+  MONTHLY: "mo",
+  YEARLY: "yr",
+};
 
 const Subscription = ({
   price,
@@ -13,11 +17,16 @@ const Subscription = ({
   size = "md",
   decimals,
   isEditable,
-  onChange
+  onChange,
+  periodVariant = "default",
 }) => {
   return (
     <>
-      <div className="subscription">
+      <div
+        className={`subscription ${
+          periodVariant === "compact" ? "is-compact" : ""
+        }`}
+      >
         <Price
           currency={currency}
           size={size}
@@ -28,7 +37,7 @@ const Subscription = ({
           {price}
         </Price>
 
-        <span className={`time ${size ? `size-${size}` : ""}`}>
+        <span className={`period-pill size-${size}`}>
           {isEditable ? (
             <Select
               id="time"
@@ -39,35 +48,48 @@ const Subscription = ({
               )}
             />
           ) : (
-            getTimeDescription(time)
+            <span className="period-label">{PERIOD_PILL[time] ?? time}</span>
           )}
         </span>
       </div>
       <style jsx>{`
         .subscription {
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
-          gap: 5px;
-          font-weight: bold;
+          gap: 8px 12px;
+          font-weight: 600;
         }
 
-        .time {
-          color: #b87a85;
+        .subscription.is-compact {
+          gap: 6px 10px;
         }
 
-        .size-sm {
-          font-size: 22px;
+        .period-pill {
+          display: inline-flex;
+          align-items: center;
         }
 
-        .size-md {
-          font-size: 30px;
+        .period-pill :global(select) {
+          min-width: 100px;
+          font-size: 0.8em;
         }
 
-        @media only screen and (min-width: 1000px) {
-          .size-md {
-            font-size: var(--font-size-md);
-          }
+        .period-label {
+          display: inline-flex;
+          align-items: center;
+          padding: 4px 10px;
+          font-size: 0.7em;
+          font-weight: 600;
+          font-family: var(--font-mono, ui-monospace, monospace);
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--fg-1, #b8b8c8);
+          border: 1px solid var(--line, #2a2a38);
+          border-radius: 999px;
+          background: var(--bg-2, #1c1c26);
         }
+
       `}</style>
     </>
   );
