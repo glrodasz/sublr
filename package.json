@@ -2,8 +2,9 @@
   "name": "sublr",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.15.9",
   "engines": {
-    "node": ">=18"
+    "node": ">=20 <25"
   },
   "scripts": {
     "seed": "node scripts/firebase/firestoreSeed.js",
@@ -13,22 +14,23 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "yarn jest --watch"
+    "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^1.9.0",
-    "firebase": "^9.8.1",
-    "firebase-admin": "^10.2.0",
-    "next": "12.1.0",
-    "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "@auth0/nextjs-auth0": "^3.5.0",
+    "firebase": "^10.14.1",
+    "firebase-admin": "^12.6.0",
+    "next": "^14.2.18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.1.1",
-    "dotenv": "^16.0.1",
-    "eslint": "8.10.0",
-    "eslint-config-next": "12.1.0",
-    "jest": "^27.5.1"
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^14.3.1",
+    "dotenv": "^16.4.5",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.18",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
   }
 }

@@ -5,9 +5,9 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
+nvm use   # uses .nvmrc (Node 24)
+pnpm install
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -40,7 +40,7 @@ This project uses Firebase Firestore as database and Auth0 as Auth provider so y
 1. Create a `.env.local` file into the root and copy the content of `.env.local.example` inside
 2. Create a firebase project at the [Firebase Website](https://firebase.google.com), go to project config, click "Add application" and add a web app.
 3. Take the credentials provided by firebase to your web app and copy them into `.env.local`
-4. In your firebase project config go to "Service accounts" and click "Generate new private key". It will download a json file, change it's name to `serviceAccountKey.json` and paste it in the project's root `/firebase` folder
+4. In your firebase project config go to "Service accounts" and click "Generate new private key". It will download a json file, change it's name to `serviceAccountKey.dev.json` and paste it in the project's root `/firebase` folder
 5. Go to [Auth0 website](https://auth0.com) and create and account if you don't have one or log in
 6. Create a web classic project and select Next JS as technology
 7. Copy your Auth0 application config from "Settings" and paste it in their respective variables inside the `.env.local` file

@@ -11,7 +11,7 @@ import Filter from "../components/Filter";
 import { CREDIT_CARD_TYPES } from "../constants";
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
-import { useUser } from "@auth0/nextjs-auth0";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
 import useMedia from "../hooks/useMedia";
@@ -41,7 +41,7 @@ export default function Home() {
   const [tags, setTags] = useState("");
 
   // User
-  const { user, error: userError, loading: userLoading } = useUser();
+  const { user, error: userError, isLoading: userLoading } = useUser();
 
   // CRUD
   const { subscriptions, create, remove, update, finishedFirstFetch } =
