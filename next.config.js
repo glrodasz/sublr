@@ -8,6 +8,11 @@ if (issuer) {
     : `https://${issuer}`;
 }
 
+// Derive AUTH0_BASE_URL from VERCEL_URL when not explicitly set (preview deployments).
+if (!process.env.AUTH0_BASE_URL && process.env.VERCEL_URL) {
+  process.env.AUTH0_BASE_URL = `https://${process.env.VERCEL_URL}`;
+}
+
 const nextConfig = {
   reactStrictMode: true,
 }
