@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useState, useRef, useMemo } from "react";
-import { withPageAuthRequired } from "@auth0/nextjs-auth0";
+import auth0 from "../lib/auth0";
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -29,7 +29,7 @@ import {
 import CardPlaceholder from "../components/CardPlaceholder";
 import HomeSkeleton from "../components/HomeSkeleton";
 
-export const getServerSideProps = withPageAuthRequired();
+export const getServerSideProps = auth0.withPageAuthRequired();
 
 export default function Home() {
   // TODO: Refactor to a custom hook called useFilters and use an
