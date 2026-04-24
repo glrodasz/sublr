@@ -8,7 +8,7 @@ import {
   doc,
   where,
 } from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { db, auth } from "../firebase/client";
 import { signInWithCustomToken } from "firebase/auth";
 import { useState, useEffect } from "react";
 
@@ -20,6 +20,7 @@ const useSubscriptions = () => {
 
   useEffect(() => {
     let unsubscribe;
+    let cancelled = false;
 
     // TODO: Add try catch to handle errors
     async function getSubscritions() {
@@ -27,10 +28,12 @@ const useSubscriptions = () => {
         data.json()
       );
       const userCredentials = await signInWithCustomToken(auth, firebaseToken);
-      const queryCollection = await query(
+      const queryCollection = query(
         collection(db, COLLECTION_NAME),
         where("userId", "==", userCredentials.user.uid)
       );
+
+      if (cancelled) return;
 
       unsubscribe = onSnapshot(queryCollection, (querySnapshot) => {
         setSubscriptions(
@@ -42,7 +45,10 @@ const useSubscriptions = () => {
 
     getSubscritions();
 
-    return () => unsubscribe();
+    return () => {
+      cancelled = true;
+      if (typeof unsubscribe === "function") unsubscribe();
+    };
   }, []);
 
   const create = async (subscription) => {

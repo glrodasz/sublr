@@ -12,8 +12,10 @@ const Autocomplete = ({ options, values, setValues }) => {
   const [query, setQuery] = useState("");
   const inputRef = useRef(null);
 
+  const valueList = Array.isArray(values) ? values : values ? [values] : [];
+
   const fileteredOptions = options
-    .filter((option) => !values.includes(option))
+    .filter((option) => !valueList.includes(option))
     .filter((option) => {
       if (query?.length) {
         return option.includes(query.toLocaleLowerCase());
@@ -30,8 +32,9 @@ const Autocomplete = ({ options, values, setValues }) => {
     return () => window.removeEventListener("click", closeOptions);
   }, []);
 
-  const hasValues = !!values.length;
-  const [firstTag, secondTag, ...tags] = values;
+  const hasValues = !!valueList.length;
+  const [firstTag, secondTag, ...restTags] = valueList;
+  const tags = restTags;
   const summaryValues = [
     { label: firstTag, value: firstTag },
     { label: secondTag, value: secondTag },
@@ -47,10 +50,9 @@ const Autocomplete = ({ options, values, setValues }) => {
     event.stopPropagation();
 
     if (valueToRemove === MORE_KEY) {
-      const [firstTag, secondTag] = values;
-      setValues([firstTag, secondTag]);
+      setValues([firstTag, secondTag].filter(Boolean));
     } else {
-      setValues(values.filter((value) => value !== valueToRemove));
+      setValues(valueList.filter((value) => value !== valueToRemove));
     }
   };
 
@@ -61,10 +63,10 @@ const Autocomplete = ({ options, values, setValues }) => {
           className="container"
           onClick={(event) => {
             event.stopPropagation();
-            inputRef.current.focus();
+            inputRef.current?.focus();
           }}
         >
-          {!!values?.length &&
+          {!!valueList?.length &&
             summaryValues
               .filter(({ label }) => Boolean(label))
               .map(({ value, label, isLowerCase }) => (
@@ -81,9 +83,10 @@ const Autocomplete = ({ options, values, setValues }) => {
             list="tags"
             type="text"
             autoFocus
-            placeholder={!hasValues && "Search..."}
+            placeholder={!hasValues ? "Search…" : ""}
             value={query}
             onChange={(event) => setQuery(event.currentTarget.value)}
+            className="ac-input"
           />
           {!!fileteredOptions?.length && (
             <div className="options">
@@ -92,9 +95,9 @@ const Autocomplete = ({ options, values, setValues }) => {
                   key={item}
                   onClick={(event) => {
                     event.stopPropagation();
-                    setValues([...new Set([...values, item])]);
+                    setValues([...new Set([...valueList, item])]);
                     setQuery("");
-                    inputRef.current.focus();
+                    inputRef.current?.focus();
                   }}
                 >
                   {item}
@@ -108,56 +111,67 @@ const Autocomplete = ({ options, values, setValues }) => {
             position: relative;
             display: inline-flex;
             flex-wrap: wrap;
-            gap: 4px;
-            height: var(--input-height);
+            gap: 6px;
+            min-height: var(--input-height);
             align-items: center;
             min-width: 200px;
-            background: white;
-            border: 1px solid white;
-            outline: 1px auto white;
-            border-radius: 4px;
-            padding: 0 8px;
+            max-width: 520px;
+            background: var(--bg-1, #14141b);
+            border: 1px solid var(--line, #2a2a38);
+            border-radius: var(--r-sm, 6px);
+            padding: 4px 8px;
           }
 
           .container:focus-within {
-            outline: 1px auto #e11d48;
+            border-color: var(--accent, #7cffb2);
+            box-shadow: 0 0 0 1px var(--accent, #7cffb2);
           }
 
-          .container > input {
-            height: 100%;
+          :global(.ac-input) {
+            flex: 1 1 80px;
+            min-width: 60px;
             width: auto;
+            height: 32px;
             border: none;
-            padding: 0;
-            font-size: 16px;
-            width: ${!values?.length ? "100%" : "100px"};
+            background: transparent;
+            color: var(--fg-0, #f5f5fa);
+            font-size: 0.9rem;
             outline: none;
+            padding: 0 4px;
+          }
+
+          :global(.ac-input::placeholder) {
+            color: var(--fg-2, #6e6e85);
           }
 
           .options {
-            background: white;
-            padding: 10px 0;
+            background: var(--bg-2, #1c1c26);
+            padding: 8px 0;
             position: absolute;
-            top: 32px;
-            display: inline-flex;
-            gap: 5px 0;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            display: flex;
             flex-direction: column;
-            width: 100%;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-              0 4px 6px -4px rgb(0 0 0 / 0.1);
-            border-radius: 8px;
-            color: #2d0612;
+            gap: 0;
+            border: 1px solid var(--line, #2a2a38);
+            border-radius: var(--r-sm, 6px);
+            color: var(--fg-0, #f5f5fa);
             cursor: pointer;
-            z-index: 10;
+            z-index: 20;
+            box-shadow: 0 16px 32px rgb(0 0 0 / 0.45);
           }
 
           .options > span {
             padding: 10px 12px;
             text-transform: capitalize;
+            font-size: 0.9rem;
           }
 
           .options > span:hover {
-            background: #e11d48;
-            color: white;
+            background: var(--bg-3, #242433);
+            color: var(--accent, #7cffb2);
           }
         `}</style>
       </>
@@ -172,8 +186,16 @@ const Autocomplete = ({ options, values, setValues }) => {
           event.stopPropagation();
           setIsEditable(true);
         }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsEditable(true);
+          }
+        }}
       >
-        {!!values?.length
+        {!!valueList?.length
           ? summaryValues
               .filter(({ label }) => Boolean(label))
               .map(({ value, label, isLowerCase }) => (
@@ -185,25 +207,28 @@ const Autocomplete = ({ options, values, setValues }) => {
                   {label}
                 </Tag>
               ))
-          : "Search..."}
+          : "Search…"}
       </div>
       <style jsx>{`
         .autocomplete {
           display: inline-flex;
           flex-wrap: wrap;
-          gap: 4px;
+          gap: 6px;
           align-items: center;
-          background: #fff;
-          border-radius: 4px;
-          padding: 0 8px;
-          color: #2d0612;
-          height: var(--input-height);
-          font-size: 16px;
-          border: 1px solid white;
-          outline: 1px auto white;
+          background: var(--bg-1, #14141b);
+          border-radius: var(--r-sm, 6px);
+          padding: 4px 8px;
+          color: var(--fg-1, #b8b8c8);
+          min-height: var(--input-height);
+          font-size: 0.9rem;
+          border: 1px solid var(--line, #2a2a38);
           min-width: 200px;
-          max-width: 500px;
-          padding-right: ${!!values.length ? '108px' : "8px"}
+          max-width: 520px;
+          cursor: text;
+        }
+
+        .autocomplete:hover {
+          border-color: var(--line-strong, #3a3a4d);
         }
       `}</style>
     </>

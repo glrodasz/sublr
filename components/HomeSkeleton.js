@@ -1,5 +1,4 @@
 import Head from "next/head";
-import Image from "next/image";
 import Skeleton from "./Skeleton";
 import useMedia from "../hooks/useMedia";
 
@@ -7,7 +6,6 @@ const CREDIT_CARDS = new Array(5).fill(null);
 const CARD_SUBSCRIPTIONS = new Array(6).fill(null);
 
 export default function HomeSkeleton() {
-  // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
   const isMobile = useMedia(["(max-width: 799px)"], [true]);
 
@@ -18,65 +16,59 @@ export default function HomeSkeleton() {
       </Head>
 
       <nav>
-        <div className="container">
+        <div className="nav-inner">
           <section className="row">
             <figure className="logo">
               <img
+                alt=""
                 src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`}
-              ></img>
+              />
             </figure>
             <div className="filters">
               <div className="filter-skeleton">
-                {!isMobile && <Skeleton.Box width={72} height={36} />}
-
-                <Skeleton.Box width={90} height={36} />
+                {!isMobile && <Skeleton.Box width={72} height={36} dark />}
+                <Skeleton.Box width={90} height={36} dark />
               </div>
               <div className="filter-skeleton">
-                {!isMobile && <Skeleton.Box width={92} height={36} />}
-                <Skeleton.Box width={80} height={36} />
+                {!isMobile && <Skeleton.Box width={92} height={36} dark />}
+                <Skeleton.Box width={80} height={36} dark />
               </div>
 
               {!isMobile && (
                 <>
                   <div className="filter-skeleton">
-                    <Skeleton.Box width={42} height={36} />
-                    <Skeleton.Box width={111} height={36} />
+                    <Skeleton.Box width={42} height={36} dark />
+                    <Skeleton.Box width={111} height={36} dark />
                   </div>
                   <div className="filter-skeleton">
-                    <Skeleton.Box width={57} height={36} />
-                    <Skeleton.Box width={207} height={36} />
+                    <Skeleton.Box width={57} height={36} dark />
+                    <Skeleton.Box width={207} height={36} dark />
                   </div>
                   <div className="filter-skeleton">
-                    <Skeleton.Box width={45} height={36} />
-                    <Skeleton.Box width={200} height={36} />
+                    <Skeleton.Box width={45} height={36} dark />
+                    <Skeleton.Box width={200} height={36} dark />
                   </div>
                 </>
               )}
-
-              {/* ))} */}
             </div>
             <div>
-              <Skeleton.Circle diameter={40} />
+              <Skeleton.Circle diameter={40} dark />
             </div>
           </section>
         </div>
       </nav>
 
       <main className="container">
-        <section className="row">
-          <article>
-            <Skeleton.Box width={120} height={16} dark />
-            <Skeleton.Box width={220} height={35} />
-          </article>
+        <section className="row hero-skel">
+          <Skeleton.Box width="100%" height={120} dark />
         </section>
 
         <section>
           <Skeleton.Text lineWidth={120} lineHeight={16} dark />
-          <div className="cards-container">
+          <div className="cards-rail">
             {CREDIT_CARDS.map((_, idx) => (
               <div key={`credit-card-${idx}`} className="credit-card-skeleton">
-                <Skeleton.Box width={60} height={16} />
-                <Skeleton.Box width={100} height={16} />
+                <Skeleton.Box width={280} height={176} dark />
               </div>
             ))}
           </div>
@@ -101,8 +93,8 @@ export default function HomeSkeleton() {
                 </div>
 
                 <div className="content">
-                  <Skeleton.Box width="45%" height={18} />
-                  <Skeleton.Box width="20%" height={18} />
+                  <Skeleton.Box width="45%" height={18} dark />
+                  <Skeleton.Box width="20%" height={18} dark />
                 </div>
               </div>
             ))}
@@ -119,20 +111,27 @@ export default function HomeSkeleton() {
         }
 
         nav {
-          background: #b51739;
-          padding: 12px 0;
+          min-height: 56px;
+          background: var(--bg-0, #0a0a0f);
+          border-bottom: 1px solid var(--line, #2a2a38);
         }
 
-        nav > .container {
-          padding: 0 20px;
+        .nav-inner {
+          max-width: 1440px;
+          margin: 0 auto;
+          padding: 8px 20px;
         }
 
         .logo {
           max-width: 100px;
+          margin: 0;
         }
 
         .logo > img {
           width: 100%;
+          height: auto;
+          filter: brightness(0) invert(1);
+          opacity: 0.4;
         }
 
         .filters {
@@ -148,51 +147,58 @@ export default function HomeSkeleton() {
         }
 
         .container {
-          height: 100%;
           width: 100%;
           max-width: 800px;
-          padding: 20px;
+          padding: 20px 20px 48px;
           margin: 0 auto;
           display: flex;
           flex-direction: column;
-          gap: 40px;
+          gap: 36px;
         }
 
         .row {
+          display: flex;
           flex-direction: row;
           align-items: center;
           gap: 10px 50px;
+        }
+
+        .hero-skel {
+          width: 100%;
+        }
+
+        .cards-rail {
+          display: flex;
+          flex-direction: row;
+          gap: 20px;
+          width: 100%;
+          padding: 4px 0 12px;
+          overflow: hidden;
+        }
+
+        .credit-card-skeleton {
+          flex: 0 0 auto;
         }
 
         .cards-container {
           width: 100%;
           min-height: 100%;
           display: grid;
-          gap: 30px;
-          place-content: center;
-          grid-template-columns: minmax(300px, 1fr);
-        }
-
-        .credit-card-skeleton {
-          display: flex;
-          justify-content: space-between;
-          gap: 20;
-          padding: 15px 20px;
-          background: #fff;
-          border: 1px solid rgba(0, 0, 0, 0.01);
-          border-radius: 8px;
-          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-            0 4px 6px -4px rgb(0 0 0 / 0.1);
+          gap: 24px;
+          place-content: start;
+          grid-template-columns: minmax(280px, 1fr);
         }
 
         .card-subscription-skeleton {
-          background-color: #fff;
-          border-radius: 8px 8px 0 0;
+          background: var(--bg-1, #14141b);
+          border: 1px solid var(--line, #2a2a38);
+          border-radius: var(--r-md, 10px);
           height: 310px;
+          overflow: hidden;
         }
 
         .card-subscription-skeleton .cover {
-          background: #d9d9d9;
+          background: var(--bg-2, #1c1c26);
           height: 180px;
           padding: 10px 20px 20px;
           display: flex;
@@ -221,7 +227,7 @@ export default function HomeSkeleton() {
           }
 
           .cards-container {
-            grid-template-columns: repeat(2, minmax(300px, 1fr));
+            grid-template-columns: repeat(2, minmax(280px, 1fr));
           }
         }
 
@@ -231,7 +237,13 @@ export default function HomeSkeleton() {
           }
 
           .cards-container {
-            grid-template-columns: repeat(3, minmax(300px, 1fr));
+            grid-template-columns: repeat(3, minmax(280px, 1fr));
+          }
+        }
+
+        @media only screen and (min-width: 1280px) {
+          .cards-container {
+            grid-template-columns: repeat(4, minmax(260px, 1fr));
           }
         }
       `}</style>

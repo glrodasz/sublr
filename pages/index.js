@@ -1,6 +1,6 @@
 import Head from "next/head";
-import { useState, useRef } from "react";
-import { withPageAuthRequired } from "@auth0/nextjs-auth0";
+import { useState, useRef, useMemo } from "react";
+import auth0 from "../lib/auth0";
 
 import CardSubscription from "../components/CardSubscription";
 import Subtitle from "../components/Subtitle";
@@ -11,7 +11,7 @@ import Filter from "../components/Filter";
 import { CREDIT_CARD_TYPES } from "../constants";
 import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
-import { useUser } from "@auth0/nextjs-auth0";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
 import useMedia from "../hooks/useMedia";
@@ -29,7 +29,7 @@ import {
 import CardPlaceholder from "../components/CardPlaceholder";
 import HomeSkeleton from "../components/HomeSkeleton";
 
-export const getServerSideProps = withPageAuthRequired();
+export const getServerSideProps = auth0.withPageAuthRequired();
 
 export default function Home() {
   // TODO: Refactor to a custom hook called useFilters and use an
@@ -38,10 +38,10 @@ export default function Home() {
   const [currency, setCurrency] = useState("USD");
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState([]);
 
   // User
-  const { user, error: userError, loading: userLoading } = useUser();
+  const { user } = useUser();
 
   // CRUD
   const { subscriptions, create, remove, update, finishedFirstFetch } =
@@ -72,6 +72,17 @@ export default function Home() {
   const summaryData = getSummaryData(grouppedMonthlySubscriptions);
   const summaryTotal = getSummaryTotal(summaryData);
 
+  const uniqueCurrencies = useMemo(
+    () => new Set(subscriptions.map((s) => s.currency)).size,
+    [subscriptions]
+  );
+
+  const primaryTotal =
+    time === "YEARLY" ? summaryTotal.yearly : summaryTotal.monthly;
+  const secondaryTotal =
+    time === "YEARLY" ? summaryTotal.monthly : summaryTotal.yearly;
+  const primaryIsYearly = time === "YEARLY";
+
   const tagOptions = [
     ...new Set(
       subscriptions.flatMap((subscription) =>
@@ -80,7 +91,6 @@ export default function Home() {
     ),
   ];
 
-  // TODO: Move this to the body and create the component pattern Loading/Children
   if (!finishedFirstFetch) {
     return <HomeSkeleton />;
   }
@@ -89,17 +99,18 @@ export default function Home() {
     <>
       <Head>
         <title>Sublr</title>
+        <meta name="theme-color" content="#0A0A0F" />
       </Head>
       <nav>
-        <div className="container">
+        <div className="nav-inner">
           <section className="row">
             <figure className="logo">
               <img
+                alt="Sublr"
                 src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`}
-              ></img>
+              />
             </figure>
             <div className="filters">
-              {/* TODO: show only in Desktop */}
               <Filter
                 label="Sort by"
                 value={sortBy}
@@ -116,6 +127,7 @@ export default function Home() {
                 value={currency}
                 hideLabel={isMobile}
                 setValue={setCurrency}
+                variant="segmented"
                 options={[
                   { label: "USD", value: "USD" },
                   { label: "COP", value: "COP" },
@@ -128,30 +140,29 @@ export default function Home() {
                 value={time}
                 hideLabel={isMobile}
                 setValue={setTime}
+                variant="segmented"
                 options={[
                   { label: "Yearly", value: "YEARLY" },
                   { label: "Monthly", value: "MONTHLY" },
                 ]}
               />
 
-              {/* TODO: show only in Desktop */}
               <Filter
                 label="Cards"
                 value={card}
                 setValue={setCard}
                 options={[
                   { label: "All", value: "" },
-                  ...cards.map((card) => ({
-                    label: `${card.split("_")[1]} (${
-                      CREDIT_CARD_TYPES[card.split("_")[0]]
+                  ...cards.map((c) => ({
+                    label: `${c.split("_")[1]} (${
+                      CREDIT_CARD_TYPES[c.split("_")[0]]
                     })`,
-                    value: card,
+                    value: c,
                   })),
                 ]}
                 isHiddenInMobile
               />
 
-              {/* TODO: show only in Desktop */}
               <Filter label="Tags" isHiddenInMobile>
                 <Autocomplete
                   options={tagOptions}
@@ -161,8 +172,11 @@ export default function Home() {
               </Filter>
             </div>
             {user && (
-              <div className="avatar">
-                <img src={user.picture} />
+              <div className="avatar-wrap" title="Signed in">
+                <div className="avatar">
+                  <img alt="" src={user.picture} />
+                </div>
+                <span className="status-dot" aria-hidden />
               </div>
             )}
           </section>
@@ -170,40 +184,65 @@ export default function Home() {
       </nav>
       <main className="container">
         {subscriptions.length >= 1 && (
-          <section className="row">
-            {(isDesktop || time === "MONTHLY") && (
-              <article>
-                <Subtitle>Total Monthly</Subtitle>
-                <Price currency={currency} decimals={0} size="lg">
-                  {summaryTotal.monthly}
+          <section className="totals-hero">
+            <div className={`hero-figure ${primaryIsYearly ? "is-yearly" : "is-monthly"}`}>
+              <p className="hero-kicker">
+                Total {primaryIsYearly ? "yearly" : "monthly"}{" "}
+                <span className="hero-pill mono">{currency}</span>
+              </p>
+              <div className="hero-number">
+                <Price currency={currency} decimals={0} size="xl">
+                  {primaryTotal}
                 </Price>
-              </article>
-            )}
-            {(isDesktop || time === "YEARLY") && (
-              <article>
-                <Subtitle>Total Yearly</Subtitle>
-                <Price currency={currency} decimals={0} size="lg">
-                  {summaryTotal.yearly}
-                </Price>
-              </article>
-            )}
+              </div>
+            </div>
+            <div className="hero-meta">
+              <span>
+                {primaryIsYearly ? "Monthly" : "Yearly"} ·{" "}
+                <span className="meta-value mono">
+                  {new Intl.NumberFormat(undefined, {
+                    style: "currency",
+                    currency,
+                    maximumFractionDigits: 0,
+                  }).format(secondaryTotal)}
+                </span>
+              </span>
+              <span className="meta-sep" aria-hidden>
+                |
+              </span>
+              <span>
+                {subscriptions.length}{" "}
+                {subscriptions.length === 1 ? "sub" : "subs"}
+              </span>
+              <span className="meta-sep" aria-hidden>
+                |
+              </span>
+              <span>
+                {uniqueCurrencies}{" "}
+                {uniqueCurrencies === 1 ? "currency" : "currencies"}
+              </span>
+            </div>
           </section>
         )}
 
         {subscriptions.length >= 1 && (
           <section>
-            <Subtitle>Cards {time}</Subtitle>
-            <div className="cards-container">
+            <Subtitle>
+              Cards · {time === "YEARLY" ? "Yearly" : "Monthly"}
+            </Subtitle>
+            <div className="cards-rail" role="list">
               {summaryData.map((data) => {
                 return (
-                  <CreditCard
-                    key={data.key}
-                    number={data.creditCard.number}
-                    type={data.creditCard.type}
-                    currency={data[TIME_ATTRIBUTE[time]].currency}
-                    price={data[TIME_ATTRIBUTE[time]].price}
-                    decimals={0}
-                  />
+                  <div className="rail-item" key={data.key} role="listitem">
+                    <CreditCard
+                      time={time}
+                      number={data.creditCard.number}
+                      type={data.creditCard.type}
+                      currency={data[TIME_ATTRIBUTE[time]].currency}
+                      price={data[TIME_ATTRIBUTE[time]].price}
+                      decimals={0}
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -219,7 +258,7 @@ export default function Home() {
                   return `${creditCard.type}_${creditCard.number}` === card;
                 }
 
-                if (!!tags.length) {
+                if (Array.isArray(tags) && tags.length) {
                   return tags
                     .map((tag) => subscriptionTag.includes(tag))
                     .find(Boolean);
@@ -319,7 +358,7 @@ export default function Home() {
                     type: "MASTERCARD",
                     number: 0,
                   },
-                  userId: user.sub,
+                  userId: user?.sub,
                 });
               }}
             />
@@ -327,7 +366,11 @@ export default function Home() {
           <dialog ref={deleteConfirmationDialogRef}>
             <form method="dialog">
               <p>Are you sure that you want to delete it?</p>
-              <button onClick={() => remove(currentSubscriptionId)}>
+              <button
+                onClick={() => {
+                  remove(currentSubscriptionId);
+                }}
+              >
                 Confirm
               </button>
               <button>Cancel</button>
@@ -374,26 +417,40 @@ export default function Home() {
         }
 
         nav {
-          background: #b51739;
-          padding: 12px 0;
+          min-height: 56px;
+          display: flex;
+          align-items: center;
+          background: var(--bg-0, #0a0a0f);
+          border-bottom: 1px solid var(--line, #2a2a38);
         }
 
-        nav > .container {
-          padding: 0 20px;
+        .nav-inner {
+          width: 100%;
+          max-width: 1440px;
+          margin: 0 auto;
+          padding: 8px 20px;
         }
 
         .logo {
           max-width: 100px;
+          margin: 0;
+          display: flex;
+          align-items: center;
         }
 
         .logo > img {
           width: 100%;
+          height: auto;
+          filter: brightness(0) invert(1)
+            drop-shadow(0 0 10px rgba(124, 255, 178, 0.35));
         }
 
         .row {
+          display: flex;
           flex-direction: row;
           align-items: center;
-          gap: 10px 50px;
+          gap: 12px 24px;
+          flex-wrap: wrap;
         }
 
         .evenly {
@@ -404,47 +461,190 @@ export default function Home() {
           width: 100%;
           min-height: 100%;
           display: grid;
-          gap: 30px;
-          place-content: center;
-          grid-template-columns: minmax(300px, 1fr);
+          gap: 24px;
+          place-content: start;
+          grid-template-columns: minmax(280px, 1fr);
+        }
+
+        .cards-rail {
+          display: flex;
+          flex-direction: row;
+          gap: 20px;
+          width: 100%;
+          padding: 4px 0 12px;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          scrollbar-color: var(--line-strong) var(--bg-1);
+        }
+
+        .rail-item {
+          flex: 0 0 auto;
         }
 
         .container {
-          height: 100%;
           width: 100%;
           max-width: 800px;
-          padding: 20px;
+          padding: 20px 20px 48px;
           margin: 0 auto;
           display: flex;
           flex-direction: column;
-          gap: 40px;
+          gap: 36px;
         }
 
         .summary {
           width: 100%;
           position: fixed;
           bottom: 0;
-          box-shadow: 0 -10px -15px 3px rgb(0 0 0 / 0.1),
-            0 -4px -6px 4px rgb(0 0 0 / 0.1);
+          box-shadow: 0 -10px 15px 3px rgb(0 0 0 / 0.1),
+            0 -4px 6px 4px rgb(0 0 0 / 0.1);
         }
 
         .filters {
           display: flex;
           width: 100%;
-          gap: 15px 20px;
+          flex: 1 1 auto;
+          gap: 12px 16px;
           flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .avatar-wrap {
+          position: relative;
+          flex: 0 0 auto;
         }
 
         .avatar {
           display: inline-flex;
-          width: 50px;
-          border-radius: 50%;
-          border: 2px solid white;
+          width: 40px;
+          height: 40px;
+          border-radius: 4px;
+          border: 1px solid var(--line-strong, #3a3a4d);
+          overflow: hidden;
+          background: var(--bg-1, #14141b);
         }
 
         .avatar > img {
           width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .status-dot {
+          position: absolute;
+          right: -2px;
+          top: -2px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
+          background: var(--accent, #7cffb2);
+          box-shadow: 0 0 0 2px var(--bg-0, #0a0a0f);
+        }
+
+        .totals-hero {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          padding: 20px 20px 22px;
+          border: 1px solid var(--line, #2a2a38);
+          border-radius: var(--r-lg, 16px);
+          background: var(--bg-1, #14141b);
+          box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+        }
+
+        .hero-figure {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .hero-figure.is-monthly {
+          color: var(--accent, #7cffb2);
+        }
+
+        .hero-figure.is-yearly {
+          color: var(--accent-hot, #ff3d68);
+        }
+
+        .hero-kicker {
+          margin: 0;
+          font-size: 0.7rem;
+          font-weight: 600;
+          font-family: var(--font-mono, ui-monospace, monospace);
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--fg-1, #b8b8c8);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .hero-pill {
+          display: inline-flex;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 0.65rem;
+          color: #0a0a0f;
+          background: var(--accent, #7cffb2);
+        }
+
+        .is-yearly .hero-pill {
+          background: var(--accent-hot, #ff3d68);
+          color: #fff;
+        }
+
+        .hero-number {
+          margin-top: 4px;
+        }
+
+        .hero-number :global(.currency-code) {
+          color: var(--fg-0, #f5f5fa);
+          border-color: var(--line-strong, #3a3a4d);
+        }
+
+        .is-yearly .hero-number :global(.amount) {
+          color: var(--accent-hot, #ff3d68);
+        }
+
+        .is-monthly .hero-number :global(.amount) {
+          color: var(--accent, #7cffb2);
+        }
+
+        .is-yearly
+          .hero-number
+          :global(.currency-code) {
+          border-color: color-mix(
+            in srgb,
+            var(--accent-hot, #ff3d68) 50%,
+            var(--line-strong) 50%
+          );
+        }
+
+        .is-monthly
+          .hero-number
+          :global(.currency-code) {
+          border-color: color-mix(
+            in srgb,
+            var(--accent) 50%,
+            var(--line-strong) 50%
+          );
+        }
+
+        .hero-meta {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 6px 12px;
+          font-size: 0.8rem;
+          color: var(--fg-2, #6e6e85);
+        }
+
+        .meta-value {
+          color: var(--fg-0, #f5f5fa);
+        }
+
+        .meta-sep {
+          opacity: 0.4;
         }
 
         @media only screen and (min-width: 800px) {
@@ -453,7 +653,7 @@ export default function Home() {
           }
 
           .cards-container {
-            grid-template-columns: repeat(2, minmax(300px, 1fr));
+            grid-template-columns: repeat(2, minmax(280px, 1fr));
           }
         }
 
@@ -463,7 +663,13 @@ export default function Home() {
           }
 
           .cards-container {
-            grid-template-columns: repeat(3, minmax(300px, 1fr));
+            grid-template-columns: repeat(3, minmax(280px, 1fr));
+          }
+        }
+
+        @media only screen and (min-width: 1280px) {
+          .cards-container {
+            grid-template-columns: repeat(4, minmax(260px, 1fr));
           }
         }
       `}</style>

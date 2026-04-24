@@ -1,3 +1,20 @@
 {
-	"dotenv.enableAutocloaking": false
+	"dotenv.enableAutocloaking": false,
+	"workbench.colorCustomizations": {
+		"glaze.active": "Catppuccin Frappé",
+		"[Catppuccin Frappé]": {
+			"titleBar.activeBackground": "#2d484c",
+			"titleBar.activeForeground": "#d5dfed",
+			"titleBar.inactiveBackground": "#293a3e",
+			"titleBar.inactiveForeground": "#acb7c7",
+			"titleBar.border": "#274446",
+			"statusBar.background": "#2f4f54",
+			"statusBar.foreground": "#d5dfed",
+			"statusBar.border": "#294b4e",
+			"activityBar.background": "#24363b",
+			"activityBar.foreground": "#cbc8e0",
+			"activityBar.activeBackground": "#1d3132",
+			"activityBar.activeBorder": "#1d3132"
+		}
+	}
 }

@@ -1,9 +1,28 @@
 :root {
   --font-size-sm: clamp(1rem, -1.3438rem + 3.75vw, 1.375rem);
   --font-size-md: clamp(1.5625rem, -0.3906rem + 3.125vw, 1.875rem);
-  --primary-color: #e11d48;
-  --input-height: 36px;
-  --input-font-size: 20px;
+  --e11d48-legacy: #e11d48;
+  --input-height: 40px;
+  --input-font-size: 16px;
+
+  /* Fintech-noir */
+  --bg-0: #0a0a0f;
+  --bg-1: #14141b;
+  --bg-2: #1c1c26;
+  --bg-3: #242433;
+  --line: #2a2a38;
+  --line-strong: #3a3a4d;
+  --fg-0: #f5f5fa;
+  --fg-1: #b8b8c8;
+  --fg-2: #6e6e85;
+  --accent: #7cffb2;
+  --accent-hot: #ff3d68;
+  --accent-amber: #ffb84d;
+  --accent-cyan: #5ee8ff;
+  --glow: rgba(124, 255, 178, 0.12);
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
 }
 
 html,
@@ -11,31 +30,24 @@ body {
   height: 100%;
   padding: 0;
   margin: 0;
-  font-family: "Open Sans", sans-serif;
-  background-color: #fff1f2;
-  font-size: 18px;
-}
-
-select,
-input {
-  font-family: "Open Sans", sans-serif;
-  height: var(--input-height); 
-  line-height: 1;
-  font-size: var(--input-font-size);
-  width: 100%;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  padding: 5px 15px;
-  vertical-align: middle;
-}
-
-select {
-  width: min-content;
-}
-
-select:focus,
-input:focus {
-  outline: 1px auto #e11d48;
+  font-family: var(--font-sans, "Inter", system-ui, sans-serif);
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(
+      1200px 600px at 80% -10%,
+      rgba(124, 255, 178, 0.06),
+      transparent 60%
+    ),
+    linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--line) 15%, transparent) 0,
+        color-mix(in srgb, var(--line) 15%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 16px 16px;
+  color: var(--fg-0);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
@@ -44,7 +56,20 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Kanit", sans-serif;
+  font-family: var(
+    --font-display,
+    "Space Grotesk",
+    system-ui,
+    sans-serif
+  );
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.mono,
+.tabular-nums {
+  font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
 }
 
 a {
@@ -57,9 +82,55 @@ a {
 }
 
 #__next {
-  height: 100%;
+  min-height: 100%;
 }
 
+select,
+input:not([type="checkbox"]):not([type="radio"]) {
+  font-family: var(--font-sans, "Inter", system-ui, sans-serif);
+  height: var(--input-height);
+  line-height: 1.2;
+  font-size: var(--input-font-size);
+  width: 100%;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--fg-0);
+  padding: 8px 14px;
+  vertical-align: middle;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input.mono,
+input[type="number"] {
+  font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+select {
+  width: min-content;
+  min-width: 0;
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--fg-2) 50%),
+    linear-gradient(135deg, var(--fg-2) 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(1em - 1px), calc(100% - 9px) calc(1em - 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 32px;
+}
+
+select:focus,
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+select option {
+  background: var(--bg-1);
+  color: var(--fg-0);
+}
 
 form[method="dialog"] {
   display: flex;
@@ -68,32 +139,64 @@ form[method="dialog"] {
 }
 
 form[method="dialog"] button:first-of-type {
-  background: #dcfce7;
+  background: var(--accent);
+  color: #0a0a0f;
+  border: 1px solid var(--accent);
+  font-weight: 700;
 }
 
 form[method="dialog"] button:last-of-type {
-  background: #fee2e2;
+  background: transparent;
+  color: var(--fg-1);
+  border: 1px solid var(--line);
 }
 
 form[method="dialog"] > p {
   margin-bottom: 20px;
-  color: #2d0612;
+  color: var(--fg-0);
+  font-size: 1.125rem;
 }
 
 dialog {
   min-height: 200px;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-  0 4px 6px -4px rgb(0 0 0 / 0.1);
-  padding: 50px 40px;
-  font-size: 28px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--bg-1);
+  color: var(--fg-0);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  padding: 40px 36px;
+  font-size: 1.125rem;
+  max-width: min(100vw - 32px, 420px);
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.65);
 }
 
 dialog button {
-  border: 1px solid #ccc;
-  padding: 8px 40px;
-  font-size: 22px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-family: inherit;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+form[method="dialog"] button:last-of-type:hover {
+  background: var(--bg-2);
+  border-color: var(--line-strong);
+}
+
+form[method="dialog"] button:first-of-type:hover {
+  filter: brightness(1.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

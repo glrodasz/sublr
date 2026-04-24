@@ -4,11 +4,10 @@ import CreditCardIcon from "./CreditCardIcon";
 import Subscription from "./Subscription";
 import Card from "./Card";
 import Tag from "./Tag";
-import Input from "./Input";
 
 import { DEFAULT_UNSPLASH_ID } from "../constants";
-import Icon from "./Icon";
 import BacksideCardSubscription from "./BacksideCardSubscription";
+import { getTagStyle } from "../lib/tagStyles";
 
 const FRONTSIDE = Symbol("frontside");
 const BACKSIDE = Symbol("backside");
@@ -55,6 +54,8 @@ const CardSubscription = ({
   isUpdated = 0,
 }) => {
   const [side, setSide] = useState(CardSides.Frontside);
+  const primaryTag = tags?.[0] ?? "";
+  const { color: accent } = getTagStyle(primaryTag);
 
   useEffect(() => {
     if (isUpdated) {
@@ -84,25 +85,53 @@ const CardSubscription = ({
           />
         }
       >
-        <div
-          className="cover"
-          style={{
-            backgroundImage: `url(https://source.unsplash.com/${unsplashId})`,
-          }}
-        >
-          <h1 className="title">{title}</h1>
-          <div className="tags">
-            {tags.map((tag) => (
-              <Tag key={tag}>{tag}</Tag>
-            ))}
+        <div className="receipt" style={{ "--accent-bar": accent }}>
+          <div className="cover">
+            <div
+              className="cover-bg"
+              style={{
+                backgroundImage: `url(https://source.unsplash.com/${unsplashId})`,
+              }}
+              aria-hidden="true"
+            />
+            <div className="duotone" aria-hidden="true" />
+            <h1 className="title">
+              {title || <span className="untitled">Untitled</span>}
+            </h1>
+            <div className="tags">
+              {tags.map((tag) => (
+                <Tag key={tag}>{tag}</Tag>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="content">
-          <Subscription price={price} currency={currency} time={time} />
-          <CreditCardIcon {...creditCard} />
+          <div className="content">
+            <Subscription
+              price={price}
+              currency={currency}
+              time={time}
+              size="md"
+            />
+            <div className="cc-row">
+              <CreditCardIcon {...creditCard} />
+            </div>
+          </div>
         </div>
       </Card>
       <style jsx>{`
+        .receipt {
+          --accent-bar: var(--accent, #7cffb2);
+          position: relative;
+          min-height: 100%;
+          border-left: 3px solid var(--accent-bar);
+          transition: transform 0.2s ease;
+        }
+
+        @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+          :global(.frontside-content:hover) .receipt {
+            transform: translateY(-3px);
+          }
+        }
+
         .cover {
           position: relative;
           height: 180px;
@@ -111,52 +140,84 @@ const CardSubscription = ({
           justify-content: flex-end;
           color: #fff;
           padding: 10px 20px 20px;
-          border-radius: 8px 8px 0 0;
+          border-radius: var(--r-md) var(--r-md) 0 0;
+          gap: 10px;
+          overflow: hidden;
+        }
+
+        .cover-bg {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          border-radius: var(--r-md) var(--r-md) 0 0;
           background-repeat: no-repeat;
           background-size: cover;
-          gap: 10px;
+          background-position: center;
+          filter: grayscale(0.5) contrast(1.1);
         }
 
         .cover::before {
           content: "";
           position: absolute;
-          border-radius: 8px 8px 0 0;
+          border-radius: var(--r-md) var(--r-md) 0 0;
           background: linear-gradient(
             0deg,
-            rgba(0, 0, 0, 0.9) 0%,
-            rgba(0, 0, 0, 0.2) 65%
+            rgba(0, 0, 0, 0.92) 0%,
+            rgba(0, 0, 0, 0.15) 100%
           );
           inset: 0;
+          z-index: 1;
+        }
+
+        .duotone {
+          position: absolute;
+          inset: 0;
+          background: var(--accent-bar);
+          mix-blend-mode: color;
+          opacity: 0.4;
+          pointer-events: none;
+          z-index: 1;
         }
 
         .title {
-          font-size: 24px;
-          font-weight: bold;
+          font-family: var(
+            --font-display,
+            "Space Grotesk",
+            system-ui,
+            sans-serif
+          );
+          font-size: 1.4rem;
+          font-weight: 700;
           position: relative;
-          text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+          z-index: 2;
+          margin: 0;
+          line-height: 1.2;
+        }
+
+        .untitled {
+          opacity: 0.6;
         }
 
         .tags {
           display: flex;
           justify-content: flex-start;
-          gap: 10px;
+          flex-wrap: wrap;
+          gap: 8px;
           position: relative;
-        }
-
-        .tag {
-          background: #475569;
-          padding: 2px 10px;
-          border-radius: 14px;
-          font-size: 14px;
-          text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
-          text-transform: capitalize;
+          z-index: 2;
         }
 
         .content {
           display: flex;
           flex-direction: column;
           padding: 20px;
-          gap: 10px;
+          gap: 12px;
+          flex: 1;
+        }
+
+        .cc-row {
+          display: flex;
+          align-items: center;
         }
       `}</style>
     </>
