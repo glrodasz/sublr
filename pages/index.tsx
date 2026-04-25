@@ -1,96 +1,65 @@
 import Head from "next/head";
-import { useState, useRef, useMemo } from "react";
-import type { Currency, TimeAttribute, FieldChange } from "../types";
+import { useMemo } from "react";
+import type { Currency, TimeAttribute } from "../types";
 import auth0 from "../lib/auth0";
 
-import CardSubscription from "../components/CardSubscription";
-import Subtitle from "../components/Subtitle";
-import Price from "../components/Price";
-import CreditCard from "../components/CreditCard";
 import Filter from "../components/Filter";
+import Autocomplete from "../components/Autocomplete";
+import HomeSkeleton from "../components/HomeSkeleton";
+import SummaryHeader from "../components/SummaryHeader";
+import SubscriptionList from "../components/SubscriptionList";
 
 import { CREDIT_CARD_TYPES } from "../constants";
-import { TIME_ATTRIBUTE } from "../constants";
 import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
-import { useUser } from "@auth0/nextjs-auth0/client";
-
-// FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
 import useMedia from "../hooks/useMedia";
-import Autocomplete from "../components/Autocomplete";
 import useSubscriptions from "../hooks/useSubscriptions";
-
-import {
-  getCreditCardInfoFromCurrentSubscription,
-  getMonthlySubscriptionGroupedByCard,
-  getSummaryData,
-  getSummaryTotal,
-  getUsdPrice,
-  shouldUpdateSubscriptionPrice,
-} from "../helpers";
-import CardPlaceholder from "../components/CardPlaceholder";
-import HomeSkeleton from "../components/HomeSkeleton";
+import useSubscriptionFilters from "../hooks/useSubscriptionFilters";
+import useSubscriptionMutations from "../hooks/useSubscriptionMutations";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { getMonthlySubscriptionGroupedByCard, getSummaryData, getSummaryTotal } from "../helpers";
 
 export const getServerSideProps = auth0.withPageAuthRequired();
 
 export default function Home() {
-  // TODO: Refactor to a custom hook called useFilters and use an
-  // object to map the filters
-  const [time, setTime] = useState<TimeAttribute>("YEARLY");
-  const [currency, setCurrency] = useState<Currency>("USD");
-  const [sortBy, setSortBy] = useState("PRICE");
-  const [card, setCard] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-
-  // User
   const { user } = useUser();
-
-  // CRUD
   const { subscriptions, create, remove, update, finishedFirstFetch } = useSubscriptions();
+  const { rates } = useCurrencyExchangeRates();
 
-  // Temporal states
-  const [currentSubscriptionId, setCurrentSubscriptionId] = useState<string | null>(null);
-  type PendingChange = Record<string, FieldChange["value"]>;
-  const [changedSubscriptions, setChangedSubscriptions] = useState<Record<string, PendingChange>>(
-    {}
-  );
-  const [updatedSubscriptions, setUpdatedSubscriptions] = useState<Record<string, number>>({});
-
-  // Dialogs
-  const deleteConfirmationDialogRef = useRef<HTMLDialogElement>(null);
-  const updateConfirmationDialogRef = useRef<HTMLDialogElement>(null);
+  const {
+    time,
+    setTime,
+    currency,
+    setCurrency,
+    sortBy,
+    setSortBy,
+    card,
+    setCard,
+    tags,
+    setTags,
+    tagOptions,
+    filteredSubscriptions,
+  } = useSubscriptionFilters(subscriptions, rates);
+  const mutations = useSubscriptionMutations(remove, update);
 
   // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
   const isMobile = useMedia(["(max-width: 799px)"], [true]);
-
-  const { rates } = useCurrencyExchangeRates();
 
   const groupedMonthlySubscriptions = getMonthlySubscriptionGroupedByCard(
     subscriptions,
     currency,
     rates
   );
-
   const cards = Object.keys(groupedMonthlySubscriptions);
   const summaryData = getSummaryData(groupedMonthlySubscriptions);
   const summaryTotal = getSummaryTotal(summaryData);
-
   const uniqueCurrencies = useMemo(
     () => new Set(subscriptions.map((s) => s.currency)).size,
     [subscriptions]
   );
-
   const primaryTotal = time === "YEARLY" ? summaryTotal.yearly : summaryTotal.monthly;
   const secondaryTotal = time === "YEARLY" ? summaryTotal.monthly : summaryTotal.yearly;
   const primaryIsYearly = time === "YEARLY";
-
-  const tagOptions = [
-    ...new Set(
-      subscriptions.flatMap((subscription) =>
-        (subscription.tags ?? []).map((tag) => tag.toLowerCase())
-      )
-    ),
-  ];
 
   if (!finishedFirstFetch) {
     return <HomeSkeleton />;
@@ -144,7 +113,6 @@ export default function Home() {
                   { label: "Monthly", value: "MONTHLY" },
                 ]}
               />
-
               <Filter
                 label="Cards"
                 value={card}
@@ -158,7 +126,6 @@ export default function Home() {
                 ]}
                 isHiddenInMobile
               />
-
               <Filter label="Tags" isHiddenInMobile>
                 <Autocomplete options={tagOptions} values={tags} setValues={setTags} />
               </Filter>
@@ -175,213 +142,22 @@ export default function Home() {
         </div>
       </nav>
       <main className="container">
-        {subscriptions.length >= 1 && (
-          <section className="totals-hero">
-            <div className={`hero-figure ${primaryIsYearly ? "is-yearly" : "is-monthly"}`}>
-              <p className="hero-kicker">
-                Total {primaryIsYearly ? "yearly" : "monthly"}{" "}
-                <span className="hero-pill mono">{currency}</span>
-              </p>
-              <div className="hero-number">
-                <Price currency={currency} decimals={0} size="xl">
-                  {primaryTotal}
-                </Price>
-              </div>
-            </div>
-            <div className="hero-meta">
-              <span>
-                {primaryIsYearly ? "Monthly" : "Yearly"} ·{" "}
-                <span className="meta-value mono">
-                  {new Intl.NumberFormat(undefined, {
-                    style: "currency",
-                    currency,
-                    maximumFractionDigits: 0,
-                  }).format(secondaryTotal)}
-                </span>
-              </span>
-              <span className="meta-sep" aria-hidden>
-                |
-              </span>
-              <span>
-                {subscriptions.length} {subscriptions.length === 1 ? "sub" : "subs"}
-              </span>
-              <span className="meta-sep" aria-hidden>
-                |
-              </span>
-              <span>
-                {uniqueCurrencies} {uniqueCurrencies === 1 ? "currency" : "currencies"}
-              </span>
-            </div>
-          </section>
-        )}
-
-        {subscriptions.length >= 1 && (
-          <section>
-            <Subtitle>Cards · {time === "YEARLY" ? "Yearly" : "Monthly"}</Subtitle>
-            <div className="cards-rail" role="list">
-              {summaryData.map((data) => {
-                return (
-                  <div className="rail-item" key={data.key} role="listitem">
-                    <CreditCard
-                      time={time}
-                      number={data.creditCard.number}
-                      type={data.creditCard.type}
-                      currency={(time === "YEARLY" ? data.yearly : data.monthly).currency ?? "USD"}
-                      price={(time === "YEARLY" ? data.yearly : data.monthly).price}
-                      decimals={0}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        <section>
-          <Subtitle>Subscriptions</Subtitle>
-          <div className="cards-container">
-            {subscriptions
-              .filter(({ creditCard, tags: subscriptionTag }) => {
-                if (card) {
-                  return `${creditCard?.type}_${creditCard?.number}` === card;
-                }
-
-                if (Array.isArray(tags) && tags.length) {
-                  return tags.map((tag) => (subscriptionTag ?? []).includes(tag)).find(Boolean);
-                }
-
-                return true;
-              })
-              .sort((a, b) => {
-                if (sortBy === "NAME") {
-                  return (a.title ?? "").localeCompare(b.title ?? "");
-                } else if (sortBy === "PRICE") {
-                  return (
-                    Number(
-                      getUsdPrice(b.time === "MONTHLY" ? b.price * 12 : b.price, b.currency, rates)
-                    ) -
-                    Number(
-                      getUsdPrice(a.time === "MONTHLY" ? a.price * 12 : a.price, a.currency, rates)
-                    )
-                  );
-                } else if (sortBy === "CARD") {
-                  return Number(a.creditCard?.number) - Number(b.creditCard?.number);
-                }
-
-                return 0;
-              })
-              .map((subscription) => {
-                const pendingChange = changedSubscriptions[subscription.id!] ?? {};
-                const mergedSubscription = {
-                  ...subscription,
-                  ...pendingChange,
-                  creditCard: {
-                    type:
-                      (pendingChange.creditCardType as string | undefined) ??
-                      subscription.creditCard?.type ??
-                      "",
-                    number:
-                      (pendingChange.creditCardNumber as number | undefined) ??
-                      subscription.creditCard?.number ??
-                      0,
-                  },
-                };
-
-                return (
-                  <CardSubscription
-                    key={subscription.id}
-                    unsplashId={mergedSubscription.unsplashId}
-                    title={mergedSubscription.title}
-                    tags={mergedSubscription.tags ?? []}
-                    currency={mergedSubscription.currency}
-                    creditCard={mergedSubscription.creditCard}
-                    time={mergedSubscription.time}
-                    price={mergedSubscription.price}
-                    isUpdated={updatedSubscriptions[subscription.id!]}
-                    onRemove={() => {
-                      deleteConfirmationDialogRef.current?.showModal();
-                      setCurrentSubscriptionId(subscription.id ?? null);
-                    }}
-                    onUpdate={() => {
-                      updateConfirmationDialogRef.current?.showModal();
-                      setCurrentSubscriptionId(subscription.id ?? null);
-                    }}
-                    onChange={({ id, value }) => {
-                      const newValue =
-                        id === "creditCardNumber" ? (value as string).slice(-4) : value;
-
-                      setChangedSubscriptions({
-                        ...changedSubscriptions,
-                        [subscription.id!]: {
-                          ...changedSubscriptions[subscription.id!],
-                          [id]: newValue,
-                        },
-                      });
-                    }}
-                  />
-                );
-              })}
-            <CardPlaceholder
-              text="Add new subscription"
-              onClick={() => {
-                create({
-                  unsplashId: "wn7dOzUh3Rs",
-                  title: "",
-                  tags: [],
-                  price: 0,
-                  currency: "USD",
-                  time: "MONTHLY",
-                  creditCard: {
-                    type: "MASTERCARD",
-                    number: 0,
-                  },
-                  userId: user?.sub ?? undefined,
-                });
-              }}
-            />
-          </div>
-          <dialog ref={deleteConfirmationDialogRef}>
-            <form method="dialog">
-              <p>Are you sure that you want to delete it?</p>
-              <button
-                onClick={() => {
-                  if (currentSubscriptionId) remove(currentSubscriptionId);
-                }}
-              >
-                Confirm
-              </button>
-              <button>Cancel</button>
-            </form>
-          </dialog>
-          <dialog ref={updateConfirmationDialogRef}>
-            <form method="dialog">
-              <p>Are you sure that you want to update it?</p>
-              <button
-                onClick={() => {
-                  if (!currentSubscriptionId) return;
-                  const pending = changedSubscriptions[currentSubscriptionId] ?? {};
-                  update(currentSubscriptionId, {
-                    ...pending,
-                    ...shouldUpdateSubscriptionPrice(
-                      pending as Parameters<typeof shouldUpdateSubscriptionPrice>[0]
-                    ),
-                    ...(getCreditCardInfoFromCurrentSubscription(
-                      pending as Parameters<typeof getCreditCardInfoFromCurrentSubscription>[0]
-                    ) as Partial<import("../types").Subscription>),
-                  });
-                  setUpdatedSubscriptions({
-                    ...updatedSubscriptions,
-                    [currentSubscriptionId]:
-                      (updatedSubscriptions?.[currentSubscriptionId] ?? 0) + 1,
-                  });
-                }}
-              >
-                Confirm
-              </button>
-              <button>Cancel</button>
-            </form>
-          </dialog>
-        </section>
+        <SummaryHeader
+          subscriptions={subscriptions}
+          time={time}
+          currency={currency}
+          primaryTotal={primaryTotal}
+          secondaryTotal={secondaryTotal}
+          primaryIsYearly={primaryIsYearly}
+          uniqueCurrencies={uniqueCurrencies}
+          summaryData={summaryData}
+        />
+        <SubscriptionList
+          subscriptions={filteredSubscriptions}
+          user={user}
+          create={create}
+          mutations={mutations}
+        />
       </main>
 
       <style jsx>{`
@@ -430,30 +206,6 @@ export default function Home() {
 
         .evenly {
           justify-content: space-evenly;
-        }
-
-        .cards-container {
-          width: 100%;
-          min-height: 100%;
-          display: grid;
-          gap: 24px;
-          place-content: start;
-          grid-template-columns: minmax(280px, 1fr);
-        }
-
-        .cards-rail {
-          display: flex;
-          flex-direction: row;
-          gap: 20px;
-          width: 100%;
-          padding: 4px 0 12px;
-          overflow-x: auto;
-          scroll-snap-type: x mandatory;
-          scrollbar-color: var(--line-strong) var(--bg-1);
-        }
-
-        .rail-item {
-          flex: 0 0 auto;
         }
 
         .container {
@@ -516,124 +268,15 @@ export default function Home() {
           box-shadow: 0 0 0 2px var(--bg-0, #0a0a0f);
         }
 
-        .totals-hero {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding: 20px 20px 22px;
-          border: 1px solid var(--line, #2a2a38);
-          border-radius: var(--r-lg, 16px);
-          background: var(--bg-1, #14141b);
-          box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
-        }
-
-        .hero-figure {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .hero-figure.is-monthly {
-          color: var(--accent, #7cffb2);
-        }
-
-        .hero-figure.is-yearly {
-          color: var(--accent-hot, #ff3d68);
-        }
-
-        .hero-kicker {
-          margin: 0;
-          font-size: 0.7rem;
-          font-weight: 600;
-          font-family: var(--font-mono, ui-monospace, monospace);
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          color: var(--fg-1, #b8b8c8);
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .hero-pill {
-          display: inline-flex;
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 0.65rem;
-          color: #0a0a0f;
-          background: var(--accent, #7cffb2);
-        }
-
-        .is-yearly .hero-pill {
-          background: var(--accent-hot, #ff3d68);
-          color: #fff;
-        }
-
-        .hero-number {
-          margin-top: 4px;
-        }
-
-        .hero-number :global(.currency-code) {
-          color: var(--fg-0, #f5f5fa);
-          border-color: var(--line-strong, #3a3a4d);
-        }
-
-        .is-yearly .hero-number :global(.amount) {
-          color: var(--accent-hot, #ff3d68);
-        }
-
-        .is-monthly .hero-number :global(.amount) {
-          color: var(--accent, #7cffb2);
-        }
-
-        .is-yearly .hero-number :global(.currency-code) {
-          border-color: color-mix(in srgb, var(--accent-hot, #ff3d68) 50%, var(--line-strong) 50%);
-        }
-
-        .is-monthly .hero-number :global(.currency-code) {
-          border-color: color-mix(in srgb, var(--accent) 50%, var(--line-strong) 50%);
-        }
-
-        .hero-meta {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 6px 12px;
-          font-size: 0.8rem;
-          color: var(--fg-2, #6e6e85);
-        }
-
-        .meta-value {
-          color: var(--fg-0, #f5f5fa);
-        }
-
-        .meta-sep {
-          opacity: 0.4;
-        }
-
         @media only screen and (min-width: 800px) {
           .container {
             max-width: 900px;
-          }
-
-          .cards-container {
-            grid-template-columns: repeat(2, minmax(280px, 1fr));
           }
         }
 
         @media only screen and (min-width: 1000px) {
           .container {
             max-width: 1440px;
-          }
-
-          .cards-container {
-            grid-template-columns: repeat(3, minmax(280px, 1fr));
-          }
-        }
-
-        @media only screen and (min-width: 1280px) {
-          .cards-container {
-            grid-template-columns: repeat(4, minmax(260px, 1fr));
           }
         }
       `}</style>

@@ -1,3 +1,4 @@
+import type { Subscription } from "../types";
 import {
   getCreditCardType,
   getTimeDescription,
@@ -73,33 +74,24 @@ describe("[ helpers ]", () => {
     describe("when `subscriptions` is provided", () => {
       it("should return it grouped by cards", () => {
         // Arrange
-        const subscriptions = [
+        const subscriptions: Subscription[] = [
           {
             price: 9.99,
             currency: "USD",
             time: "MONTHLY",
-            creditCard: {
-              type: "MASTERCARD",
-              number: 1654,
-            },
+            creditCard: { type: "MASTERCARD", number: 1654 },
           },
           {
             price: 0.01,
             currency: "USD",
             time: "MONTHLY",
-            creditCard: {
-              type: "MASTERCARD",
-              number: 1654,
-            },
+            creditCard: { type: "MASTERCARD", number: 1654 },
           },
           {
             price: 99.99,
             currency: "USD",
             time: "YEARLY",
-            creditCard: {
-              type: "MASTERCARD",
-              number: 9387,
-            },
+            creditCard: { type: "MASTERCARD", number: 9387 },
           },
         ];
         const expected = {

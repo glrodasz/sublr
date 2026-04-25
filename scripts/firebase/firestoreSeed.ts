@@ -2,8 +2,8 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../../firebase/index.js";
-import subscriptions from "../../data/subscriptions.json" assert { type: "json" };
+import { db } from "../../firebase/index";
+import subscriptions from "../../data/subscriptions.json";
 
 async function firestoreSeed() {
   for (const subscription of subscriptions) {
