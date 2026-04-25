@@ -7,7 +7,7 @@
     "node": ">=20 <25"
   },
   "scripts": {
-    "seed": "node scripts/firebase/firestoreSeed.js",
+    "seed": "node scripts/firebase/firestoreSeed.mjs",
     "dev": "next dev",
     "debug": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",

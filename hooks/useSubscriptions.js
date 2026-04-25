@@ -22,28 +22,28 @@ const useSubscriptions = () => {
     let unsubscribe;
     let cancelled = false;
 
-    // TODO: Add try catch to handle errors
-    async function getSubscritions() {
-      const { firebaseToken } = await fetch("/api/firebase").then((data) =>
-        data.json()
-      );
-      const userCredentials = await signInWithCustomToken(auth, firebaseToken);
-      const queryCollection = query(
-        collection(db, COLLECTION_NAME),
-        where("userId", "==", userCredentials.user.uid)
-      );
-
-      if (cancelled) return;
-
-      unsubscribe = onSnapshot(queryCollection, (querySnapshot) => {
-        setSubscriptions(
-          querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    async function getSubscriptions() {
+      try {
+        const { firebaseToken } = await fetch("/api/firebase").then((data) => data.json());
+        const userCredentials = await signInWithCustomToken(auth, firebaseToken);
+        const queryCollection = query(
+          collection(db, COLLECTION_NAME),
+          where("userId", "==", userCredentials.user.uid)
         );
+
+        if (cancelled) return;
+
+        unsubscribe = onSnapshot(queryCollection, (querySnapshot) => {
+          setSubscriptions(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+          setFinishedFirstFetch(true);
+        });
+      } catch (error) {
+        console.error(error);
         setFinishedFirstFetch(true);
-      });
+      }
     }
 
-    getSubscritions();
+    getSubscriptions();
 
     return () => {
       cancelled = true;

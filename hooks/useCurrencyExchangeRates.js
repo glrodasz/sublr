@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 
-const request = (url, options) =>
-  fetch(url, options).then((data) => data.json());
-
+const request = (url, options) => fetch(url, options).then((data) => data.json());
 
 const getRatesFromSessionStorage = () => {
   try {
@@ -23,7 +21,7 @@ const useCurrencyExchangeRates = () => {
         const data = await request("api/currencies");
 
         setRates(data);
-      } catch (erorr) {
+      } catch (error) {
         console.error(error);
       }
     }

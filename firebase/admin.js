@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const admin = require("firebase-admin");
+import fs from "fs";
+import path from "path";
+import admin from "firebase-admin";
 
 function loadServiceAccount() {
   const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
@@ -17,11 +17,7 @@ function loadServiceAccount() {
   }
 
   const env = process.env.NODE_ENV === "production" ? "prod" : "dev";
-  const keyPath = path.join(
-    process.cwd(),
-    "firebase",
-    `serviceAccountKey.${env}.json`
-  );
+  const keyPath = path.join(process.cwd(), "firebase", `serviceAccountKey.${env}.json`);
   if (fs.existsSync(keyPath)) {
     return JSON.parse(fs.readFileSync(keyPath, "utf8"));
   }
@@ -42,3 +38,5 @@ if (!admin.apps.length) {
     );
   }
 }
+
+export default admin;
