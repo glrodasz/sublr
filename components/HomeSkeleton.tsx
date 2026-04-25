@@ -19,10 +19,7 @@ export default function HomeSkeleton() {
         <div className="nav-inner">
           <section className="row">
             <figure className="logo">
-              <img
-                alt=""
-                src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`}
-              />
+              <img alt="" src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`} />
             </figure>
             <div className="filters">
               <div className="filter-skeleton">
@@ -78,10 +75,7 @@ export default function HomeSkeleton() {
           <Skeleton.Text lineWidth={120} lineHeight={16} dark />
           <div className="cards-container">
             {CARD_SUBSCRIPTIONS.map((_, idx) => (
-              <div
-                key={`card-subscription-${idx}`}
-                className="card-subscription-skeleton"
-              >
+              <div key={`card-subscription-${idx}`} className="card-subscription-skeleton">
                 <div className="cover">
                   <Skeleton.Box width="30%" height={14} dark />
 

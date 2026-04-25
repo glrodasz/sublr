@@ -2,12 +2,19 @@ import React from "react";
 import Icon from "./Icon";
 import Select from "./Select";
 import Input from "./Input";
-
+import type { FieldChange } from "../types";
 import { CREDIT_CARD_TYPES } from "../constants";
 import { getCreditCardIconName } from "../helpers";
 
-const CreditCardIcon = ({ type, number, setValue, isEditable, onChange }) => {
-  const iconName = getCreditCardIconName(type);
+interface Props {
+  type?: string;
+  number?: number | string | null;
+  isEditable?: boolean;
+  onChange?: (change: FieldChange) => void;
+}
+
+const CreditCardIcon = ({ type, number, isEditable, onChange }: Props) => {
+  const iconName = getCreditCardIconName(type ?? "");
   const display =
     number === 0 || number === "0" || number === null || number === undefined
       ? "····"
@@ -20,10 +27,8 @@ const CreditCardIcon = ({ type, number, setValue, isEditable, onChange }) => {
           <Select
             id="creditCardType"
             value={type}
-            onChange={onChange}
-            options={Object.entries(CREDIT_CARD_TYPES).map(
-              ([value, label]) => ({ label, value })
-            )}
+            onChange={onChange!}
+            options={Object.entries(CREDIT_CARD_TYPES).map(([value, label]) => ({ label, value }))}
           />
         ) : (
           <span className="icon-wrap" aria-hidden>
@@ -35,9 +40,9 @@ const CreditCardIcon = ({ type, number, setValue, isEditable, onChange }) => {
             <Input
               id="creditCardNumber"
               type="number"
-              value={number}
+              value={number ?? undefined}
               maxLength={4}
-              onChange={onChange}
+              onChange={onChange!}
               className="mono"
             />
           ) : (

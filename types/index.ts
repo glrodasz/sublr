@@ -40,6 +40,11 @@ export interface SummaryTotal {
   yearly: number;
 }
 
+export interface FieldChange {
+  id: string;
+  value: string | string[] | number;
+}
+
 export interface FilterState {
   search: string;
   tag: string | null;

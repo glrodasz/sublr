@@ -1,7 +1,12 @@
 import React from "react";
 import Card from "./Card";
 
-const CardPlaceholder = ({ text, onClick }) => {
+interface Props {
+  text: string;
+  onClick?: () => void;
+}
+
+const CardPlaceholder = ({ text, onClick }: Props) => {
   return (
     <>
       <Card onClick={onClick}>
@@ -26,7 +31,9 @@ const CardPlaceholder = ({ text, onClick }) => {
             margin: 0;
             background: transparent;
             cursor: pointer;
-            transition: background 0.15s ease, border-color 0.15s ease;
+            transition:
+              background 0.15s ease,
+              border-color 0.15s ease;
           }
 
           .placeholder:hover {

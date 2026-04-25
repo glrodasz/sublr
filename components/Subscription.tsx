@@ -2,13 +2,24 @@ import React from "react";
 
 import Price from "./Price";
 import Select from "./Select";
-
+import type { Currency, TimeAttribute, FieldChange } from "../types";
 import { TIME_DESCRIPTION } from "../constants";
 
-const PERIOD_PILL = {
+const PERIOD_PILL: Record<TimeAttribute, string> = {
   MONTHLY: "mo",
   YEARLY: "yr",
 };
+
+interface Props {
+  price: number;
+  currency: Currency;
+  time: TimeAttribute;
+  size?: "sm" | "md" | "lg" | "xl";
+  decimals?: number;
+  isEditable?: boolean;
+  onChange?: (change: FieldChange) => void;
+  periodVariant?: "default" | "compact";
+}
 
 const Subscription = ({
   price,
@@ -19,14 +30,10 @@ const Subscription = ({
   isEditable,
   onChange,
   periodVariant = "default",
-}) => {
+}: Props) => {
   return (
     <>
-      <div
-        className={`subscription ${
-          periodVariant === "compact" ? "is-compact" : ""
-        }`}
-      >
+      <div className={`subscription ${periodVariant === "compact" ? "is-compact" : ""}`}>
         <Price
           currency={currency}
           size={size}
@@ -42,10 +49,8 @@ const Subscription = ({
             <Select
               id="time"
               value={time}
-              onChange={onChange}
-              options={Object.entries(TIME_DESCRIPTION).map(
-                ([value, label]) => ({ label, value })
-              )}
+              onChange={onChange!}
+              options={Object.entries(TIME_DESCRIPTION).map(([value, label]) => ({ label, value }))}
             />
           ) : (
             <span className="period-label">{PERIOD_PILL[time] ?? time}</span>
@@ -89,7 +94,6 @@ const Subscription = ({
           border-radius: 999px;
           background: var(--bg-2, #1c1c26);
         }
-
       `}</style>
     </>
   );

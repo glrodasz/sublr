@@ -1,16 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import Tag from "./Tag";
 
-const pluralize = (length, word) => {
-  return length === 1 ? word : `${word}s`;
-};
+const pluralize = (length: number, word: string): string => (length === 1 ? word : `${word}s`);
 
 const MORE_KEY = Symbol("more");
+type TagValue = string | typeof MORE_KEY;
+type SummaryEntry = { label: string | false; value: TagValue; isLowerCase?: boolean };
 
-const Autocomplete = ({ options, values, setValues }) => {
+interface Props {
+  options: string[];
+  values: string | string[];
+  setValues: (values: string[]) => void;
+}
+
+const Autocomplete = ({ options, values, setValues }: Props) => {
   const [isEditable, setIsEditable] = useState(false);
   const [query, setQuery] = useState("");
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const valueList = Array.isArray(values) ? values : values ? [values] : [];
 
@@ -35,18 +41,17 @@ const Autocomplete = ({ options, values, setValues }) => {
   const hasValues = !!valueList.length;
   const [firstTag, secondTag, ...restTags] = valueList;
   const tags = restTags;
-  const summaryValues = [
+  const summaryValues: SummaryEntry[] = [
     { label: firstTag, value: firstTag },
     { label: secondTag, value: secondTag },
     {
-      label:
-        !!tags.length && `${tags.length} more ${pluralize(tags.length, "tag")}`,
+      label: !!tags.length && `${tags.length} more ${pluralize(tags.length, "tag")}`,
       value: MORE_KEY,
       isLowerCase: true,
     },
   ];
 
-  const handlerCloseTag = (valueToRemove) => (event) => {
+  const handlerCloseTag = (valueToRemove: TagValue) => (event: React.MouseEvent) => {
     event.stopPropagation();
 
     if (valueToRemove === MORE_KEY) {
@@ -71,11 +76,11 @@ const Autocomplete = ({ options, values, setValues }) => {
               .filter(({ label }) => Boolean(label))
               .map(({ value, label, isLowerCase }) => (
                 <Tag
-                  key={label}
+                  key={label as string}
                   onClose={handlerCloseTag(value)}
                   isLowerCase={isLowerCase}
                 >
-                  {label}
+                  {label as string}
                 </Tag>
               ))}
           <input
@@ -200,11 +205,11 @@ const Autocomplete = ({ options, values, setValues }) => {
               .filter(({ label }) => Boolean(label))
               .map(({ value, label, isLowerCase }) => (
                 <Tag
-                  key={label}
+                  key={label as string}
                   onClose={handlerCloseTag(value)}
                   isLowerCase={isLowerCase}
                 >
-                  {label}
+                  {label as string}
                 </Tag>
               ))
           : "Search…"}

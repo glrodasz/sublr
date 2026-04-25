@@ -1,30 +1,32 @@
 import React from "react";
 import Input from "./Input";
 import Select from "./Select";
-
+import type { Currency, FieldChange } from "../types";
 import { LANG_PER_CURRENCY } from "../constants";
 
-const sizeClass = {
+const sizeClass: Record<string, string> = {
   sm: "size-sm",
   md: "size-md",
   lg: "size-lg",
   xl: "size-xl",
 };
 
-const Price = ({
-  children,
-  currency,
-  size = "md",
-  decimals = 2,
-  isEditable,
-  onChange,
-}) => {
+interface Props {
+  children: React.ReactNode;
+  currency: Currency;
+  size?: "sm" | "md" | "lg" | "xl";
+  decimals?: number;
+  isEditable?: boolean;
+  onChange?: (change: FieldChange) => void;
+}
+
+const Price = ({ children, currency, size = "md", decimals = 2, isEditable, onChange }: Props) => {
   const price = new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
     style: "currency",
     currency,
     maximumFractionDigits: decimals,
     minimumFractionDigits: 0,
-  }).format(Number(children).toFixed(2));
+  }).format(Number(children));
 
   return (
     <>
@@ -35,7 +37,7 @@ const Price = ({
       >
         <span className="amount mono tabular-nums">
           {isEditable ? (
-            <Input id="price" value={children} onChange={onChange} className="mono" />
+            <Input id="price" value={children as number} onChange={onChange} className="mono" />
           ) : (
             price
           )}
@@ -45,7 +47,7 @@ const Price = ({
             <Select
               id="currency"
               value={currency}
-              onChange={onChange}
+              onChange={onChange!}
               options={Object.keys(LANG_PER_CURRENCY).map((key) => ({
                 value: key,
                 label: key,

@@ -53,13 +53,16 @@ const skeletonStyles = css.global`
   }
 `;
 
-const Box = ({ width, height, dark = false }) => {
+interface BoxProps {
+  width?: number | string;
+  height?: number | string;
+  dark?: boolean;
+}
+
+const Box = ({ width, height, dark = false }: BoxProps) => {
   return (
     <>
-      <div
-        className={dark ? "skeleton box dark" : "skeleton box"}
-        style={{ width, height }}
-      ></div>
+      <div className={dark ? "skeleton box dark" : "skeleton box"} style={{ width, height }}></div>
       <style jsx global>
         {skeletonStyles}
       </style>
@@ -67,7 +70,12 @@ const Box = ({ width, height, dark = false }) => {
   );
 };
 
-const Circle = ({ diameter, dark = false }) => {
+interface CircleProps {
+  diameter: number | string;
+  dark?: boolean;
+}
+
+const Circle = ({ diameter, dark = false }: CircleProps) => {
   return (
     <>
       <div
@@ -88,13 +96,21 @@ const Circle = ({ diameter, dark = false }) => {
   );
 };
 
+interface TextProps {
+  lineHeight?: number;
+  lineWidth?: number | string;
+  numberOfLines?: number;
+  lineSpacing?: number;
+  dark?: boolean;
+}
+
 const Text = ({
   lineHeight,
   lineWidth = "100%",
   numberOfLines = 1,
   lineSpacing = 8,
   dark = false,
-}) => {
+}: TextProps) => {
   return (
     <>
       <div className="text" style={{ gap: lineSpacing, width: lineWidth }}>

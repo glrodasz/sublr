@@ -4,40 +4,31 @@ import CreditCardIcon from "./CreditCardIcon";
 import Subscription from "./Subscription";
 import Card from "./Card";
 import Tag from "./Tag";
-
+import type { CardSide, Currency, TimeAttribute, CreditCard, FieldChange } from "../types";
 import { DEFAULT_UNSPLASH_ID } from "../constants";
 import BacksideCardSubscription from "./BacksideCardSubscription";
 import { getTagStyle } from "../lib/tagStyles";
 
-const FRONTSIDE = Symbol("frontside");
-const BACKSIDE = Symbol("backside");
-
-const CardSides = {
-  Frontside: FRONTSIDE,
-  Backside: BACKSIDE,
-};
-
-const getCardSidesString = (side) => {
-  if (side === CardSides.Frontside) {
-    return "frontside";
-  }
-
-  if (side === CardSides.Backside) {
-    return "backside";
-  }
-};
-
 const handleClick =
-  ({ side, setSide }) =>
+  ({ side, setSide }: { side: CardSide; setSide: (s: CardSide) => void }) =>
   () => {
-    if (side === CardSides.Frontside) {
-      setSide(CardSides.Backside);
-    }
-
-    if (side === CardSides.Backside) {
-      setSide(CardSides.Frontside);
-    }
+    setSide(side === "frontside" ? "backside" : "frontside");
   };
+
+interface Props {
+  unsplashId?: string;
+  title?: string;
+  tags: string[];
+  price: number;
+  currency: Currency;
+  time: TimeAttribute;
+  creditCard?: CreditCard;
+  onRemove?: () => void;
+  onUpdate?: () => void;
+  onRefresh?: () => void;
+  onChange: (change: FieldChange) => void;
+  isUpdated?: number;
+}
 
 const CardSubscription = ({
   unsplashId = DEFAULT_UNSPLASH_ID,
@@ -52,14 +43,14 @@ const CardSubscription = ({
   onRefresh,
   onChange,
   isUpdated = 0,
-}) => {
-  const [side, setSide] = useState(CardSides.Frontside);
+}: Props) => {
+  const [side, setSide] = useState<CardSide>("frontside");
   const primaryTag = tags?.[0] ?? "";
   const { color: accent } = getTagStyle(primaryTag);
 
   useEffect(() => {
     if (isUpdated) {
-      setSide(CardSides.Frontside);
+      setSide("frontside");
     }
   }, [isUpdated]);
 
@@ -68,7 +59,7 @@ const CardSubscription = ({
       <Card
         height={310}
         onClick={handleClick({ side, setSide })}
-        side={getCardSidesString(side)}
+        side={side}
         backsideContent={
           <BacksideCardSubscription
             unsplashId={unsplashId}
@@ -85,7 +76,7 @@ const CardSubscription = ({
           />
         }
       >
-        <div className="receipt" style={{ "--accent-bar": accent }}>
+        <div className="receipt" style={{ "--accent-bar": accent } as React.CSSProperties}>
           <div className="cover">
             <div
               className="cover-bg"
@@ -95,9 +86,7 @@ const CardSubscription = ({
               aria-hidden="true"
             />
             <div className="duotone" aria-hidden="true" />
-            <h1 className="title">
-              {title || <span className="untitled">Untitled</span>}
-            </h1>
+            <h1 className="title">{title || <span className="untitled">Untitled</span>}</h1>
             <div className="tags">
               {tags.map((tag) => (
                 <Tag key={tag}>{tag}</Tag>
@@ -105,12 +94,7 @@ const CardSubscription = ({
             </div>
           </div>
           <div className="content">
-            <Subscription
-              price={price}
-              currency={currency}
-              time={time}
-              size="md"
-            />
+            <Subscription price={price} currency={currency} time={time} size="md" />
             <div className="cc-row">
               <CreditCardIcon {...creditCard} />
             </div>
@@ -160,11 +144,7 @@ const CardSubscription = ({
           content: "";
           position: absolute;
           border-radius: var(--r-md) var(--r-md) 0 0;
-          background: linear-gradient(
-            0deg,
-            rgba(0, 0, 0, 0.92) 0%,
-            rgba(0, 0, 0, 0.15) 100%
-          );
+          background: linear-gradient(0deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.15) 100%);
           inset: 0;
           z-index: 1;
         }
@@ -180,12 +160,7 @@ const CardSubscription = ({
         }
 
         .title {
-          font-family: var(
-            --font-display,
-            "Space Grotesk",
-            system-ui,
-            sans-serif
-          );
+          font-family: var(--font-display, "Space Grotesk", system-ui, sans-serif);
           font-size: 1.4rem;
           font-weight: 700;
           position: relative;

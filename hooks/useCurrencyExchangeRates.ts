@@ -1,25 +1,27 @@
 import { useEffect, useState } from "react";
+import type { ExchangeRates } from "../types";
 
-const request = (url, options) => fetch(url, options).then((data) => data.json());
+const request = (url: string, options?: RequestInit): Promise<ExchangeRates> =>
+  fetch(url, options).then((data) => data.json());
 
-const getRatesFromSessionStorage = () => {
+const getRatesFromSessionStorage = (): ExchangeRates | null => {
   try {
-    return JSON.parse(sessionStorage.getItem("RATES_FROM_USD"));
+    return JSON.parse(sessionStorage.getItem("RATES_FROM_USD") ?? "null");
   } catch {
     return null;
   }
 };
-const setRatesToSessionStorage = (rates) =>
+
+const setRatesToSessionStorage = (rates: ExchangeRates) =>
   sessionStorage.setItem("RATES_FROM_USD", JSON.stringify(rates));
 
-const useCurrencyExchangeRates = () => {
-  const [rates, setRates] = useState(null);
+const useCurrencyExchangeRates = (): { rates: ExchangeRates | null } => {
+  const [rates, setRates] = useState<ExchangeRates | null>(null);
 
   useEffect(() => {
     async function requestExchange() {
       try {
         const data = await request("api/currencies");
-
         setRates(data);
       } catch (error) {
         console.error(error);
@@ -39,9 +41,7 @@ const useCurrencyExchangeRates = () => {
     }
   }, [rates]);
 
-  return {
-    rates,
-  };
+  return { rates };
 };
 
 export default useCurrencyExchangeRates;

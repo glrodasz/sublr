@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useState, useRef, useMemo } from "react";
+import type { Currency, TimeAttribute, FieldChange } from "../types";
 import auth0 from "../lib/auth0";
 
 import CardSubscription from "../components/CardSubscription";
@@ -34,11 +35,11 @@ export const getServerSideProps = auth0.withPageAuthRequired();
 export default function Home() {
   // TODO: Refactor to a custom hook called useFilters and use an
   // object to map the filters
-  const [time, setTime] = useState("YEARLY");
-  const [currency, setCurrency] = useState("USD");
+  const [time, setTime] = useState<TimeAttribute>("YEARLY");
+  const [currency, setCurrency] = useState<Currency>("USD");
   const [sortBy, setSortBy] = useState("PRICE");
   const [card, setCard] = useState("");
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState<string[]>([]);
 
   // User
   const { user } = useUser();
@@ -47,13 +48,16 @@ export default function Home() {
   const { subscriptions, create, remove, update, finishedFirstFetch } = useSubscriptions();
 
   // Temporal states
-  const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
-  const [changedSubscriptions, setChangedSubscriptions] = useState({});
-  const [updatedSubscriptions, setUpdatedSubscriptions] = useState({});
+  const [currentSubscriptionId, setCurrentSubscriptionId] = useState<string | null>(null);
+  type PendingChange = Record<string, FieldChange["value"]>;
+  const [changedSubscriptions, setChangedSubscriptions] = useState<Record<string, PendingChange>>(
+    {}
+  );
+  const [updatedSubscriptions, setUpdatedSubscriptions] = useState<Record<string, number>>({});
 
   // Dialogs
-  const deleteConfirmationDialogRef = useRef(null);
-  const updateConfirmationDialogRef = useRef(null);
+  const deleteConfirmationDialogRef = useRef<HTMLDialogElement>(null);
+  const updateConfirmationDialogRef = useRef<HTMLDialogElement>(null);
 
   // FIXME: Use the https://github.com/glrodasz/cero-web/blob/master/features/common/hooks/useBreakpoints.js hook instead
   const isDesktop = useMedia(["(min-width: 992px)"], [true]);
@@ -82,7 +86,9 @@ export default function Home() {
 
   const tagOptions = [
     ...new Set(
-      subscriptions.flatMap((subscription) => subscription.tags.map((tag) => tag.toLowerCase()))
+      subscriptions.flatMap((subscription) =>
+        (subscription.tags ?? []).map((tag) => tag.toLowerCase())
+      )
     ),
   ];
 
@@ -118,7 +124,7 @@ export default function Home() {
                 label="Currency"
                 value={currency}
                 hideLabel={isMobile}
-                setValue={setCurrency}
+                setValue={(v) => setCurrency(v as Currency)}
                 variant="segmented"
                 options={[
                   { label: "USD", value: "USD" },
@@ -131,7 +137,7 @@ export default function Home() {
                 label="Time"
                 value={time}
                 hideLabel={isMobile}
-                setValue={setTime}
+                setValue={(v) => setTime(v as TimeAttribute)}
                 variant="segmented"
                 options={[
                   { label: "Yearly", value: "YEARLY" },
@@ -160,7 +166,7 @@ export default function Home() {
             {user && (
               <div className="avatar-wrap" title="Signed in">
                 <div className="avatar">
-                  <img alt="" src={user.picture} />
+                  <img alt="" src={user.picture ?? undefined} />
                 </div>
                 <span className="status-dot" aria-hidden />
               </div>
@@ -220,8 +226,8 @@ export default function Home() {
                       time={time}
                       number={data.creditCard.number}
                       type={data.creditCard.type}
-                      currency={data[TIME_ATTRIBUTE[time]].currency}
-                      price={data[TIME_ATTRIBUTE[time]].price}
+                      currency={(time === "YEARLY" ? data.yearly : data.monthly).currency ?? "USD"}
+                      price={(time === "YEARLY" ? data.yearly : data.monthly).price}
                       decimals={0}
                     />
                   </div>
@@ -237,18 +243,18 @@ export default function Home() {
             {subscriptions
               .filter(({ creditCard, tags: subscriptionTag }) => {
                 if (card) {
-                  return `${creditCard.type}_${creditCard.number}` === card;
+                  return `${creditCard?.type}_${creditCard?.number}` === card;
                 }
 
                 if (Array.isArray(tags) && tags.length) {
-                  return tags.map((tag) => subscriptionTag.includes(tag)).find(Boolean);
+                  return tags.map((tag) => (subscriptionTag ?? []).includes(tag)).find(Boolean);
                 }
 
                 return true;
               })
               .sort((a, b) => {
                 if (sortBy === "NAME") {
-                  return a.title.localeCompare(b.title);
+                  return (a.title ?? "").localeCompare(b.title ?? "");
                 } else if (sortBy === "PRICE") {
                   return (
                     Number(
@@ -259,22 +265,25 @@ export default function Home() {
                     )
                   );
                 } else if (sortBy === "CARD") {
-                  return a.creditCard.number - b.creditCard.number;
+                  return Number(a.creditCard?.number) - Number(b.creditCard?.number);
                 }
 
                 return 0;
               })
               .map((subscription) => {
+                const pendingChange = changedSubscriptions[subscription.id!] ?? {};
                 const mergedSubscription = {
                   ...subscription,
-                  ...changedSubscriptions[subscription.id],
+                  ...pendingChange,
                   creditCard: {
                     type:
-                      changedSubscriptions[subscription.id]?.creditCardType ??
-                      subscription.creditCard.type,
+                      (pendingChange.creditCardType as string | undefined) ??
+                      subscription.creditCard?.type ??
+                      "",
                     number:
-                      changedSubscriptions[subscription.id]?.creditCardNumber ??
-                      subscription.creditCard.number,
+                      (pendingChange.creditCardNumber as number | undefined) ??
+                      subscription.creditCard?.number ??
+                      0,
                   },
                 };
 
@@ -283,32 +292,29 @@ export default function Home() {
                     key={subscription.id}
                     unsplashId={mergedSubscription.unsplashId}
                     title={mergedSubscription.title}
-                    tags={mergedSubscription.tags}
+                    tags={mergedSubscription.tags ?? []}
                     currency={mergedSubscription.currency}
                     creditCard={mergedSubscription.creditCard}
                     time={mergedSubscription.time}
                     price={mergedSubscription.price}
-                    isUpdated={updatedSubscriptions[subscription.id]}
-                    onRemove={(event) => {
-                      event.stopPropagation();
-                      deleteConfirmationDialogRef.current.showModal();
-                      setCurrentSubscriptionId(subscription.id);
+                    isUpdated={updatedSubscriptions[subscription.id!]}
+                    onRemove={() => {
+                      deleteConfirmationDialogRef.current?.showModal();
+                      setCurrentSubscriptionId(subscription.id ?? null);
                     }}
-                    onUpdate={(event) => {
-                      event.stopPropagation();
-                      updateConfirmationDialogRef.current.showModal();
-                      setCurrentSubscriptionId(subscription.id);
+                    onUpdate={() => {
+                      updateConfirmationDialogRef.current?.showModal();
+                      setCurrentSubscriptionId(subscription.id ?? null);
                     }}
                     onChange={({ id, value }) => {
-                      const newValue = id === "creditCardNumber" ? value.slice(-4) : value;
+                      const newValue =
+                        id === "creditCardNumber" ? (value as string).slice(-4) : value;
 
                       setChangedSubscriptions({
                         ...changedSubscriptions,
-                        [subscription.id]: {
-                          ...changedSubscriptions[subscription.id],
-                          ...{
-                            [id]: newValue,
-                          },
+                        [subscription.id!]: {
+                          ...changedSubscriptions[subscription.id!],
+                          [id]: newValue,
                         },
                       });
                     }}
@@ -324,12 +330,12 @@ export default function Home() {
                   tags: [],
                   price: 0,
                   currency: "USD",
-                  time: "",
+                  time: "MONTHLY",
                   creditCard: {
                     type: "MASTERCARD",
                     number: 0,
                   },
-                  userId: user?.sub,
+                  userId: user?.sub ?? undefined,
                 });
               }}
             />
@@ -339,7 +345,7 @@ export default function Home() {
               <p>Are you sure that you want to delete it?</p>
               <button
                 onClick={() => {
-                  remove(currentSubscriptionId);
+                  if (currentSubscriptionId) remove(currentSubscriptionId);
                 }}
               >
                 Confirm
@@ -352,19 +358,21 @@ export default function Home() {
               <p>Are you sure that you want to update it?</p>
               <button
                 onClick={() => {
+                  if (!currentSubscriptionId) return;
+                  const pending = changedSubscriptions[currentSubscriptionId] ?? {};
                   update(currentSubscriptionId, {
-                    ...changedSubscriptions[currentSubscriptionId],
-                    ...shouldUpdateSubscriptionPrice(changedSubscriptions[currentSubscriptionId]),
-                    ...getCreditCardInfoFromCurrentSubscription(
-                      changedSubscriptions[currentSubscriptionId]
+                    ...pending,
+                    ...shouldUpdateSubscriptionPrice(
+                      pending as Parameters<typeof shouldUpdateSubscriptionPrice>[0]
                     ),
+                    ...(getCreditCardInfoFromCurrentSubscription(
+                      pending as Parameters<typeof getCreditCardInfoFromCurrentSubscription>[0]
+                    ) as Partial<import("../types").Subscription>),
                   });
                   setUpdatedSubscriptions({
                     ...updatedSubscriptions,
-                    ...{
-                      [currentSubscriptionId]:
-                        (updatedSubscriptions?.[currentSubscriptionId] ?? 0) + 1,
-                    },
+                    [currentSubscriptionId]:
+                      (updatedSubscriptions?.[currentSubscriptionId] ?? 0) + 1,
                   });
                 }}
               >

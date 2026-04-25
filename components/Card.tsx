@@ -1,6 +1,7 @@
 import React from "react";
+import type { CardSide } from "../types";
 
-const classNames = (obj) => {
+const classNames = (obj: Record<string, unknown>) => {
   const classes = Object.entries(obj)
     .filter((entry) => Boolean(entry[1]))
     .map((entry) => entry[0]);
@@ -8,14 +9,16 @@ const classNames = (obj) => {
   return classes.join(" ");
 };
 
-const Card = ({
-  children,
-  height,
-  isInline,
-  side,
-  onClick,
-  backsideContent,
-}) => {
+interface Props {
+  children: React.ReactNode;
+  height?: number;
+  isInline?: boolean;
+  side?: CardSide;
+  onClick?: () => void;
+  backsideContent?: React.ReactNode;
+}
+
+const Card = ({ children, height, isInline, side, onClick, backsideContent }: Props) => {
   return (
     <>
       <div
@@ -24,13 +27,11 @@ const Card = ({
           flipping: backsideContent,
           "is-inline": isInline,
           "is-clickable": onClick,
-          [side]: side,
+          ...(side ? { [side]: true } : {}),
         })}`}
       >
         <div className="frontside-content">{children}</div>
-        {backsideContent && (
-          <div className="backside-content">{backsideContent}</div>
-        )}
+        {backsideContent && <div className="backside-content">{backsideContent}</div>}
       </div>
       <style jsx>{`
         .card {
@@ -58,7 +59,9 @@ const Card = ({
           display: flex;
           flex-direction: column;
           background: var(--bg-1, #14141b);
-          transition: transform 0.5s ease, box-shadow 0.15s ease,
+          transition:
+            transform 0.5s ease,
+            box-shadow 0.15s ease,
             border-color 0.15s ease;
           backface-visibility: hidden;
           height: ${height ? `${height}px` : "initial"};
@@ -82,7 +85,8 @@ const Card = ({
           .is-clickable:hover > .frontside-content,
           .is-clickable:hover > .backside-content {
             border-color: var(--accent, #7cffb2);
-            box-shadow: 0 0 0 1px var(--glow, rgba(124, 255, 178, 0.12)),
+            box-shadow:
+              0 0 0 1px var(--glow, rgba(124, 255, 178, 0.12)),
               0 0 28px var(--glow, rgba(124, 255, 178, 0.12));
           }
         }

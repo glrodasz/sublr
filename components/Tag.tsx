@@ -2,7 +2,13 @@ import React from "react";
 import Icon from "./Icon";
 import { getTagStyle } from "../lib/tagStyles";
 
-const Tag = ({ children, onClose, isLowerCase }) => {
+interface Props {
+  children: string;
+  onClose?: React.MouseEventHandler;
+  isLowerCase?: boolean;
+}
+
+const Tag = ({ children, onClose, isLowerCase }: Props) => {
   const { color } = getTagStyle(children);
 
   return (

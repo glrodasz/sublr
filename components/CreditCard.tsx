@@ -1,27 +1,37 @@
 import React from "react";
 import Icon from "./Icon";
+import type { Currency } from "../types";
 import { LANG_PER_CURRENCY } from "../constants";
 import { getCreditCardIconName } from "../helpers";
 
-const plasticClass = (type) => {
+const plasticClass = (type: string): string => {
   const t = String(type || "").toLowerCase();
   if (t.includes("visa")) return "visa";
   if (t.includes("master") || t === "mc") return "mc";
   return "default";
 };
 
-const CreditCard = ({ type, number, currency, time, price, decimals }) => {
+interface Props {
+  type?: string;
+  number?: number | string;
+  currency: Currency;
+  time?: string;
+  price: number;
+  decimals?: number;
+}
+
+const CreditCard = ({ type, number, currency, time, price, decimals }: Props) => {
   const brand = plasticClass(String(type));
   const timeKey = time === "YEARLY" || time === "yearly" ? "YEARLY" : "MONTHLY";
   const periodLabel = timeKey === "YEARLY" ? "yr" : "mo";
-  const iconName = getCreditCardIconName(type);
+  const iconName = getCreditCardIconName(type ?? "");
 
   const formatted = new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
     style: "currency",
     currency,
     maximumFractionDigits: decimals ?? 0,
     minimumFractionDigits: 0,
-  }).format(Number(price).toFixed(2));
+  }).format(Number(price));
 
   const last4 = String(number || "")
     .padStart(4, "0")
@@ -61,7 +71,8 @@ const CreditCard = ({ type, number, currency, time, price, decimals }) => {
           justify-content: space-between;
           color: #f5f5fa;
           border: 1px solid rgb(255 255 255 / 0.12);
-          box-shadow: 0 16px 40px rgb(0 0 0 / 0.45),
+          box-shadow:
+            0 16px 40px rgb(0 0 0 / 0.45),
             inset 0 1px 0 rgb(255 255 255 / 0.1);
           overflow: hidden;
           scroll-snap-align: start;

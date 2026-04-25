@@ -4,6 +4,21 @@ import Tag from "./Tag";
 import Subscription from "./Subscription";
 import CreditCardIcon from "./CreditCardIcon";
 import Icon from "./Icon";
+import type { Currency, TimeAttribute, CreditCard, FieldChange } from "../types";
+
+interface Props {
+  unsplashId?: string;
+  title?: string;
+  tags: string[];
+  price: number;
+  currency: Currency;
+  time: TimeAttribute;
+  creditCard?: CreditCard;
+  onChange: (change: FieldChange) => void;
+  onRemove?: () => void;
+  onUpdate?: () => void;
+  onRefresh?: () => void;
+}
 
 const BacksideCardSubscription = ({
   unsplashId,
@@ -17,7 +32,7 @@ const BacksideCardSubscription = ({
   onRemove,
   onUpdate,
   onRefresh,
-}) => {
+}: Props) => {
   const [tags, setTags] = useState(originalTags.join(", "));
 
   return (
@@ -37,13 +52,13 @@ const BacksideCardSubscription = ({
               placeholder="Tags comma separated..."
               id="tags"
               value={tags}
-              onChange={({ value }) => setTags(value)}
+              onChange={({ value }) => setTags(value as string)}
               onBlur={({ id, value }) => {
                 onChange({
                   id,
-                  value: value
+                  value: (value as string)
                     .split(",")
-                    .map((value) => value.trim())
+                    .map((v) => v.trim())
                     .filter(Boolean),
                 });
               }}
@@ -93,11 +108,7 @@ const BacksideCardSubscription = ({
           content: "";
           position: absolute;
           border-radius: 8px 8px 0 0;
-          background: linear-gradient(
-            0deg,
-            rgba(0, 0, 0, 0.9) 0%,
-            rgba(0, 0, 0, 0.2) 65%
-          );
+          background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.2) 65%);
           inset: 0;
         }
 
@@ -153,7 +164,8 @@ const BacksideCardSubscription = ({
           height: 28px;
           padding: 5px;
           border-radius: 50%;
-          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+          box-shadow:
+            0 10px 15px -3px rgb(0 0 0 / 0.1),
             0 4px 6px -4px rgb(0 0 0 / 0.1);
           cursor: pointer;
         }

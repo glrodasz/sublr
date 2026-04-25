@@ -1,13 +1,20 @@
 import React from "react";
 
 const iconSizesMap = {
-  "xs" : 13,
-  "sm": 20,
-  "md": 35,
-  "lg": 45,
+  xs: 13,
+  sm: 20,
+  md: 35,
+  lg: 45,
+};
+
+interface Props {
+  name: string;
+  onClick?: React.MouseEventHandler;
+  size?: "xs" | "sm" | "md" | "lg";
+  children?: React.ReactNode;
 }
 
-const Icon = ({ name, onClick, size = "md" }) => {
+const Icon = ({ name, onClick, size = "md" }: Props) => {
   return (
     <>
       <span className="icon" onClick={onClick}>

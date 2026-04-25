@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import admin from "firebase-admin";
 
-function loadServiceAccount() {
+function loadServiceAccount(): Record<string, unknown> | null {
   const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
   if (b64) {
     try {
@@ -10,7 +10,7 @@ function loadServiceAccount() {
     } catch (err) {
       console.error(
         "[firebase/admin] FIREBASE_SERVICE_ACCOUNT_B64 is set but failed to parse:",
-        err.message
+        (err as Error).message
       );
       return null;
     }

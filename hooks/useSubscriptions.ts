@@ -7,19 +7,21 @@ import {
   setDoc,
   doc,
   where,
+  DocumentData,
 } from "firebase/firestore";
 import { db, auth } from "../firebase/client";
 import { signInWithCustomToken } from "firebase/auth";
 import { useState, useEffect } from "react";
+import type { Subscription } from "../types";
 
 const COLLECTION_NAME = "subscriptions";
 
 const useSubscriptions = () => {
-  const [subscriptions, setSubscriptions] = useState([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [finishedFirstFetch, setFinishedFirstFetch] = useState(false);
 
   useEffect(() => {
-    let unsubscribe;
+    let unsubscribe: (() => void) | undefined;
     let cancelled = false;
 
     async function getSubscriptions() {
@@ -34,7 +36,9 @@ const useSubscriptions = () => {
         if (cancelled) return;
 
         unsubscribe = onSnapshot(queryCollection, (querySnapshot) => {
-          setSubscriptions(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+          setSubscriptions(
+            querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Subscription)
+          );
           setFinishedFirstFetch(true);
         });
       } catch (error) {
@@ -51,16 +55,16 @@ const useSubscriptions = () => {
     };
   }, []);
 
-  const create = async (subscription) => {
-    return await addDoc(collection(db, COLLECTION_NAME), subscription);
+  const create = async (subscription: Omit<Subscription, "id">) => {
+    return await addDoc(collection(db, COLLECTION_NAME), subscription as DocumentData);
   };
 
-  const remove = async (id) => {
+  const remove = async (id: string) => {
     return await deleteDoc(doc(db, COLLECTION_NAME, id));
   };
 
-  const update = async (id, subscription) => {
-    return await setDoc(doc(db, COLLECTION_NAME, id), subscription, {
+  const update = async (id: string, subscription: Partial<Subscription>) => {
+    return await setDoc(doc(db, COLLECTION_NAME, id), subscription as DocumentData, {
       merge: true,
     });
   };

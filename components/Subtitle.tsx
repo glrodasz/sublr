@@ -1,6 +1,10 @@
 import React from "react";
 
-const Subtitle = ({ children }) => {
+interface Props {
+  children: React.ReactNode;
+}
+
+const Subtitle = ({ children }: Props) => {
   return (
     <>
       <h2 className="subtitle">
