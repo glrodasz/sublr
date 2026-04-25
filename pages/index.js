@@ -20,7 +20,7 @@ import useSubscriptions from "../hooks/useSubscriptions";
 
 import {
   getCreditCardInfoFromCurrentSubscription,
-  getMonthlySubscriptionGrouppedByCard,
+  getMonthlySubscriptionGroupedByCard,
   getSummaryData,
   getSummaryTotal,
   getUsdPrice,
@@ -44,8 +44,7 @@ export default function Home() {
   const { user } = useUser();
 
   // CRUD
-  const { subscriptions, create, remove, update, finishedFirstFetch } =
-    useSubscriptions();
+  const { subscriptions, create, remove, update, finishedFirstFetch } = useSubscriptions();
 
   // Temporal states
   const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
@@ -62,14 +61,14 @@ export default function Home() {
 
   const { rates } = useCurrencyExchangeRates();
 
-  const grouppedMonthlySubscriptions = getMonthlySubscriptionGrouppedByCard(
+  const groupedMonthlySubscriptions = getMonthlySubscriptionGroupedByCard(
     subscriptions,
     currency,
     rates
   );
 
-  const cards = Object.keys(grouppedMonthlySubscriptions);
-  const summaryData = getSummaryData(grouppedMonthlySubscriptions);
+  const cards = Object.keys(groupedMonthlySubscriptions);
+  const summaryData = getSummaryData(groupedMonthlySubscriptions);
   const summaryTotal = getSummaryTotal(summaryData);
 
   const uniqueCurrencies = useMemo(
@@ -77,17 +76,13 @@ export default function Home() {
     [subscriptions]
   );
 
-  const primaryTotal =
-    time === "YEARLY" ? summaryTotal.yearly : summaryTotal.monthly;
-  const secondaryTotal =
-    time === "YEARLY" ? summaryTotal.monthly : summaryTotal.yearly;
+  const primaryTotal = time === "YEARLY" ? summaryTotal.yearly : summaryTotal.monthly;
+  const secondaryTotal = time === "YEARLY" ? summaryTotal.monthly : summaryTotal.yearly;
   const primaryIsYearly = time === "YEARLY";
 
   const tagOptions = [
     ...new Set(
-      subscriptions.flatMap((subscription) =>
-        subscription.tags.map((tag) => tag.toLowerCase())
-      )
+      subscriptions.flatMap((subscription) => subscription.tags.map((tag) => tag.toLowerCase()))
     ),
   ];
 
@@ -105,10 +100,7 @@ export default function Home() {
         <div className="nav-inner">
           <section className="row">
             <figure className="logo">
-              <img
-                alt="Sublr"
-                src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`}
-              />
+              <img alt="Sublr" src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`} />
             </figure>
             <div className="filters">
               <Filter
@@ -154,9 +146,7 @@ export default function Home() {
                 options={[
                   { label: "All", value: "" },
                   ...cards.map((c) => ({
-                    label: `${c.split("_")[1]} (${
-                      CREDIT_CARD_TYPES[c.split("_")[0]]
-                    })`,
+                    label: `${c.split("_")[1]} (${CREDIT_CARD_TYPES[c.split("_")[0]]})`,
                     value: c,
                   })),
                 ]}
@@ -164,11 +154,7 @@ export default function Home() {
               />
 
               <Filter label="Tags" isHiddenInMobile>
-                <Autocomplete
-                  options={tagOptions}
-                  values={tags}
-                  setValues={setTags}
-                />
+                <Autocomplete options={tagOptions} values={tags} setValues={setTags} />
               </Filter>
             </div>
             {user && (
@@ -211,15 +197,13 @@ export default function Home() {
                 |
               </span>
               <span>
-                {subscriptions.length}{" "}
-                {subscriptions.length === 1 ? "sub" : "subs"}
+                {subscriptions.length} {subscriptions.length === 1 ? "sub" : "subs"}
               </span>
               <span className="meta-sep" aria-hidden>
                 |
               </span>
               <span>
-                {uniqueCurrencies}{" "}
-                {uniqueCurrencies === 1 ? "currency" : "currencies"}
+                {uniqueCurrencies} {uniqueCurrencies === 1 ? "currency" : "currencies"}
               </span>
             </div>
           </section>
@@ -227,9 +211,7 @@ export default function Home() {
 
         {subscriptions.length >= 1 && (
           <section>
-            <Subtitle>
-              Cards · {time === "YEARLY" ? "Yearly" : "Monthly"}
-            </Subtitle>
+            <Subtitle>Cards · {time === "YEARLY" ? "Yearly" : "Monthly"}</Subtitle>
             <div className="cards-rail" role="list">
               {summaryData.map((data) => {
                 return (
@@ -259,9 +241,7 @@ export default function Home() {
                 }
 
                 if (Array.isArray(tags) && tags.length) {
-                  return tags
-                    .map((tag) => subscriptionTag.includes(tag))
-                    .find(Boolean);
+                  return tags.map((tag) => subscriptionTag.includes(tag)).find(Boolean);
                 }
 
                 return true;
@@ -272,18 +252,10 @@ export default function Home() {
                 } else if (sortBy === "PRICE") {
                   return (
                     Number(
-                      getUsdPrice(
-                        b.time === "MONTHLY" ? b.price * 12 : b.price,
-                        b.currency,
-                        rates
-                      )
+                      getUsdPrice(b.time === "MONTHLY" ? b.price * 12 : b.price, b.currency, rates)
                     ) -
                     Number(
-                      getUsdPrice(
-                        a.time === "MONTHLY" ? a.price * 12 : a.price,
-                        a.currency,
-                        rates
-                      )
+                      getUsdPrice(a.time === "MONTHLY" ? a.price * 12 : a.price, a.currency, rates)
                     )
                   );
                 } else if (sortBy === "CARD") {
@@ -328,8 +300,7 @@ export default function Home() {
                       setCurrentSubscriptionId(subscription.id);
                     }}
                     onChange={({ id, value }) => {
-                      const newValue =
-                        id === "creditCardNumber" ? value.slice(-4) : value;
+                      const newValue = id === "creditCardNumber" ? value.slice(-4) : value;
 
                       setChangedSubscriptions({
                         ...changedSubscriptions,
@@ -383,9 +354,7 @@ export default function Home() {
                 onClick={() => {
                   update(currentSubscriptionId, {
                     ...changedSubscriptions[currentSubscriptionId],
-                    ...shouldUpdateSubscriptionPrice(
-                      changedSubscriptions[currentSubscriptionId]
-                    ),
+                    ...shouldUpdateSubscriptionPrice(changedSubscriptions[currentSubscriptionId]),
                     ...getCreditCardInfoFromCurrentSubscription(
                       changedSubscriptions[currentSubscriptionId]
                     ),
@@ -394,8 +363,7 @@ export default function Home() {
                     ...updatedSubscriptions,
                     ...{
                       [currentSubscriptionId]:
-                        (updatedSubscriptions?.[currentSubscriptionId] ?? 0) +
-                        1,
+                        (updatedSubscriptions?.[currentSubscriptionId] ?? 0) + 1,
                     },
                   });
                 }}
@@ -441,8 +409,7 @@ export default function Home() {
         .logo > img {
           width: 100%;
           height: auto;
-          filter: brightness(0) invert(1)
-            drop-shadow(0 0 10px rgba(124, 255, 178, 0.35));
+          filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(124, 255, 178, 0.35));
         }
 
         .row {
@@ -495,7 +462,8 @@ export default function Home() {
           width: 100%;
           position: fixed;
           bottom: 0;
-          box-shadow: 0 -10px 15px 3px rgb(0 0 0 / 0.1),
+          box-shadow:
+            0 -10px 15px 3px rgb(0 0 0 / 0.1),
             0 -4px 6px 4px rgb(0 0 0 / 0.1);
         }
 
@@ -610,24 +578,12 @@ export default function Home() {
           color: var(--accent, #7cffb2);
         }
 
-        .is-yearly
-          .hero-number
-          :global(.currency-code) {
-          border-color: color-mix(
-            in srgb,
-            var(--accent-hot, #ff3d68) 50%,
-            var(--line-strong) 50%
-          );
+        .is-yearly .hero-number :global(.currency-code) {
+          border-color: color-mix(in srgb, var(--accent-hot, #ff3d68) 50%, var(--line-strong) 50%);
         }
 
-        .is-monthly
-          .hero-number
-          :global(.currency-code) {
-          border-color: color-mix(
-            in srgb,
-            var(--accent) 50%,
-            var(--line-strong) 50%
-          );
+        .is-monthly .hero-number :global(.currency-code) {
+          border-color: color-mix(in srgb, var(--accent) 50%, var(--line-strong) 50%);
         }
 
         .hero-meta {

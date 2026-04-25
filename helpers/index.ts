@@ -1,7 +1,7 @@
 export { currencyToUsd } from "./currencyToUsd";
 export { getCreditCardInfoFromCurrentSubscription } from "./getCreditCardInfoFromCurrentSubscription";
 export { getCreditCardType } from "./getCreditCardType";
-export { getMonthlySubscriptionGrouppedByCard } from "./getMonthlySubscriptionGrouppedByCard";
+export { getMonthlySubscriptionGroupedByCard } from "./getMonthlySubscriptionGroupedByCard";
 export { getSummaryData } from "./getSummaryData";
 export { getSummaryTotal } from "./getSummaryTotal";
 export { getTimeDescription } from "./getTimeDescription";

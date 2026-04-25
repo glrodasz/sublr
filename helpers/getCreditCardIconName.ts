@@ -1,4 +1,4 @@
 import { getCreditCardType } from "./getCreditCardType";
 
-export const getCreditCardIconName = (type) =>
+export const getCreditCardIconName = (type: string): string =>
   getCreditCardType(type).toLowerCase();

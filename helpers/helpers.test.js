@@ -2,7 +2,7 @@ import {
   getCreditCardType,
   getTimeDescription,
   getUsdPrice,
-  getMonthlySubscriptionGrouppedByCard,
+  getMonthlySubscriptionGroupedByCard,
 } from ".";
 
 jest.mock("../constants", () => {
@@ -12,7 +12,7 @@ jest.mock("../constants", () => {
     },
     TIME_DESCRIPTION: {
       MONTHLY: "bar",
-    }
+    },
   };
 });
 
@@ -57,8 +57,8 @@ describe("[ helpers ]", () => {
         const currency = "COP";
         const expected = 2.33;
         const rates = {
-          COP: 2999
-        }
+          COP: 2999,
+        };
 
         // Act
         const result = getUsdPrice(price, currency, rates);
@@ -69,9 +69,9 @@ describe("[ helpers ]", () => {
     });
   });
 
-  describe.skip("#getMonthlySubscriptionGrouppedByCard", () => {
+  describe("#getMonthlySubscriptionGroupedByCard", () => {
     describe("when `subscriptions` is provided", () => {
-      it("should return it groupped by cards", () => {
+      it("should return it grouped by cards", () => {
         // Arrange
         const subscriptions = [
           {
@@ -83,7 +83,7 @@ describe("[ helpers ]", () => {
               number: 1654,
             },
           },
-		  {
+          {
             price: 0.01,
             currency: "USD",
             time: "MONTHLY",
@@ -114,7 +114,7 @@ describe("[ helpers ]", () => {
         };
 
         // Act
-        const result = getMonthlySubscriptionGrouppedByCard(subscriptions);
+        const result = getMonthlySubscriptionGroupedByCard(subscriptions, "USD");
 
         // Assert
         expect(result).toStrictEqual(expected);

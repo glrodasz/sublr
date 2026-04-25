@@ -1,13 +1,10 @@
-/**
- * Fintech-noir tag accents (outline + optional bar) by normalized label.
- */
-const norm = (s) =>
+const norm = (s: string) =>
   String(s)
     .toLowerCase()
     .trim()
     .replace(/[\s_]+/g, "-");
 
-const PRESETS = {
+const PRESETS: Record<string, { color: string }> = {
   essential: { color: "var(--accent, #7cffb2)" },
   entertainment: { color: "var(--accent-cyan, #5ee8ff)" },
   community: { color: "var(--accent-amber, #ffb84d)" },
@@ -15,11 +12,7 @@ const PRESETS = {
   paypal: { color: "var(--fg-1, #b8b8c8)" },
 };
 
-/**
- * @param {string} label
- * @returns {{ color: string }}
- */
-export function getTagStyle(label) {
+export function getTagStyle(label: string): { color: string } {
   const n = norm(label);
   if (PRESETS[n]) return { ...PRESETS[n] };
   for (const [key, val] of Object.entries(PRESETS)) {
