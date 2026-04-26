@@ -2,7 +2,7 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../../firebase/index";
+import { db } from "../../firebase/client";
 import subscriptions from "../../data/subscriptions.json";
 
 async function firestoreSeed() {
