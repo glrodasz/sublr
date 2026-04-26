@@ -47,6 +47,9 @@ const CardSubscription = ({
   const [side, setSide] = useState<CardSide>("frontside");
   const primaryTag = tags?.[0] ?? "";
   const { color: accent } = getTagStyle(primaryTag);
+  const safeUnsplashId = /^[A-Za-z0-9_-]{1,32}$/.test(unsplashId)
+    ? unsplashId
+    : DEFAULT_UNSPLASH_ID;
 
   useEffect(() => {
     if (isUpdated) {
@@ -62,7 +65,7 @@ const CardSubscription = ({
         side={side}
         backsideContent={
           <BacksideCardSubscription
-            unsplashId={unsplashId}
+            unsplashId={safeUnsplashId}
             title={title}
             tags={tags}
             price={price}
@@ -81,7 +84,7 @@ const CardSubscription = ({
             <div
               className="cover-bg"
               style={{
-                backgroundImage: `url(https://source.unsplash.com/${unsplashId})`,
+                backgroundImage: `url(https://source.unsplash.com/${safeUnsplashId})`,
               }}
               aria-hidden="true"
             />

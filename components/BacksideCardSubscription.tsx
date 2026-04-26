@@ -5,6 +5,7 @@ import Subscription from "./Subscription";
 import CreditCardIcon from "./CreditCardIcon";
 import Icon from "./Icon";
 import type { Currency, TimeAttribute, CreditCard, FieldChange } from "../types";
+import { DEFAULT_UNSPLASH_ID } from "../constants";
 
 interface Props {
   unsplashId?: string;
@@ -34,6 +35,9 @@ const BacksideCardSubscription = ({
   onRefresh,
 }: Props) => {
   const [tags, setTags] = useState(originalTags.join(", "));
+  const safeUnsplashId = /^[A-Za-z0-9_-]{1,32}$/.test(unsplashId ?? "")
+    ? unsplashId
+    : DEFAULT_UNSPLASH_ID;
 
   return (
     <>
@@ -41,7 +45,7 @@ const BacksideCardSubscription = ({
         <div
           className="cover"
           style={{
-            backgroundImage: `url(https://source.unsplash.com/${unsplashId})`,
+            backgroundImage: `url(https://source.unsplash.com/${safeUnsplashId})`,
           }}
         >
           <div className="title">
