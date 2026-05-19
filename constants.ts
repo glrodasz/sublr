@@ -1,7 +1,5 @@
 import type { Currency, TimeAttribute } from "./types";
 
-export const DEFAULT_UNSPLASH_ID = "3zx-cgfbFAg";
-
 export const TIME_DESCRIPTION: Record<TimeAttribute, string> = {
   MONTHLY: "/mo",
   YEARLY: "/year",

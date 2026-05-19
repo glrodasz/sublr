@@ -50,7 +50,6 @@ const SubscriptionList = ({ subscriptions, user, create, mutations }: Props) => 
           return (
             <CardSubscription
               key={subscription.id}
-              unsplashId={mergedSubscription.unsplashId}
               title={mergedSubscription.title}
               tags={mergedSubscription.tags ?? []}
               currency={mergedSubscription.currency}
@@ -68,7 +67,6 @@ const SubscriptionList = ({ subscriptions, user, create, mutations }: Props) => 
           text="Add new subscription"
           onClick={() => {
             create({
-              unsplashId: "wn7dOzUh3Rs",
               title: "",
               tags: [],
               price: 0,
@@ -80,18 +78,22 @@ const SubscriptionList = ({ subscriptions, user, create, mutations }: Props) => 
           }}
         />
       </div>
-      <dialog ref={deleteConfirmationDialogRef}>
+      <dialog ref={deleteConfirmationDialogRef} aria-label="Confirm subscription deletion">
         <form method="dialog">
           <p>Are you sure that you want to delete it?</p>
-          <button onClick={handleConfirmDelete}>Confirm</button>
-          <button>Cancel</button>
+          <button onClick={handleConfirmDelete} aria-label="Confirm delete">
+            Confirm delete
+          </button>
+          <button aria-label="Cancel delete">Cancel</button>
         </form>
       </dialog>
-      <dialog ref={updateConfirmationDialogRef}>
+      <dialog ref={updateConfirmationDialogRef} aria-label="Confirm subscription update">
         <form method="dialog">
           <p>Are you sure that you want to update it?</p>
-          <button onClick={handleConfirmUpdate}>Confirm</button>
-          <button>Cancel</button>
+          <button onClick={handleConfirmUpdate} aria-label="Confirm update">
+            Confirm update
+          </button>
+          <button aria-label="Cancel update">Cancel</button>
         </form>
       </dialog>
 

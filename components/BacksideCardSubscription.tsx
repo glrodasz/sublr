@@ -5,10 +5,8 @@ import Subscription from "./Subscription";
 import CreditCardIcon from "./CreditCardIcon";
 import Icon from "./Icon";
 import type { Currency, TimeAttribute, CreditCard, FieldChange } from "../types";
-import { DEFAULT_UNSPLASH_ID } from "../constants";
 
 interface Props {
-  unsplashId?: string;
   title?: string;
   tags: string[];
   price: number;
@@ -22,7 +20,6 @@ interface Props {
 }
 
 const BacksideCardSubscription = ({
-  unsplashId,
   title,
   tags: originalTags,
   price,
@@ -35,19 +32,11 @@ const BacksideCardSubscription = ({
   onRefresh,
 }: Props) => {
   const [tags, setTags] = useState(originalTags.join(", "));
-  const safeUnsplashId = /^[A-Za-z0-9_-]{1,32}$/.test(unsplashId ?? "")
-    ? unsplashId
-    : DEFAULT_UNSPLASH_ID;
 
   return (
     <>
       <div className="backside-content">
-        <div
-          className="cover"
-          style={{
-            backgroundImage: `url(https://source.unsplash.com/${safeUnsplashId})`,
-          }}
-        >
+        <div className="cover">
           <div className="title">
             <Input placeholder="Subscription title" id="title" value={title} onChange={onChange} />
           </div>
@@ -95,39 +84,26 @@ const BacksideCardSubscription = ({
       </div>
       <style jsx>{`
         .cover {
-          position: relative;
-          height: 180px;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
-          color: #fff;
-          padding: 10px 20px 20px;
+          color: var(--text, #fff);
+          padding: 16px 20px;
+          background: var(--bg-2, #1c1c26);
+          border-bottom: 1px solid var(--line, #2a2a38);
           border-radius: 8px 8px 0 0;
-          background-repeat: no-repeat;
-          background-size: cover;
           gap: 10px;
-        }
-
-        .cover::before {
-          content: "";
-          position: absolute;
-          border-radius: 8px 8px 0 0;
-          background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.2) 65%);
-          inset: 0;
         }
 
         .title {
           font-size: 24px;
           font-weight: bold;
-          position: relative;
-          text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
         }
 
         .tags {
           display: flex;
           justify-content: flex-start;
           gap: 10px;
-          position: relative;
         }
 
         .tag {

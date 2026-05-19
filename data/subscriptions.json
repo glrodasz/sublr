@@ -1,6 +1,5 @@
 [
   {
-    "unsplashId": "wn7dOzUh3Rs",
     "title": "Meetup",
     "tags": ["community"],
     "price": 9.99,
@@ -12,10 +11,9 @@
     }
   },
   {
-    "unsplashId": "LPZy4da9aRo",
     "title": "G Suite (Community)",
     "tags": ["community"],
-    "price": 6.00,
+    "price": 6.0,
     "currency": "USD",
     "time": "MONTHLY",
     "creditCard": {
@@ -24,7 +22,6 @@
     }
   },
   {
-    "unsplashId": "x60R3XOy7Tg",
     "title": "undefined.sh",
     "tags": ["domains"],
     "price": 99.99,
@@ -36,7 +33,6 @@
     }
   },
   {
-    "unsplashId": "wQLAGv4_OYs",
     "title": "cssconf.co",
     "tags": ["domains"],
     "price": 112199,
@@ -48,7 +44,6 @@
     }
   },
   {
-    "unsplashId": "O6N9RV2rzX8",
     "title": "csscommunity.dev",
     "tags": ["domains"],
     "price": 63186,
@@ -60,7 +55,6 @@
     }
   },
   {
-    "unsplashId": "z0MDyylvY1k",
     "title": "guillermorodas.com",
     "tags": ["domains"],
     "price": 61956,
@@ -72,7 +66,6 @@
     }
   },
   {
-    "unsplashId": "z0MDyylvY1k",
     "title": "glrodasz.com",
     "tags": ["domains"],
     "price": 61887,
@@ -84,7 +77,6 @@
     }
   },
   {
-    "unsplashId": "x60R3XOy7Tg",
     "title": "undefinedshell.com",
     "tags": ["domains"],
     "price": 42647,
@@ -96,7 +88,6 @@
     }
   },
   {
-    "unsplashId": "z0MDyylvY1k",
     "title": "glrz.me",
     "tags": ["domains"],
     "price": 11419,
@@ -108,7 +99,6 @@
     }
   },
   {
-    "unsplashId": "UVfvFrp4x4E",
     "title": "Netflix",
     "tags": ["entertainment", "essential"],
     "price": 38900,
@@ -120,7 +110,6 @@
     }
   },
   {
-    "unsplashId": "itRfuFf1gdY",
     "title": "Disney+",
     "tags": ["entertainment", "paypal"],
     "price": 89,
@@ -132,7 +121,6 @@
     }
   },
   {
-    "unsplashId": "wKeZstqxKTQ",
     "title": "Amazon Prime",
     "tags": ["entertainment"],
     "price": 59,
@@ -144,7 +132,6 @@
     }
   },
   {
-    "unsplashId": "w-qqwn5O-4I",
     "title": "Spotify",
     "tags": ["entertainment", "essential", "family"],
     "price": 23900,
@@ -156,7 +143,6 @@
     }
   },
   {
-    "unsplashId": "9BJRGlqoIUk",
     "title": "iCloud",
     "tags": ["essential"],
     "price": 89,
@@ -168,7 +154,6 @@
     }
   },
   {
-    "unsplashId": "5OyvN4Yx46E",
     "title": "Google One",
     "tags": ["essential", "family"],
     "price": 99.99,
@@ -180,7 +165,6 @@
     }
   },
   {
-    "unsplashId": "3wPJxh-piRw",
     "title": "1Password",
     "tags": ["essential", "family"],
     "price": 74.81,
@@ -192,7 +176,6 @@
     }
   },
   {
-    "unsplashId": "niUkImZcSP8",
     "title": "YouTube Premium Lite",
     "tags": ["non-essential"],
     "price": 69,
@@ -204,7 +187,6 @@
     }
   },
   {
-    "unsplashId": "LfaN1gswV5c",
     "title": "Keep Safe",
     "tags": ["non-essential"],
     "price": 23.99,
@@ -216,10 +198,9 @@
     }
   },
   {
-    "unsplashId": "CTivHyiTbFw",
     "title": "Digital Ocean",
     "tags": ["projects"],
-    "price": 6.00,
+    "price": 6.0,
     "currency": "USD",
     "time": "MONTHLY",
     "creditCard": {
@@ -228,7 +209,6 @@
     }
   },
   {
-    "unsplashId": "OVEWbIgffDk",
     "title": "Epidemic Sound",
     "tags": ["projects", "streaming", "paypal"],
     "price": 125,

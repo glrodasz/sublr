@@ -13,6 +13,7 @@ interface Props {
   primaryIsYearly: boolean;
   uniqueCurrencies: number;
   summaryData: SummaryEntry[];
+  ratesUnavailable?: boolean;
 }
 
 const SummaryHeader = ({
@@ -24,8 +25,42 @@ const SummaryHeader = ({
   primaryIsYearly,
   uniqueCurrencies,
   summaryData,
+  ratesUnavailable = false,
 }: Props) => {
   if (subscriptions.length < 1) return null;
+
+  if (ratesUnavailable) {
+    return (
+      <section className="rates-warning" role="alert">
+        <p className="rates-warning-title">Totals unavailable</p>
+        <p className="rates-warning-body">
+          Exchange rates failed to load, so multi-currency totals can&apos;t be calculated reliably.
+          Showing them now would be misleading — please retry shortly.
+        </p>
+        <style jsx>{`
+          .rates-warning {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 16px 20px;
+            border: 1px solid var(--accent-hot, #ff3d68);
+            border-radius: var(--r-lg, 16px);
+            background: color-mix(in srgb, var(--accent-hot, #ff3d68) 12%, transparent);
+          }
+          .rates-warning-title {
+            margin: 0;
+            font-weight: 700;
+            color: var(--accent-hot, #ff3d68);
+          }
+          .rates-warning-body {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--fg-1, #b8b8c8);
+          }
+        `}</style>
+      </section>
+    );
+  }
 
   return (
     <>

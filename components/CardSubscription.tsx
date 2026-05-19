@@ -5,7 +5,6 @@ import Subscription from "./Subscription";
 import Card from "./Card";
 import Tag from "./Tag";
 import type { CardSide, Currency, TimeAttribute, CreditCard, FieldChange } from "../types";
-import { DEFAULT_UNSPLASH_ID } from "../constants";
 import BacksideCardSubscription from "./BacksideCardSubscription";
 import { getTagStyle } from "../lib/tagStyles";
 
@@ -16,7 +15,6 @@ const handleClick =
   };
 
 interface Props {
-  unsplashId?: string;
   title?: string;
   tags: string[];
   price: number;
@@ -31,7 +29,6 @@ interface Props {
 }
 
 const CardSubscription = ({
-  unsplashId = DEFAULT_UNSPLASH_ID,
   title,
   tags,
   price,
@@ -47,9 +44,6 @@ const CardSubscription = ({
   const [side, setSide] = useState<CardSide>("frontside");
   const primaryTag = tags?.[0] ?? "";
   const { color: accent } = getTagStyle(primaryTag);
-  const safeUnsplashId = /^[A-Za-z0-9_-]{1,32}$/.test(unsplashId)
-    ? unsplashId
-    : DEFAULT_UNSPLASH_ID;
 
   useEffect(() => {
     if (isUpdated) {
@@ -60,12 +54,11 @@ const CardSubscription = ({
   return (
     <>
       <Card
-        height={310}
+        height={210}
         onClick={handleClick({ side, setSide })}
         side={side}
         backsideContent={
           <BacksideCardSubscription
-            unsplashId={safeUnsplashId}
             title={title}
             tags={tags}
             price={price}
@@ -81,14 +74,6 @@ const CardSubscription = ({
       >
         <div className="receipt" style={{ "--accent-bar": accent } as React.CSSProperties}>
           <div className="cover">
-            <div
-              className="cover-bg"
-              style={{
-                backgroundImage: `url(https://source.unsplash.com/${safeUnsplashId})`,
-              }}
-              aria-hidden="true"
-            />
-            <div className="duotone" aria-hidden="true" />
             <h1 className="title">{title || <span className="untitled">Untitled</span>}</h1>
             <div className="tags">
               {tags.map((tag) => (
@@ -120,54 +105,21 @@ const CardSubscription = ({
         }
 
         .cover {
-          position: relative;
-          height: 180px;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
-          color: #fff;
-          padding: 10px 20px 20px;
-          border-radius: var(--r-md) var(--r-md) 0 0;
           gap: 10px;
-          overflow: hidden;
-        }
-
-        .cover-bg {
-          position: absolute;
-          inset: 0;
-          z-index: 0;
+          color: var(--text, #fff);
+          padding: 16px 20px;
+          background: var(--bg-2, #1c1c26);
+          border-bottom: 1px solid var(--line, #2a2a38);
           border-radius: var(--r-md) var(--r-md) 0 0;
-          background-repeat: no-repeat;
-          background-size: cover;
-          background-position: center;
-          filter: grayscale(0.5) contrast(1.1);
-        }
-
-        .cover::before {
-          content: "";
-          position: absolute;
-          border-radius: var(--r-md) var(--r-md) 0 0;
-          background: linear-gradient(0deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.15) 100%);
-          inset: 0;
-          z-index: 1;
-        }
-
-        .duotone {
-          position: absolute;
-          inset: 0;
-          background: var(--accent-bar);
-          mix-blend-mode: color;
-          opacity: 0.4;
-          pointer-events: none;
-          z-index: 1;
         }
 
         .title {
           font-family: var(--font-display, "Space Grotesk", system-ui, sans-serif);
           font-size: 1.4rem;
           font-weight: 700;
-          position: relative;
-          z-index: 2;
           margin: 0;
           line-height: 1.2;
         }
@@ -181,8 +133,6 @@ const CardSubscription = ({
           justify-content: flex-start;
           flex-wrap: wrap;
           gap: 8px;
-          position: relative;
-          z-index: 2;
         }
 
         .content {

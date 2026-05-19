@@ -1,47 +1,80 @@
 import { useEffect, useState } from "react";
 import type { ExchangeRates } from "../types";
+import { request } from "../lib/request";
 
-const request = (url: string, options?: RequestInit): Promise<ExchangeRates> =>
-  fetch(url, options).then((data) => data.json());
+const STORAGE_KEY = "RATES_FROM_USD";
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
-const getRatesFromSessionStorage = (): ExchangeRates | null => {
+interface CachedRates {
+  rates: ExchangeRates;
+  fetchedAt: number;
+}
+
+const getCachedRates = (): ExchangeRates | null => {
   try {
-    return JSON.parse(sessionStorage.getItem("RATES_FROM_USD") ?? "null");
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const cached = JSON.parse(raw) as CachedRates;
+    if (!cached?.rates || typeof cached.fetchedAt !== "number") return null;
+    if (Date.now() - cached.fetchedAt > CACHE_TTL_MS) return null;
+    return cached.rates;
   } catch {
     return null;
   }
 };
 
-const setRatesToSessionStorage = (rates: ExchangeRates) =>
-  sessionStorage.setItem("RATES_FROM_USD", JSON.stringify(rates));
+const setCachedRates = (rates: ExchangeRates) => {
+  try {
+    const payload: CachedRates = { rates, fetchedAt: Date.now() };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // sessionStorage may be unavailable (private mode / SSR); caching is best-effort.
+  }
+};
 
-const useCurrencyExchangeRates = (): { rates: ExchangeRates | null } => {
+interface UseCurrencyExchangeRatesResult {
+  rates: ExchangeRates | null;
+  error: Error | null;
+  isLoading: boolean;
+}
+
+const useCurrencyExchangeRates = (): UseCurrencyExchangeRatesResult => {
   const [rates, setRates] = useState<ExchangeRates | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function requestExchange() {
+    let cancelled = false;
+
+    const cached = getCachedRates();
+    if (cached) {
+      setRates(cached);
+      setIsLoading(false);
+      return;
+    }
+
+    (async () => {
       try {
-        const data = await request("api/currencies");
+        const data = await request<ExchangeRates>("api/currencies");
+        if (cancelled) return;
         setRates(data);
-      } catch (error) {
-        console.error(error);
+        setCachedRates(data);
+      } catch (caught) {
+        if (cancelled) return;
+        const err = caught instanceof Error ? caught : new Error(String(caught));
+        console.error(err);
+        setError(err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-    }
-    const ratesFromSessionStorage = getRatesFromSessionStorage();
-    if (ratesFromSessionStorage) {
-      setRates(ratesFromSessionStorage);
-    } else {
-      requestExchange();
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  useEffect(() => {
-    if (!getRatesFromSessionStorage() && rates) {
-      setRatesToSessionStorage(rates);
-    }
-  }, [rates]);
-
-  return { rates };
+  return { rates, error, isLoading };
 };
 
 export default useCurrencyExchangeRates;

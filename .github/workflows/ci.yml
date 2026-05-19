@@ -31,3 +31,19 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Build
+        run: pnpm build
+        env:
+          AUTH0_SECRET: ci-placeholder-secret
+          AUTH0_BASE_URL: http://localhost:3000
+          NEXT_PUBLIC_API_KEY: ci-fake-key
+          NEXT_PUBLIC_AUTH_DOMAIN: ci.firebaseapp.com
+          NEXT_PUBLIC_PROJECT_ID: ci
+          NEXT_PUBLIC_STORAGE_BUCKET: ci.appspot.com
+          NEXT_PUBLIC_MESSAGING_SENDER_ID: "000000000000"
+          NEXT_PUBLIC_APP_ID: "1:000000000000:web:0000000000000000000000"
+
+      - name: Audit dependencies
+        run: pnpm audit --prod
+        continue-on-error: true

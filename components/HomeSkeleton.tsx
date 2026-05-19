@@ -1,13 +1,12 @@
 import Head from "next/head";
 import Skeleton from "./Skeleton";
-import useMedia from "../hooks/useMedia";
+import useBreakpoints from "../hooks/useBreakpoints";
 
 const CREDIT_CARDS = new Array(5).fill(null);
 const CARD_SUBSCRIPTIONS = new Array(6).fill(null);
 
 export default function HomeSkeleton() {
-  const isDesktop = useMedia(["(min-width: 992px)"], [true]);
-  const isMobile = useMedia(["(max-width: 799px)"], [true]);
+  const { isMobile, isDesktop } = useBreakpoints();
 
   return (
     <>
@@ -187,17 +186,18 @@ export default function HomeSkeleton() {
           background: var(--bg-1, #14141b);
           border: 1px solid var(--line, #2a2a38);
           border-radius: var(--r-md, 10px);
-          height: 310px;
+          height: 210px;
           overflow: hidden;
         }
 
         .card-subscription-skeleton .cover {
           background: var(--bg-2, #1c1c26);
-          height: 180px;
-          padding: 10px 20px 20px;
+          border-bottom: 1px solid var(--line, #2a2a38);
+          padding: 16px 20px;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
+          gap: 10px;
         }
 
         .card-subscription-skeleton .cover .tags {
