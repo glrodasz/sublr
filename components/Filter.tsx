@@ -104,7 +104,7 @@ const Filter = ({
             flex-wrap: wrap;
             padding: 3px;
             background: var(--bg-1, #14141b);
-            border: 1px solid var(--line, #2a2a38);
+            border: 1px solid var(--line-strong, #3a3a4d);
             border-radius: 999px;
             gap: 2px;
           }

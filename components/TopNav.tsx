@@ -169,7 +169,7 @@ const TopNav = ({
           font-weight: 600;
           padding: 6px 14px;
           border-radius: 999px;
-          border: 1px solid var(--line, #2a2a38);
+          border: 1px solid var(--line-strong, #3a3a4d);
           background: var(--bg-1, #14141b);
           color: var(--fg-1, #b8b8c8);
           cursor: pointer;

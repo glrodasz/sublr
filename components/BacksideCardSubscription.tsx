@@ -89,8 +89,9 @@ const BacksideCardSubscription = ({
           justify-content: flex-end;
           color: var(--text, #fff);
           padding: 16px 20px;
-          background: var(--bg-2, #1c1c26);
-          border-bottom: 1px solid var(--line, #2a2a38);
+          background: var(--bg-3, #242433);
+          border-bottom: 1px solid var(--line-strong, #3a3a4d);
+          box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
           border-radius: 8px 8px 0 0;
           gap: 10px;
         }

@@ -126,7 +126,7 @@ const SummaryHeader = ({
           flex-direction: column;
           gap: 12px;
           padding: 20px 20px 22px;
-          border: 1px solid var(--line, #2a2a38);
+          border: 1px solid var(--line-strong, #3a3a4d);
           border-radius: var(--r-lg, 16px);
           background: var(--bg-1, #14141b);
           box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);

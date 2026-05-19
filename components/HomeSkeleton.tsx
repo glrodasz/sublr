@@ -191,8 +191,8 @@ export default function HomeSkeleton() {
         }
 
         .card-subscription-skeleton .cover {
-          background: var(--bg-2, #1c1c26);
-          border-bottom: 1px solid var(--line, #2a2a38);
+          background: var(--bg-3, #242433);
+          border-bottom: 1px solid var(--line-strong, #3a3a4d);
           padding: 16px 20px;
           display: flex;
           flex-direction: column;
