@@ -186,7 +186,7 @@ export default function HomeSkeleton() {
           background: var(--bg-1, #14141b);
           border: 1px solid var(--line, #2a2a38);
           border-radius: var(--r-md, 10px);
-          height: 210px;
+          height: 320px;
           overflow: hidden;
         }
 

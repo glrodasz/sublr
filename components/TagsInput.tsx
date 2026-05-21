@@ -136,7 +136,6 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
         .tags-input.is-open,
         .tags-input:focus-within {
           border-color: var(--accent, #7cffb2);
-          box-shadow: 0 0 0 1px var(--accent, #7cffb2);
         }
 
         .ti-input {

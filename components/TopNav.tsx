@@ -44,7 +44,7 @@ const TopNav = ({
   return (
     <nav>
       <div className="nav-inner">
-        <section className="row">
+        <div className="top-row">
           <figure className="logo">
             <img alt="Sublr" src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`} />
           </figure>
@@ -58,68 +58,6 @@ const TopNav = ({
               {showSecondaryFilters ? "Hide filters" : "Filters"}
             </button>
           )}
-          <div className="filters">
-            {secondaryVisible && (
-              <Filter
-                label="Sort by"
-                value={sortBy}
-                setValue={setSortBy}
-                options={[
-                  { label: "Price", value: "PRICE" },
-                  { label: "Name", value: "NAME" },
-                  { label: "Card", value: "CARD" },
-                ]}
-              />
-            )}
-            <Filter
-              label="Currency"
-              value={currency}
-              hideLabel={isMobile}
-              setValue={(v) => setCurrency(v as Currency)}
-              variant="segmented"
-              options={[
-                { label: "USD", value: "USD" },
-                { label: "COP", value: "COP" },
-                { label: "EUR", value: "EUR" },
-                { label: "SEK", value: "SEK" },
-              ]}
-            />
-            <Filter
-              label="Time"
-              value={time}
-              hideLabel={isMobile}
-              setValue={(v) => setTime(v as TimeAttribute)}
-              variant="segmented"
-              options={[
-                { label: "Yearly", value: "YEARLY" },
-                { label: "Monthly", value: "MONTHLY" },
-              ]}
-            />
-            {secondaryVisible && (
-              <Filter
-                label="Cards"
-                value={card}
-                setValue={setCard}
-                options={[
-                  { label: "All", value: "" },
-                  ...cards.map((c) => ({
-                    label: `${c.split("_")[1]} (${CREDIT_CARD_TYPES[c.split("_")[0]]})`,
-                    value: c,
-                  })),
-                ]}
-              />
-            )}
-            {secondaryVisible && (
-              <Filter label="Tags">
-                <TagsInput
-                  options={tagOptions}
-                  values={tags}
-                  setValues={setTags}
-                  placeholder="Filter by tag…"
-                />
-              </Filter>
-            )}
-          </div>
           {user && (
             <div className="avatar-wrap" title="Signed in">
               <div className="avatar">
@@ -128,14 +66,75 @@ const TopNav = ({
               <span className="status-dot" aria-hidden />
             </div>
           )}
-        </section>
+        </div>
+        <div className="filters">
+          {secondaryVisible && (
+            <Filter
+              label="Sort by"
+              value={sortBy}
+              setValue={setSortBy}
+              options={[
+                { label: "Price", value: "PRICE" },
+                { label: "Name", value: "NAME" },
+                { label: "Card", value: "CARD" },
+              ]}
+            />
+          )}
+          <Filter
+            label="Currency"
+            value={currency}
+            hideLabel={isMobile}
+            setValue={(v) => setCurrency(v as Currency)}
+            variant="segmented"
+            options={[
+              { label: "USD", value: "USD" },
+              { label: "COP", value: "COP" },
+              { label: "EUR", value: "EUR" },
+              { label: "SEK", value: "SEK" },
+            ]}
+          />
+          <Filter
+            label="Time"
+            value={time}
+            hideLabel={isMobile}
+            setValue={(v) => setTime(v as TimeAttribute)}
+            variant="segmented"
+            options={[
+              { label: "Yearly", value: "YEARLY" },
+              { label: "Monthly", value: "MONTHLY" },
+            ]}
+          />
+          {secondaryVisible && (
+            <Filter
+              label="Cards"
+              value={card}
+              setValue={setCard}
+              options={[
+                { label: "All", value: "" },
+                ...cards.map((c) => ({
+                  label: `${c.split("_")[1]} (${CREDIT_CARD_TYPES[c.split("_")[0]]})`,
+                  value: c,
+                })),
+              ]}
+            />
+          )}
+          {secondaryVisible && (
+            <Filter label="Tags">
+              <TagsInput
+                options={tagOptions}
+                values={tags}
+                setValues={setTags}
+                placeholder="Filter by tag…"
+              />
+            </Filter>
+          )}
+        </div>
       </div>
 
       <style jsx>{`
         nav {
-          min-height: 56px;
           display: flex;
-          align-items: center;
+          align-items: stretch;
           background: var(--bg-0, #0a0a0f);
           border-bottom: 1px solid var(--line, #2a2a38);
         }
@@ -144,15 +143,16 @@ const TopNav = ({
           width: 100%;
           max-width: 1440px;
           margin: 0 auto;
-          padding: 8px 20px;
+          padding: 12px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
         }
 
-        .row {
+        .top-row {
           display: flex;
-          flex-direction: row;
           align-items: center;
-          gap: 12px 24px;
-          flex-wrap: wrap;
+          gap: 12px;
         }
 
         .logo {
@@ -183,15 +183,15 @@ const TopNav = ({
         .filters {
           display: flex;
           width: 100%;
-          flex: 1 1 auto;
-          gap: 12px 16px;
+          gap: 14px 20px;
           flex-wrap: wrap;
-          align-items: center;
+          align-items: flex-end;
         }
 
         .avatar-wrap {
           position: relative;
           flex: 0 0 auto;
+          margin-left: auto;
         }
 
         .avatar {

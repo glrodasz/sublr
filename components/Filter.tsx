@@ -36,10 +36,10 @@ const Filter = ({
         <style jsx>{`
           .filter {
             display: flex;
-            align-items: center;
-            gap: 10px 14px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
             color: var(--fg-1, #b8b8c8);
-            flex-wrap: wrap;
           }
 
           .filter-label {

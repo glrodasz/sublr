@@ -56,7 +56,7 @@ const CardSubscription = ({
   return (
     <>
       <Card
-        height={210}
+        height={320}
         onClick={handleClick({ side, setSide })}
         side={side}
         backsideContent={
