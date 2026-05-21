@@ -186,6 +186,7 @@ const TopNav = ({
           gap: 14px 20px;
           flex-wrap: wrap;
           align-items: flex-end;
+          justify-content: center;
         }
 
         .avatar-wrap {
