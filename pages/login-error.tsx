@@ -91,6 +91,8 @@ export default function LoginError() {
           gap: 10px;
           margin-top: 4px;
           flex-wrap: wrap;
+          justify-content: flex-end;
+          align-items: center;
         }
 
         .primary,
