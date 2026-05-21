@@ -45,4 +45,21 @@ describe("useSubscriptionMutations", () => {
     );
     expect(result.current.updatedSubscriptions.sub1).toBe(1);
   });
+
+  it("normalizes tags on handleChange (lowercase, trim, dedupe)", () => {
+    const remove = jest.fn().mockResolvedValue(undefined);
+    const update = jest.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSubscriptionMutations(remove, update));
+
+    act(() =>
+      result.current.handleChange("sub1", {
+        id: "tags",
+        value: [" Community ", "community", "DOMAINS", ""],
+      })
+    );
+
+    expect(result.current.changedSubscriptions.sub1).toEqual({
+      tags: ["community", "domains"],
+    });
+  });
 });

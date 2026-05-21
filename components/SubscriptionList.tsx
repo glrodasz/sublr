@@ -11,9 +11,10 @@ interface Props {
   user: UserProfile | undefined;
   create: (subscription: Omit<Subscription, "id">) => Promise<unknown>;
   mutations: SubscriptionMutations;
+  knownTags?: string[];
 }
 
-const SubscriptionList = ({ subscriptions, user, create, mutations }: Props) => {
+const SubscriptionList = ({ subscriptions, user, create, mutations, knownTags = [] }: Props) => {
   const {
     changedSubscriptions,
     updatedSubscriptions,
@@ -52,6 +53,7 @@ const SubscriptionList = ({ subscriptions, user, create, mutations }: Props) => 
               key={subscription.id}
               title={mergedSubscription.title}
               tags={mergedSubscription.tags ?? []}
+              knownTags={knownTags}
               currency={mergedSubscription.currency}
               creditCard={mergedSubscription.creditCard}
               time={mergedSubscription.time}

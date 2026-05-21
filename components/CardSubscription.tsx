@@ -17,6 +17,7 @@ const handleClick =
 interface Props {
   title?: string;
   tags: string[];
+  knownTags?: string[];
   price: number;
   currency: Currency;
   time: TimeAttribute;
@@ -31,6 +32,7 @@ interface Props {
 const CardSubscription = ({
   title,
   tags,
+  knownTags = [],
   price,
   currency,
   time,
@@ -61,6 +63,7 @@ const CardSubscription = ({
           <BacksideCardSubscription
             title={title}
             tags={tags}
+            knownTags={knownTags}
             price={price}
             currency={currency}
             time={time}

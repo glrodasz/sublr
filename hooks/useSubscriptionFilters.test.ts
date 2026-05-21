@@ -57,4 +57,12 @@ describe("useSubscriptionFilters", () => {
 
     expect(result.current.filteredSubscriptions.map((s) => s.id)).toEqual(["b"]);
   });
+
+  it("matches stored tags case-insensitively (legacy mixed-case data)", () => {
+    const { result } = renderHook(() => useSubscriptionFilters(subscriptions, null));
+
+    act(() => result.current.setTags(["domains"]));
+
+    expect(result.current.filteredSubscriptions.map((s) => s.id)).toEqual(["a"]);
+  });
 });

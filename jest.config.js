@@ -11,7 +11,13 @@ const customJestConfig = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleDirectories: ["node_modules", "<rootDir>/"],
   testEnvironment: "jest-environment-jsdom",
-  collectCoverageFrom: ["helpers/**/*.ts", "lib/request.ts", "!**/*.test.ts"],
+  collectCoverageFrom: [
+    "helpers/**/*.ts",
+    "lib/request.ts",
+    "lib/normalizeTag.ts",
+    "lib/tagStyles.ts",
+    "!**/*.test.ts",
+  ],
   coverageThreshold: {
     global: {
       branches: 80,

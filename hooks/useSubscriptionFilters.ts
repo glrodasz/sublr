@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import type { Currency, TimeAttribute, Subscription, ExchangeRates } from "../types";
 import { getUsdPrice } from "../helpers";
+import { normalizeTag } from "../lib/normalizeTag";
 
 interface UseSubscriptionFiltersResult {
   time: TimeAttribute;
@@ -28,7 +29,8 @@ const useSubscriptionFilters = (
   const [tags, setTags] = useState<string[]>([]);
 
   const tagOptions = useMemo(
-    () => [...new Set(subscriptions.flatMap((s) => (s.tags ?? []).map((t) => t.toLowerCase())))],
+    () =>
+      [...new Set(subscriptions.flatMap((s) => (s.tags ?? []).map(normalizeTag)))].filter(Boolean),
     [subscriptions]
   );
 
@@ -37,8 +39,10 @@ const useSubscriptionFilters = (
       subscriptions
         .filter(({ creditCard, tags: subTags }) => {
           if (card) return `${creditCard?.type}_${creditCard?.number}` === card;
-          if (Array.isArray(tags) && tags.length)
-            return tags.map((t) => (subTags ?? []).includes(t)).find(Boolean);
+          if (Array.isArray(tags) && tags.length) {
+            const subTagSet = new Set((subTags ?? []).map(normalizeTag));
+            return tags.some((t) => subTagSet.has(normalizeTag(t)));
+          }
           return true;
         })
         .sort((a, b) => {

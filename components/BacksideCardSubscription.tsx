@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import Input from "./Input";
-import Tag from "./Tag";
 import Subscription from "./Subscription";
 import CreditCardIcon from "./CreditCardIcon";
 import Icon from "./Icon";
+import TagsInput from "./TagsInput";
 import type { Currency, TimeAttribute, CreditCard, FieldChange } from "../types";
 
 interface Props {
   title?: string;
   tags: string[];
+  knownTags?: string[];
   price: number;
   currency: Currency;
   time: TimeAttribute;
@@ -22,6 +23,7 @@ interface Props {
 const BacksideCardSubscription = ({
   title,
   tags: originalTags,
+  knownTags = [],
   price,
   currency,
   time,
@@ -31,8 +33,6 @@ const BacksideCardSubscription = ({
   onUpdate,
   onRefresh,
 }: Props) => {
-  const [tags, setTags] = useState(originalTags.join(", "));
-
   return (
     <>
       <div className="backside-content">
@@ -41,20 +41,12 @@ const BacksideCardSubscription = ({
             <Input placeholder="Subscription title" id="title" value={title} onChange={onChange} />
           </div>
           <div className="tags">
-            <Input
-              placeholder="Tags comma separated..."
-              id="tags"
-              value={tags}
-              onChange={({ value }) => setTags(value as string)}
-              onBlur={({ id, value }) => {
-                onChange({
-                  id,
-                  value: (value as string)
-                    .split(",")
-                    .map((v) => v.trim())
-                    .filter(Boolean),
-                });
-              }}
+            <TagsInput
+              creatable
+              options={knownTags}
+              values={originalTags}
+              setValues={(next) => onChange({ id: "tags", value: next })}
+              placeholder="Add tags…"
             />
           </div>
         </div>

@@ -100,6 +100,7 @@ export default function Home() {
           user={user}
           create={create}
           mutations={mutations}
+          knownTags={tagOptions}
         />
       </main>
 

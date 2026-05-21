@@ -4,7 +4,7 @@ import type { Currency, TimeAttribute } from "../types";
 import { CREDIT_CARD_TYPES } from "../constants";
 import useBreakpoints from "../hooks/useBreakpoints";
 import Filter from "./Filter";
-import Autocomplete from "./Autocomplete";
+import TagsInput from "./TagsInput";
 
 interface Props {
   user: UserProfile | undefined;
@@ -111,7 +111,12 @@ const TopNav = ({
             )}
             {secondaryVisible && (
               <Filter label="Tags">
-                <Autocomplete options={tagOptions} values={tags} setValues={setTags} />
+                <TagsInput
+                  options={tagOptions}
+                  values={tags}
+                  setValues={setTags}
+                  placeholder="Filter by tag…"
+                />
               </Filter>
             )}
           </div>
