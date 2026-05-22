@@ -36,9 +36,8 @@ const Filter = ({
         <style jsx>{`
           .filter {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
             color: var(--fg-1, #b8b8c8);
           }
 
@@ -49,6 +48,7 @@ const Filter = ({
             letter-spacing: 0.12em;
             text-transform: uppercase;
             color: var(--fg-2, #6e6e85);
+            white-space: nowrap;
           }
 
           @media (max-width: 799px) {
@@ -85,9 +85,8 @@ const Filter = ({
         <style jsx>{`
           .filter-segmented {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
           }
 
           .filter-label {
@@ -165,9 +164,8 @@ const Filter = ({
         .filter {
           display: flex;
           align-items: center;
-          gap: 10px 14px;
+          gap: 10px;
           color: var(--fg-1, #b8b8c8);
-          flex-wrap: wrap;
         }
 
         .filter-label {
@@ -177,6 +175,7 @@ const Filter = ({
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--fg-2, #6e6e85);
+          white-space: nowrap;
         }
 
         .select-wrap {

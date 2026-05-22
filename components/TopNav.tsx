@@ -185,7 +185,7 @@ const TopNav = ({
           width: 100%;
           gap: 14px 20px;
           flex-wrap: wrap;
-          align-items: flex-end;
+          align-items: center;
           justify-content: center;
         }
 
