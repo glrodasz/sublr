@@ -83,7 +83,7 @@ const TopNav = ({
           <Filter
             label="Currency"
             value={currency}
-            hideLabel={isMobile}
+            hideLabel
             setValue={(v) => setCurrency(v as Currency)}
             variant="segmented"
             options={[
@@ -96,7 +96,7 @@ const TopNav = ({
           <Filter
             label="Time"
             value={time}
-            hideLabel={isMobile}
+            hideLabel
             setValue={(v) => setTime(v as TimeAttribute)}
             variant="segmented"
             options={[

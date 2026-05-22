@@ -124,8 +124,8 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
           gap: 6px;
           min-height: var(--input-height, 40px);
           align-items: center;
-          min-width: 200px;
-          max-width: 520px;
+          min-width: 150px;
+          max-width: 360px;
           background: var(--bg-1, #14141b);
           border: 1px solid var(--line-strong, #3a3a4d);
           border-radius: var(--r-sm, 6px);

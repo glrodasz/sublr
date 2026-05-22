@@ -112,7 +112,7 @@ const Filter = ({
             font-family: inherit;
             font-size: 0.8rem;
             font-weight: 600;
-            padding: 6px 12px;
+            padding: 6px 10px;
             border: none;
             border-radius: 999px;
             cursor: pointer;
