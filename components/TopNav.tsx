@@ -44,29 +44,27 @@ const TopNav = ({
   return (
     <nav>
       <div className="nav-inner">
-        <div className="top-row">
-          <figure className="logo">
-            <img alt="Sublr" src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`} />
-          </figure>
-          {isMobile && (
-            <button
-              type="button"
-              className="filters-toggle"
-              aria-expanded={showSecondaryFilters}
-              onClick={() => setShowSecondaryFilters((open) => !open)}
-            >
-              {showSecondaryFilters ? "Hide filters" : "Filters"}
-            </button>
-          )}
-          {user && (
-            <div className="avatar-wrap" title="Signed in">
-              <div className="avatar">
-                <img alt="" src={user.picture ?? undefined} />
-              </div>
-              <span className="status-dot" aria-hidden />
+        <figure className="logo">
+          <img alt="Sublr" src={`/logos/${isDesktop ? "imagotipo" : "isotipo"}.svg`} />
+        </figure>
+        {isMobile && (
+          <button
+            type="button"
+            className="filters-toggle"
+            aria-expanded={showSecondaryFilters}
+            onClick={() => setShowSecondaryFilters((open) => !open)}
+          >
+            {showSecondaryFilters ? "Hide filters" : "Filters"}
+          </button>
+        )}
+        {user && (
+          <div className="avatar-wrap" title="Signed in">
+            <div className="avatar">
+              <img alt="" src={user.picture ?? undefined} />
             </div>
-          )}
-        </div>
+            <span className="status-dot" aria-hidden />
+          </div>
+        )}
         <div className="filters">
           {secondaryVisible && (
             <Filter
@@ -145,17 +143,13 @@ const TopNav = ({
           margin: 0 auto;
           padding: 12px 20px;
           display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
-
-        .top-row {
-          display: flex;
           align-items: center;
-          gap: 12px;
+          flex-wrap: wrap;
+          gap: 12px 16px;
         }
 
         .logo {
+          flex: 0 0 auto;
           max-width: 100px;
           margin: 0;
           display: flex;
@@ -181,9 +175,10 @@ const TopNav = ({
         }
 
         .filters {
+          flex: 1 1 100%;
+          order: 3;
           display: flex;
-          width: 100%;
-          gap: 14px 20px;
+          gap: 14px 16px;
           flex-wrap: wrap;
           align-items: center;
           justify-content: center;
@@ -193,6 +188,13 @@ const TopNav = ({
           position: relative;
           flex: 0 0 auto;
           margin-left: auto;
+        }
+
+        @media (min-width: 800px) {
+          .filters {
+            flex: 1 1 auto;
+            order: 0;
+          }
         }
 
         .avatar {
