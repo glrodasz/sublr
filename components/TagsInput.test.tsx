@@ -51,6 +51,28 @@ describe("TagsInput", () => {
     expect(onChange).toHaveBeenLastCalledWith(["travel"]);
   });
 
+  it("shows a create option for a new tag and commits it on click", () => {
+    const onChange = jest.fn();
+    render(<Harness creatable options={["community"]} onChange={onChange} />);
+    const input = screen.getByLabelText("Add tags…");
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "Travel" } });
+    fireEvent.click(screen.getByText("Create “travel”"));
+
+    expect(onChange).toHaveBeenLastCalledWith(["travel"]);
+  });
+
+  it("does not offer to create a tag that already exists as an option", () => {
+    render(<Harness creatable options={["community"]} />);
+    const input = screen.getByLabelText("Add tags…");
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "community" } });
+
+    expect(screen.queryByText(/^Create/)).not.toBeInTheDocument();
+  });
+
   it("commits on comma", () => {
     const onChange = jest.fn();
     render(<Harness creatable onChange={onChange} />);
