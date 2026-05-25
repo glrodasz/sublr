@@ -25,6 +25,8 @@ const TagsInput = ({
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const selectedRef = useRef<HTMLLIElement>(null);
+  const [scrollToSelected, setScrollToSelected] = useState(false);
 
   const normalizedValues = useMemo(() => values.map(normalizeTag), [values]);
 
@@ -56,6 +58,13 @@ const TagsInput = ({
     window.addEventListener("click", onClick);
     return () => window.removeEventListener("click", onClick);
   }, []);
+
+  useEffect(() => {
+    if (open && scrollToSelected && selectedRef.current) {
+      selectedRef.current.scrollIntoView?.({ block: "nearest" });
+      setScrollToSelected(false);
+    }
+  }, [open, scrollToSelected]);
 
   const commit = (raw: string): boolean => {
     const next = normalizeTag(raw);
@@ -104,6 +113,7 @@ const TagsInput = ({
         {visibleValues.map((tag, i) => (
           <Tag
             key={`${tag}-${i}`}
+            truncate={collapse ? 7 : undefined}
             onClose={(event) => {
               event.stopPropagation();
               removeAt(i);
@@ -118,7 +128,8 @@ const TagsInput = ({
             className="more"
             onClick={(event) => {
               event.stopPropagation();
-              setOpen((prev) => !prev);
+              setOpen(true);
+              setScrollToSelected(true);
             }}
           >
             +{hiddenCount} more
@@ -139,9 +150,36 @@ const TagsInput = ({
         )}
         {open && (showSelectedGroup || filteredOptions.length > 0) && (
           <ul className="ti-options" role="listbox">
+            {filteredOptions.length > 0 && (
+              <>
+                {showSelectedGroup && (
+                  <li className="ti-group" aria-hidden>
+                    Add
+                  </li>
+                )}
+                {filteredOptions.map((option) => (
+                  <li key={option} role="option" aria-selected="false">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        commit(option);
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      {option}
+                    </button>
+                  </li>
+                ))}
+              </>
+            )}
             {showSelectedGroup && (
               <>
-                <li className="ti-group" aria-hidden>
+                <li
+                  ref={selectedRef}
+                  className={`ti-group ${filteredOptions.length > 0 ? "with-divider" : ""}`}
+                  aria-hidden
+                >
                   Selected
                 </li>
                 {values.map((tag, i) => (
@@ -161,27 +199,8 @@ const TagsInput = ({
                     </button>
                   </li>
                 ))}
-                {filteredOptions.length > 0 && (
-                  <li className="ti-group" aria-hidden>
-                    Add
-                  </li>
-                )}
               </>
             )}
-            {filteredOptions.map((option) => (
-              <li key={option} role="option" aria-selected="false">
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    commit(option);
-                    inputRef.current?.focus();
-                  }}
-                >
-                  {option}
-                </button>
-              </li>
-            ))}
           </ul>
         )}
       </div>
@@ -302,12 +321,18 @@ const TagsInput = ({
         }
 
         .ti-group {
-          padding: 6px 12px 2px;
+          padding: 5px 12px 3px;
           font-size: 0.62rem;
           font-weight: 700;
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--fg-2, #6e6e85);
+        }
+
+        .ti-group.with-divider {
+          margin-top: 4px;
+          padding-top: 8px;
+          border-top: 1px solid var(--line, #2a2a38);
         }
 
         .ti-options button {
@@ -316,7 +341,7 @@ const TagsInput = ({
           text-align: left;
           background: transparent;
           border: 0;
-          padding: 10px 12px;
+          padding: 6px 12px;
           color: var(--fg-0, #f5f5fa);
           font: inherit;
           font-size: 0.9rem;

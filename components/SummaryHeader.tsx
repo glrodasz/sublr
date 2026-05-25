@@ -14,6 +14,8 @@ interface Props {
   uniqueCurrencies: number;
   summaryData: SummaryEntry[];
   ratesUnavailable?: boolean;
+  isFiltered?: boolean;
+  onClearFilters?: () => void;
 }
 
 const SummaryHeader = ({
@@ -26,8 +28,10 @@ const SummaryHeader = ({
   uniqueCurrencies,
   summaryData,
   ratesUnavailable = false,
+  isFiltered = false,
+  onClearFilters,
 }: Props) => {
-  if (subscriptions.length < 1) return null;
+  if (subscriptions.length < 1 && !isFiltered) return null;
 
   if (ratesUnavailable) {
     return (
@@ -99,26 +103,44 @@ const SummaryHeader = ({
           <span>
             {uniqueCurrencies} {uniqueCurrencies === 1 ? "currency" : "currencies"}
           </span>
+          {isFiltered && (
+            <>
+              <span className="meta-sep" aria-hidden>
+                |
+              </span>
+              <span className="filtered-tag">
+                filtered
+                <span className="meta-sep" aria-hidden>
+                  ·
+                </span>
+                <button type="button" className="clear-filters" onClick={onClearFilters}>
+                  clear filters
+                </button>
+              </span>
+            </>
+          )}
         </div>
       </section>
 
-      <section>
-        <Subtitle>Cards · {time === "YEARLY" ? "Yearly" : "Monthly"}</Subtitle>
-        <div className="cards-rail" role="list">
-          {summaryData.map((data) => (
-            <div className="rail-item" key={data.key} role="listitem">
-              <CreditCard
-                time={time}
-                number={data.creditCard.number}
-                type={data.creditCard.type}
-                currency={(time === "YEARLY" ? data.yearly : data.monthly).currency ?? "USD"}
-                price={(time === "YEARLY" ? data.yearly : data.monthly).price}
-                decimals={0}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
+      {summaryData.length > 0 && (
+        <section>
+          <Subtitle>Cards · {time === "YEARLY" ? "Yearly" : "Monthly"}</Subtitle>
+          <div className="cards-rail" role="list">
+            {summaryData.map((data) => (
+              <div className="rail-item" key={data.key} role="listitem">
+                <CreditCard
+                  time={time}
+                  number={data.creditCard.number}
+                  type={data.creditCard.type}
+                  currency={(time === "YEARLY" ? data.yearly : data.monthly).currency ?? "USD"}
+                  price={(time === "YEARLY" ? data.yearly : data.monthly).price}
+                  decimals={0}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <style jsx>{`
         .totals-hero {
@@ -214,6 +236,35 @@ const SummaryHeader = ({
 
         .meta-sep {
           opacity: 0.4;
+        }
+
+        .filtered-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 2px 8px;
+          border-radius: 999px;
+          border: 1px solid color-mix(in srgb, var(--accent, #7cffb2) 40%, var(--line-strong) 60%);
+          color: var(--accent, #7cffb2);
+          font-size: 0.72rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+
+        .clear-filters {
+          background: transparent;
+          border: none;
+          padding: 0;
+          font: inherit;
+          color: var(--fg-1, #b8b8c8);
+          cursor: pointer;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .clear-filters:hover {
+          color: var(--accent, #7cffb2);
         }
 
         .cards-rail {

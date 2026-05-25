@@ -6,15 +6,18 @@ interface Props {
   children: string;
   onClose?: React.MouseEventHandler;
   isLowerCase?: boolean;
+  truncate?: number;
 }
 
-const Tag = ({ children, onClose, isLowerCase }: Props) => {
+const Tag = ({ children, onClose, isLowerCase, truncate }: Props) => {
   const { color } = getTagStyle(children);
+  const display =
+    truncate && children.length > truncate ? `${children.slice(0, truncate)}…` : children;
 
   return (
     <>
       <div className="tag" style={{ borderColor: color, color }}>
-        <span>{children}</span>
+        <span title={children}>{display}</span>
         {onClose && (
           <Icon name="cross" onClick={onClose} size="xs">
             X

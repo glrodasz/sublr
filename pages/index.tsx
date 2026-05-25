@@ -44,8 +44,15 @@ export default function Home() {
   } = useSubscriptionFilters(subscriptions, rates);
   const mutations = useSubscriptionMutations(remove, update);
 
-  const { cards, summaryData, uniqueCurrencies, primaryTotal, secondaryTotal, primaryIsYearly } =
-    useSummary(subscriptions, currency, time, rates);
+  const { cards } = useSummary(subscriptions, currency, time, rates);
+  const { summaryData, uniqueCurrencies, primaryTotal, secondaryTotal, primaryIsYearly } =
+    useSummary(filteredSubscriptions, currency, time, rates);
+
+  const isFiltered = Boolean(card) || tags.length > 0;
+  const clearFilters = () => {
+    setCard("");
+    setTags([]);
+  };
 
   const ratesUnavailable =
     needsExchangeRates(subscriptions) && !ratesLoading && (!!ratesError || !rates);
@@ -85,7 +92,7 @@ export default function Home() {
           </section>
         )}
         <SummaryHeader
-          subscriptions={subscriptions}
+          subscriptions={filteredSubscriptions}
           time={time}
           currency={currency}
           primaryTotal={primaryTotal}
@@ -94,6 +101,8 @@ export default function Home() {
           uniqueCurrencies={uniqueCurrencies}
           summaryData={summaryData}
           ratesUnavailable={ratesUnavailable}
+          isFiltered={isFiltered}
+          onClearFilters={clearFilters}
         />
         <SubscriptionList
           subscriptions={filteredSubscriptions}
