@@ -1,5 +1,5 @@
 import type { Currency, ExchangeRates, GroupedByCard, Subscription } from "../types";
-import { getUsdPrice } from "./getUsdPrice";
+import { currencyToUsd } from "./currencyToUsd";
 
 export const getMonthlySubscriptionGroupedByCard = (
   subscriptions: Subscription[],
@@ -11,7 +11,7 @@ export const getMonthlySubscriptionGroupedByCard = (
     const monthlyPrice = sub.time === "MONTHLY" ? sub.price : sub.price / 12;
     // Subscriptions can be in different currencies, so normalize each to USD first,
     // then convert that common USD amount into the single display currency.
-    const usdPrice = getUsdPrice(monthlyPrice, sub.currency, rates);
+    const usdPrice = currencyToUsd(rates)[sub.currency](monthlyPrice);
     const price = currency === "USD" ? usdPrice : usdPrice * (rates?.[currency as Currency] ?? 1);
 
     if (group[foreignKey]) {

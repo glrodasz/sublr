@@ -100,7 +100,7 @@ describe("[ helpers ]", () => {
             currency: "USD",
           },
           MASTERCARD_9387: {
-            price: 8.33,
+            price: 99.99 / 12,
             currency: "USD",
           },
         };
