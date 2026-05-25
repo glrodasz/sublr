@@ -13,6 +13,9 @@ interface Props {
   primaryIsYearly: boolean;
   uniqueCurrencies: number;
   summaryData: SummaryEntry[];
+  ratesUnavailable?: boolean;
+  isFiltered?: boolean;
+  onClearFilters?: () => void;
 }
 
 const SummaryHeader = ({
@@ -24,8 +27,44 @@ const SummaryHeader = ({
   primaryIsYearly,
   uniqueCurrencies,
   summaryData,
+  ratesUnavailable = false,
+  isFiltered = false,
+  onClearFilters,
 }: Props) => {
-  if (subscriptions.length < 1) return null;
+  if (subscriptions.length < 1 && !isFiltered) return null;
+
+  if (ratesUnavailable) {
+    return (
+      <section className="rates-warning" role="alert">
+        <p className="rates-warning-title">Totals unavailable</p>
+        <p className="rates-warning-body">
+          Exchange rates failed to load, so multi-currency totals can&apos;t be calculated reliably.
+          Showing them now would be misleading — please retry shortly.
+        </p>
+        <style jsx>{`
+          .rates-warning {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 16px 20px;
+            border: 1px solid var(--accent-hot, #ff3d68);
+            border-radius: var(--r-lg, 16px);
+            background: color-mix(in srgb, var(--accent-hot, #ff3d68) 12%, transparent);
+          }
+          .rates-warning-title {
+            margin: 0;
+            font-weight: 700;
+            color: var(--accent-hot, #ff3d68);
+          }
+          .rates-warning-body {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--fg-1, #b8b8c8);
+          }
+        `}</style>
+      </section>
+    );
+  }
 
   return (
     <>
@@ -64,26 +103,44 @@ const SummaryHeader = ({
           <span>
             {uniqueCurrencies} {uniqueCurrencies === 1 ? "currency" : "currencies"}
           </span>
+          {isFiltered && (
+            <>
+              <span className="meta-sep" aria-hidden>
+                |
+              </span>
+              <span className="filtered-tag">
+                filtered
+                <span className="meta-sep" aria-hidden>
+                  ·
+                </span>
+                <button type="button" className="clear-filters" onClick={onClearFilters}>
+                  clear filters
+                </button>
+              </span>
+            </>
+          )}
         </div>
       </section>
 
-      <section>
-        <Subtitle>Cards · {time === "YEARLY" ? "Yearly" : "Monthly"}</Subtitle>
-        <div className="cards-rail" role="list">
-          {summaryData.map((data) => (
-            <div className="rail-item" key={data.key} role="listitem">
-              <CreditCard
-                time={time}
-                number={data.creditCard.number}
-                type={data.creditCard.type}
-                currency={(time === "YEARLY" ? data.yearly : data.monthly).currency ?? "USD"}
-                price={(time === "YEARLY" ? data.yearly : data.monthly).price}
-                decimals={0}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
+      {summaryData.length > 0 && (
+        <section>
+          <Subtitle>Cards · {time === "YEARLY" ? "Yearly" : "Monthly"}</Subtitle>
+          <div className="cards-rail" role="list">
+            {summaryData.map((data) => (
+              <div className="rail-item" key={data.key} role="listitem">
+                <CreditCard
+                  time={time}
+                  number={data.creditCard.number}
+                  type={data.creditCard.type}
+                  currency={(time === "YEARLY" ? data.yearly : data.monthly).currency ?? "USD"}
+                  price={(time === "YEARLY" ? data.yearly : data.monthly).price}
+                  decimals={0}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <style jsx>{`
         .totals-hero {
@@ -91,7 +148,7 @@ const SummaryHeader = ({
           flex-direction: column;
           gap: 12px;
           padding: 20px 20px 22px;
-          border: 1px solid var(--line, #2a2a38);
+          border: 1px solid var(--line-strong, #3a3a4d);
           border-radius: var(--r-lg, 16px);
           background: var(--bg-1, #14141b);
           box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
@@ -179,6 +236,35 @@ const SummaryHeader = ({
 
         .meta-sep {
           opacity: 0.4;
+        }
+
+        .filtered-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 2px 8px;
+          border-radius: 999px;
+          border: 1px solid color-mix(in srgb, var(--accent, #7cffb2) 40%, var(--line-strong) 60%);
+          color: var(--accent, #7cffb2);
+          font-size: 0.72rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+
+        .clear-filters {
+          background: transparent;
+          border: none;
+          padding: 0;
+          font: inherit;
+          color: var(--fg-1, #b8b8c8);
+          cursor: pointer;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .clear-filters:hover {
+          color: var(--accent, #7cffb2);
         }
 
         .cards-rail {

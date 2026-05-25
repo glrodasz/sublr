@@ -37,9 +37,8 @@ const Filter = ({
           .filter {
             display: flex;
             align-items: center;
-            gap: 10px 14px;
+            gap: 10px;
             color: var(--fg-1, #b8b8c8);
-            flex-wrap: wrap;
           }
 
           .filter-label {
@@ -49,6 +48,7 @@ const Filter = ({
             letter-spacing: 0.12em;
             text-transform: uppercase;
             color: var(--fg-2, #6e6e85);
+            white-space: nowrap;
           }
 
           @media (max-width: 799px) {
@@ -85,9 +85,8 @@ const Filter = ({
         <style jsx>{`
           .filter-segmented {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
           }
 
           .filter-label {
@@ -104,7 +103,7 @@ const Filter = ({
             flex-wrap: wrap;
             padding: 3px;
             background: var(--bg-1, #14141b);
-            border: 1px solid var(--line, #2a2a38);
+            border: 1px solid var(--line-strong, #3a3a4d);
             border-radius: 999px;
             gap: 2px;
           }
@@ -113,7 +112,7 @@ const Filter = ({
             font-family: inherit;
             font-size: 0.8rem;
             font-weight: 600;
-            padding: 6px 12px;
+            padding: 6px 10px;
             border: none;
             border-radius: 999px;
             cursor: pointer;
@@ -165,9 +164,8 @@ const Filter = ({
         .filter {
           display: flex;
           align-items: center;
-          gap: 10px 14px;
+          gap: 10px;
           color: var(--fg-1, #b8b8c8);
-          flex-wrap: wrap;
         }
 
         .filter-label {
@@ -177,6 +175,7 @@ const Filter = ({
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--fg-2, #6e6e85);
+          white-space: nowrap;
         }
 
         .select-wrap {

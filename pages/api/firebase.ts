@@ -21,6 +21,9 @@ export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextAp
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    // Auth0 owns identity, but Firestore rules authorize by Firebase UID. We mint a
+    // Firebase custom token keyed to the Auth0 user id so the client can sign in to
+    // Firebase and have its requests scoped to that same user.
     const customToken = await getAuth().createCustomToken(session.user.sub);
     return res.status(200).json({ firebaseToken: customToken });
   } catch (err) {

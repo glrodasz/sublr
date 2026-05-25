@@ -4,6 +4,7 @@ import {
   getCreditCardInfoFromCurrentSubscription,
   shouldUpdateSubscriptionPrice,
 } from "../helpers";
+import { normalizeTags } from "../lib/normalizeTag";
 
 type PendingChange = Record<string, FieldChange["value"]>;
 
@@ -43,7 +44,14 @@ const useSubscriptionMutations = (
   };
 
   const handleChange = (subscriptionId: string, { id, value }: FieldChange) => {
-    const newValue = id === "creditCardNumber" ? (value as string).slice(-4) : value;
+    let newValue: FieldChange["value"];
+    if (id === "creditCardNumber") {
+      newValue = (value as string).slice(-4);
+    } else if (id === "tags") {
+      newValue = normalizeTags(value as string[]);
+    } else {
+      newValue = value;
+    }
     setChangedSubscriptions((prev) => ({
       ...prev,
       [subscriptionId]: { ...prev[subscriptionId], [id]: newValue },

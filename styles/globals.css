@@ -33,11 +33,7 @@ body {
   font-family: var(--font-sans, "Inter", system-ui, sans-serif);
   background-color: var(--bg-0);
   background-image:
-    radial-gradient(
-      1200px 600px at 80% -10%,
-      rgba(124, 255, 178, 0.06),
-      transparent 60%
-    ),
+    radial-gradient(1200px 600px at 80% -10%, rgba(124, 255, 178, 0.06), transparent 60%),
     linear-gradient(
         0deg,
         color-mix(in srgb, var(--line) 15%, transparent) 0,
@@ -56,12 +52,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(
-    --font-display,
-    "Space Grotesk",
-    system-ui,
-    sans-serif
-  );
+  font-family: var(--font-display, "Space Grotesk", system-ui, sans-serif);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -93,12 +84,14 @@ input:not([type="checkbox"]):not([type="radio"]) {
   font-size: var(--input-font-size);
   width: 100%;
   border-radius: var(--r-sm);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   background: var(--bg-1);
   color: var(--fg-0);
   padding: 8px 14px;
   vertical-align: middle;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 input.mono,
@@ -112,10 +105,15 @@ select {
   min-width: 0;
   cursor: pointer;
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--fg-2) 50%),
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--fg-2) 50%),
     linear-gradient(135deg, var(--fg-2) 50%, transparent 50%);
-  background-position: calc(100% - 14px) calc(1em - 1px), calc(100% - 9px) calc(1em - 1px);
-  background-size: 5px 5px, 5px 5px;
+  background-position:
+    calc(100% - 14px) calc(1em - 1px),
+    calc(100% - 9px) calc(1em - 1px);
+  background-size:
+    5px 5px,
+    5px 5px;
   background-repeat: no-repeat;
   padding-right: 32px;
 }
@@ -179,7 +177,10 @@ dialog button {
   font-size: 1rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 form[method="dialog"] button:last-of-type:hover {

@@ -9,7 +9,6 @@ export interface CreditCard {
 
 export interface Subscription {
   id?: string;
-  unsplashId?: string;
   title?: string;
   tags?: string[];
   price: number;

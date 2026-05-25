@@ -19,14 +19,27 @@ const COLLECTION_NAME = "subscriptions";
 const useSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [finishedFirstFetch, setFinishedFirstFetch] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let cancelled = false;
+    let settled = false;
+
+    const settle = (err: Error | null) => {
+      if (cancelled || settled) return;
+      settled = true;
+      setError(err);
+      setFinishedFirstFetch(true);
+    };
 
     async function getSubscriptions() {
       try {
-        const { firebaseToken } = await fetch("/api/firebase").then((data) => data.json());
+        const response = await fetch("/api/firebase");
+        if (!response.ok) {
+          throw new Error(`Failed to authenticate with Firebase (${response.status})`);
+        }
+        const { firebaseToken } = await response.json();
         const userCredentials = await signInWithCustomToken(auth, firebaseToken);
         const queryCollection = query(
           collection(db, COLLECTION_NAME),
@@ -35,15 +48,23 @@ const useSubscriptions = () => {
 
         if (cancelled) return;
 
-        unsubscribe = onSnapshot(queryCollection, (querySnapshot) => {
-          setSubscriptions(
-            querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Subscription)
-          );
-          setFinishedFirstFetch(true);
-        });
-      } catch (error) {
-        console.error(error);
-        setFinishedFirstFetch(true);
+        unsubscribe = onSnapshot(
+          queryCollection,
+          (querySnapshot) => {
+            setSubscriptions(
+              querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Subscription)
+            );
+            settle(null);
+          },
+          (snapshotError) => {
+            console.error(snapshotError);
+            settle(snapshotError);
+          }
+        );
+      } catch (caught) {
+        const err = caught instanceof Error ? caught : new Error(String(caught));
+        console.error(err);
+        settle(err);
       }
     }
 
@@ -69,7 +90,7 @@ const useSubscriptions = () => {
     });
   };
 
-  return { subscriptions, create, remove, update, finishedFirstFetch };
+  return { subscriptions, create, remove, update, finishedFirstFetch, error };
 };
 
 export default useSubscriptions;

@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { request } from "../../lib/request";
 
 const RATES_FROM_USD = ["COP", "SEK", "EUR"];
-
-const request = (url: string, options?: RequestInit): Promise<{ rates: Record<string, number> }> =>
-  fetch(url, options).then((data) => data.json());
 
 const getExchangeRatesApiUrl = (rates: string[]) =>
   `https://api.apilayer.com/exchangerates_data/latest?symbols=${rates.join(",")}&base=USD`;
@@ -16,9 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const data = await request(getExchangeRatesApiUrl(RATES_FROM_USD), {
-      headers: { apiKey },
-    });
+    const data = await request<{ rates: Record<string, number> }>(
+      getExchangeRatesApiUrl(RATES_FROM_USD),
+      { headers: { apikey: apiKey } }
+    );
 
     res.status(200).json({ ...data.rates });
   } catch (error) {

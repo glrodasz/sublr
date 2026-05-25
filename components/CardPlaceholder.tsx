@@ -24,7 +24,7 @@ const CardPlaceholder = ({ text, onClick }: Props) => {
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 310px;
+            height: 320px;
             gap: 12px;
             border: 2px dashed var(--accent, #7cffb2);
             border-radius: var(--r-md, 10px);
