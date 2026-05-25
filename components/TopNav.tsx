@@ -119,6 +119,7 @@ const TopNav = ({
           {secondaryVisible && (
             <Filter label="Tags">
               <TagsInput
+                collapse
                 options={tagOptions}
                 values={tags}
                 setValues={setTags}

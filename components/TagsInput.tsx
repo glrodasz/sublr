@@ -8,9 +8,19 @@ interface Props {
   options?: string[];
   creatable?: boolean;
   placeholder?: string;
+  collapse?: boolean;
+  maxVisible?: number;
 }
 
-const TagsInput = ({ values, setValues, options = [], creatable = false, placeholder }: Props) => {
+const TagsInput = ({
+  values,
+  setValues,
+  options = [],
+  creatable = false,
+  placeholder,
+  collapse = false,
+  maxVisible = 2,
+}: Props) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -18,14 +28,26 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
 
   const normalizedValues = useMemo(() => values.map(normalizeTag), [values]);
 
+  const availableOptions = useMemo(
+    () => options.map(normalizeTag).filter((o, i, a) => o && a.indexOf(o) === i),
+    [options]
+  );
+
   const filteredOptions = useMemo(() => {
     const q = normalizeTag(query);
-    return options
-      .map(normalizeTag)
-      .filter((o, i, a) => o && a.indexOf(o) === i)
+    return availableOptions
       .filter((o) => !normalizedValues.includes(o))
       .filter((o) => (q ? o.includes(q) : true));
-  }, [options, query, normalizedValues]);
+  }, [availableOptions, query, normalizedValues]);
+
+  const allSelected =
+    !creatable &&
+    availableOptions.length > 0 &&
+    availableOptions.every((o) => normalizedValues.includes(o));
+
+  const showInput = !(collapse && allSelected);
+  const visibleValues = collapse ? values.slice(0, maxVisible) : values;
+  const hiddenCount = collapse ? values.length - visibleValues.length : 0;
 
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
@@ -39,7 +61,7 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
     const next = normalizeTag(raw);
     if (!next) return false;
     if (normalizedValues.includes(next)) return false;
-    if (!creatable && !options.map(normalizeTag).includes(next)) return false;
+    if (!creatable && !availableOptions.includes(next)) return false;
     setValues([...values, next]);
     setQuery("");
     return true;
@@ -66,57 +88,124 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
     }
   };
 
+  const showSelectedGroup = collapse && values.length > 0;
+
   return (
-    <div
-      ref={containerRef}
-      className={`tags-input ${open ? "is-open" : ""}`}
-      onClick={(event) => {
-        event.stopPropagation();
-        setOpen(true);
-        inputRef.current?.focus();
-      }}
-    >
-      {values.map((tag, i) => (
-        <Tag
-          key={`${tag}-${i}`}
-          onClose={(event) => {
+    <div className="tags-field">
+      <div
+        ref={containerRef}
+        className={`tags-input ${open ? "is-open" : ""}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen(true);
+          inputRef.current?.focus();
+        }}
+      >
+        {visibleValues.map((tag, i) => (
+          <Tag
+            key={`${tag}-${i}`}
+            onClose={(event) => {
+              event.stopPropagation();
+              removeAt(i);
+            }}
+          >
+            {tag}
+          </Tag>
+        ))}
+        {hiddenCount > 0 && (
+          <button
+            type="button"
+            className="more"
+            onClick={(event) => {
+              event.stopPropagation();
+              setOpen((prev) => !prev);
+            }}
+          >
+            +{hiddenCount} more
+          </button>
+        )}
+        {showInput && (
+          <input
+            ref={inputRef}
+            type="text"
+            className="ti-input"
+            value={query}
+            placeholder={values.length === 0 ? placeholder : ""}
+            aria-label={placeholder ?? "Tags"}
+            onFocus={() => setOpen(true)}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+            onKeyDown={handleKeyDown}
+          />
+        )}
+        {open && (showSelectedGroup || filteredOptions.length > 0) && (
+          <ul className="ti-options" role="listbox">
+            {showSelectedGroup && (
+              <>
+                <li className="ti-group" aria-hidden>
+                  Selected
+                </li>
+                {values.map((tag, i) => (
+                  <li key={`sel-${tag}-${i}`} role="option" aria-selected="true">
+                    <button
+                      type="button"
+                      className="ti-selected"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        removeAt(i);
+                      }}
+                    >
+                      <span>{tag}</span>
+                      <span className="x" aria-hidden>
+                        ×
+                      </span>
+                    </button>
+                  </li>
+                ))}
+                {filteredOptions.length > 0 && (
+                  <li className="ti-group" aria-hidden>
+                    Add
+                  </li>
+                )}
+              </>
+            )}
+            {filteredOptions.map((option) => (
+              <li key={option} role="option" aria-selected="false">
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    commit(option);
+                    inputRef.current?.focus();
+                  }}
+                >
+                  {option}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {collapse && values.length > 0 && (
+        <button
+          type="button"
+          className="clear-all"
+          onClick={(event) => {
             event.stopPropagation();
-            removeAt(i);
+            setValues([]);
+            setQuery("");
           }}
         >
-          {tag}
-        </Tag>
-      ))}
-      <input
-        ref={inputRef}
-        type="text"
-        className="ti-input"
-        value={query}
-        placeholder={values.length === 0 ? placeholder : ""}
-        aria-label={placeholder ?? "Tags"}
-        onFocus={() => setOpen(true)}
-        onChange={(event) => setQuery(event.currentTarget.value)}
-        onKeyDown={handleKeyDown}
-      />
-      {open && filteredOptions.length > 0 && (
-        <ul className="ti-options" role="listbox">
-          {filteredOptions.map((option) => (
-            <li key={option} role="option" aria-selected="false">
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  commit(option);
-                  inputRef.current?.focus();
-                }}
-              >
-                {option}
-              </button>
-            </li>
-          ))}
-        </ul>
+          Clear all
+        </button>
       )}
       <style jsx>{`
+        .tags-field {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+        }
+
         .tags-input {
           position: relative;
           display: inline-flex;
@@ -138,12 +227,13 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
           border-color: var(--accent, #7cffb2);
         }
 
-        .ti-input {
+        .tags-input .ti-input {
           flex: 1 1 80px;
           min-width: 60px;
           width: auto;
-          height: 32px;
+          height: 30px;
           border: none;
+          box-shadow: none;
           background: transparent;
           color: var(--fg-0, #f5f5fa);
           font-size: 0.9rem;
@@ -151,8 +241,47 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
           padding: 0 4px;
         }
 
+        .tags-input .ti-input:focus {
+          border: none;
+          box-shadow: none;
+          outline: none;
+        }
+
         .ti-input::placeholder {
           color: var(--fg-2, #6e6e85);
+        }
+
+        .more {
+          flex: 0 0 auto;
+          font-family: inherit;
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 3px 8px;
+          border-radius: 999px;
+          border: 1px solid var(--line-strong, #3a3a4d);
+          background: var(--bg-2, #1c1c26);
+          color: var(--fg-1, #b8b8c8);
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .clear-all {
+          align-self: flex-start;
+          font-family: inherit;
+          font-size: 0.72rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          background: transparent;
+          border: none;
+          padding: 0 2px;
+          color: var(--fg-2, #6e6e85);
+          cursor: pointer;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .clear-all:hover {
+          color: var(--accent, #7cffb2);
         }
 
         .ti-options {
@@ -172,6 +301,15 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
           overflow-y: auto;
         }
 
+        .ti-group {
+          padding: 6px 12px 2px;
+          font-size: 0.62rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--fg-2, #6e6e85);
+        }
+
         .ti-options button {
           display: block;
           width: 100%;
@@ -186,11 +324,29 @@ const TagsInput = ({ values, setValues, options = [], creatable = false, placeho
           cursor: pointer;
         }
 
+        .ti-options button.ti-selected {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          color: var(--fg-1, #b8b8c8);
+        }
+
+        .ti-options button.ti-selected .x {
+          font-size: 1.1rem;
+          line-height: 1;
+          color: var(--fg-2, #6e6e85);
+        }
+
         .ti-options button:hover,
         .ti-options button:focus-visible {
           background: var(--bg-3, #242433);
           color: var(--accent, #7cffb2);
           outline: none;
+        }
+
+        .ti-options button.ti-selected:hover .x {
+          color: var(--accent, #7cffb2);
         }
       `}</style>
     </div>

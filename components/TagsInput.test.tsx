@@ -7,12 +7,14 @@ const Harness = ({
   options = [],
   creatable = false,
   placeholder = "Add tags…",
+  collapse = false,
   onChange,
 }: {
   initial?: string[];
   options?: string[];
   creatable?: boolean;
   placeholder?: string;
+  collapse?: boolean;
   onChange?: (next: string[]) => void;
 }) => {
   const [values, setValues] = React.useState<string[]>(initial);
@@ -26,6 +28,7 @@ const Harness = ({
       options={options}
       creatable={creatable}
       placeholder={placeholder}
+      collapse={collapse}
     />
   );
 };
@@ -100,5 +103,34 @@ describe("TagsInput", () => {
     fireEvent.click(screen.getByText("community"));
 
     expect(onChange).toHaveBeenLastCalledWith(["community"]);
+  });
+
+  describe("collapse mode", () => {
+    it("shows only maxVisible chips plus a +N more badge", () => {
+      render(<Harness collapse initial={["a", "b", "c", "d", "e"]} />);
+      expect(screen.getByText("a")).toBeInTheDocument();
+      expect(screen.getByText("b")).toBeInTheDocument();
+      expect(screen.queryByText("c")).not.toBeInTheDocument();
+      expect(screen.getByText("+3 more")).toBeInTheDocument();
+    });
+
+    it("reveals all selected choices in the dropdown", () => {
+      render(<Harness collapse initial={["a", "b", "c"]} />);
+      fireEvent.click(screen.getByText("+1 more"));
+      expect(screen.getByText("Selected")).toBeInTheDocument();
+      expect(screen.getByText("c")).toBeInTheDocument();
+    });
+
+    it("clears every tag via Clear all", () => {
+      const onChange = jest.fn();
+      render(<Harness collapse initial={["a", "b"]} onChange={onChange} />);
+      fireEvent.click(screen.getByText("Clear all"));
+      expect(onChange).toHaveBeenLastCalledWith([]);
+    });
+
+    it("hides the input when every option is selected", () => {
+      render(<Harness collapse options={["a", "b"]} initial={["a", "b"]} />);
+      expect(screen.queryByLabelText("Add tags…")).not.toBeInTheDocument();
+    });
   });
 });
