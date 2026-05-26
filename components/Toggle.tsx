@@ -48,7 +48,7 @@ const Toggle = ({ id, options, value, onChange }: Props) => {
           appearance: none;
           border: none;
           cursor: pointer;
-          padding: 5px 14px;
+          padding: 4px 12px;
           border-radius: 999px;
           font-size: 0.75rem;
           font-weight: 600;

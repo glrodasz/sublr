@@ -59,6 +59,7 @@ const BacksideCardSubscription = ({
               time={time}
               onChange={onChange}
               isEditable
+              periodVariant="compact"
             />
           </div>
           <div className="field">
@@ -86,16 +87,16 @@ const BacksideCardSubscription = ({
           flex-direction: column;
           justify-content: flex-end;
           color: var(--text, #fff);
-          padding: 16px 20px;
+          padding: 12px 18px;
           background: var(--bg-3, #242433);
           border-bottom: 1px solid var(--line-strong, #3a3a4d);
           box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
           border-radius: 8px 8px 0 0;
-          gap: 10px;
+          gap: 8px;
         }
 
         .title {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: bold;
         }
 
@@ -117,19 +118,20 @@ const BacksideCardSubscription = ({
         .content {
           display: flex;
           flex-direction: column;
-          padding: 20px;
-          gap: 18px;
+          padding: 12px 18px;
+          gap: 10px;
         }
 
         .field {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 5px;
         }
 
         .field-label {
-          font-size: 0.7rem;
+          font-size: 0.65rem;
           font-weight: 600;
+          line-height: 1;
           letter-spacing: 0.08em;
           text-transform: uppercase;
           color: var(--fg-1, #b8b8c8);
