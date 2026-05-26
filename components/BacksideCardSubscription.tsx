@@ -51,14 +51,20 @@ const BacksideCardSubscription = ({
           </div>
         </div>
         <div className="content">
-          <Subscription
-            price={price}
-            currency={currency}
-            time={time}
-            onChange={onChange}
-            isEditable
-          />
-          <CreditCardIcon {...creditCard} isEditable onChange={onChange} />
+          <div className="field">
+            <span className="field-label">Plan price</span>
+            <Subscription
+              price={price}
+              currency={currency}
+              time={time}
+              onChange={onChange}
+              isEditable
+            />
+          </div>
+          <div className="field">
+            <span className="field-label">Payment method</span>
+            <CreditCardIcon {...creditCard} isEditable onChange={onChange} />
+          </div>
         </div>
         <div className="actions">
           <div className="circle-button update" onClick={onUpdate}>
@@ -112,7 +118,21 @@ const BacksideCardSubscription = ({
           display: flex;
           flex-direction: column;
           padding: 20px;
-          gap: 10px;
+          gap: 18px;
+        }
+
+        .field {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .field-label {
+          font-size: 0.7rem;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--fg-1, #b8b8c8);
         }
 
         .backside-content {

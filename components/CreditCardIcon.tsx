@@ -13,6 +13,8 @@ interface Props {
   onChange?: (change: FieldChange) => void;
 }
 
+const lastFourDigits = (value: FieldChange["value"]) => String(value).replace(/\D/g, "").slice(-4);
+
 const CreditCardIcon = ({ type, number, isEditable, onChange }: Props) => {
   const iconName = getCreditCardIconName(type ?? "");
   const display =
@@ -37,14 +39,19 @@ const CreditCardIcon = ({ type, number, isEditable, onChange }: Props) => {
         )}
         <div className="credit-card-number mono tabular-nums">
           {isEditable ? (
-            <Input
-              id="creditCardNumber"
-              type="number"
-              value={number ?? undefined}
-              maxLength={4}
-              onChange={onChange!}
-              className="mono"
-            />
+            <span className="masked-input">
+              <span className="mask-prefix" aria-hidden>
+                ••••
+              </span>
+              <Input
+                id="creditCardNumber"
+                type="text"
+                value={number === 0 || number === "0" ? "" : (number ?? undefined)}
+                placeholder="0000"
+                onChange={(change) => onChange!({ ...change, value: lastFourDigits(change.value) })}
+                className="mono"
+              />
+            </span>
           ) : (
             <span>•••• {display}</span>
           )}
@@ -68,6 +75,24 @@ const CreditCardIcon = ({ type, number, isEditable, onChange }: Props) => {
           font-size: 1.125rem;
           color: var(--fg-0, #f5f5fa);
           width: 100%;
+        }
+
+        .masked-input {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+        }
+
+        .mask-prefix {
+          color: var(--fg-1, #b8b8c8);
+          letter-spacing: 0.1em;
+          user-select: none;
+        }
+
+        .masked-input :global(input) {
+          flex: 1;
+          min-width: 0;
         }
       `}</style>
     </>
