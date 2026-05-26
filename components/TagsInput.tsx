@@ -42,6 +42,13 @@ const TagsInput = ({
       .filter((o) => (q ? o.includes(q) : true));
   }, [availableOptions, query, normalizedValues]);
 
+  const normalizedQuery = normalizeTag(query);
+  const canCreate =
+    creatable &&
+    !!normalizedQuery &&
+    !normalizedValues.includes(normalizedQuery) &&
+    !availableOptions.includes(normalizedQuery);
+
   const allSelected =
     !creatable &&
     availableOptions.length > 0 &&
@@ -148,8 +155,23 @@ const TagsInput = ({
             onKeyDown={handleKeyDown}
           />
         )}
-        {open && (showSelectedGroup || filteredOptions.length > 0) && (
+        {open && (showSelectedGroup || filteredOptions.length > 0 || canCreate) && (
           <ul className="ti-options" role="listbox">
+            {canCreate && (
+              <li role="option" aria-selected="false">
+                <button
+                  type="button"
+                  className="ti-create"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    commit(query);
+                    inputRef.current?.focus();
+                  }}
+                >
+                  Create “{normalizedQuery}”
+                </button>
+              </li>
+            )}
             {filteredOptions.length > 0 && (
               <>
                 {showSelectedGroup && (
@@ -347,6 +369,12 @@ const TagsInput = ({
           font-size: 0.9rem;
           text-transform: capitalize;
           cursor: pointer;
+        }
+
+        .ti-options button.ti-create {
+          text-transform: none;
+          color: var(--accent, #7cffb2);
+          font-weight: 600;
         }
 
         .ti-options button.ti-selected {
