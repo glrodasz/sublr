@@ -43,6 +43,7 @@ const BacksideCardSubscription = ({
           <div className="tags">
             <TagsInput
               creatable
+              collapse
               options={knownTags}
               values={originalTags}
               setValues={(next) => onChange({ id: "tags", value: next })}
