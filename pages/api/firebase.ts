@@ -3,7 +3,7 @@ import { getAuth } from "firebase-admin/auth";
 import type { NextApiRequest, NextApiResponse } from "next";
 import auth0 from "../../lib/auth0";
 import admin from "../../firebase/admin";
-import { seedDefaultCategories } from "../../helpers";
+import { seedDefaultCategories } from "../../helpers/seedDefaultCategories";
 
 import "../../firebase/admin";
 

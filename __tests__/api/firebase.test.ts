@@ -33,14 +33,14 @@ jest.mock("../../firebase/admin", () => ({
     ),
   },
 }));
-jest.mock("../../helpers");
+jest.mock("../../helpers/seedDefaultCategories");
 jest.mock("firebase-admin/app", () => ({ getApps: () => getAppsMock() }));
 jest.mock("firebase-admin/auth", () => ({
   getAuth: () => ({ createCustomToken: (...a: unknown[]) => createCustomTokenMock(...a) }),
 }));
 
 import handler from "../../pages/api/firebase";
-import { seedDefaultCategories } from "../../helpers";
+import { seedDefaultCategories } from "../../helpers/seedDefaultCategories";
 
 const seedDefaultCategoriesMock = seedDefaultCategories as jest.MockedFunction<
   typeof seedDefaultCategories
