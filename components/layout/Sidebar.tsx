@@ -11,25 +11,96 @@ const NAV_ITEMS = [
   { label: "Settings", href: "/settings" },
 ];
 
+const BOTTOM_NAV = [
+  {
+    label: "Home",
+    href: "/",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
+  },
+  {
+    label: "Incomes",
+    href: "/incomes",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5" />
+        <polyline points="5 12 12 5 19 12" />
+      </svg>
+    ),
+  },
+  {
+    label: "Expenses",
+    href: "/expenses",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <polyline points="19 12 12 19 5 12" />
+      </svg>
+    ),
+  },
+  {
+    label: "Invest",
+    href: "/investments",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+        <polyline points="17 6 23 6 23 12" />
+      </svg>
+    ),
+  },
+  {
+    label: "Settings",
+    href: "/settings",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    ),
+  },
+];
+
 export function Sidebar() {
   const { pathname } = useRouter();
 
   return (
-    <aside className="sidebar">
-      <div className="logo">Waletto</div>
-      <nav className="nav">
-        {NAV_ITEMS.map((item) => (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="sidebar">
+        <div className="logo">Waletto</div>
+        <nav className="nav">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`nav-item ${pathname === item.href ? "nav-item--active" : ""}`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Mobile bottom nav */}
+      <nav className="bottom-nav" aria-label="Main navigation">
+        {BOTTOM_NAV.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className={`nav-item ${pathname === item.href ? "nav-item--active" : ""}`}
+            className={`bottom-item ${pathname === item.href ? "bottom-item--active" : ""}`}
           >
-            {item.label}
+            <span className="bottom-icon">{item.icon}</span>
+            <span className="bottom-label">{item.label}</span>
           </Link>
         ))}
       </nav>
 
       <style jsx>{`
+        /* ── Desktop sidebar ── */
         .sidebar {
           width: 220px;
           flex-shrink: 0;
@@ -42,6 +113,7 @@ export function Sidebar() {
           height: 100vh;
           position: sticky;
           top: 0;
+          overflow-y: auto;
         }
 
         .logo {
@@ -78,7 +150,63 @@ export function Sidebar() {
           color: var(--fg-0, #f0f0f5);
           font-weight: 600;
         }
+
+        /* ── Mobile bottom nav ── */
+        .bottom-nav {
+          display: none;
+        }
+
+        @media (max-width: 767px) {
+          .sidebar {
+            display: none;
+          }
+
+          .bottom-nav {
+            display: flex;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: var(--bg-1, #14141b);
+            border-top: 1px solid var(--line, #2a2a38);
+            z-index: 200;
+            /* safe-area inset for notched phones */
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+          }
+
+          .bottom-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            color: var(--fg-2, #7a7a9a);
+            text-decoration: none;
+            padding: 6px 4px;
+            transition: color 0.1s;
+          }
+
+          .bottom-item--active {
+            color: var(--accent, #7cffb2);
+          }
+
+          .bottom-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+          }
+
+          .bottom-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+          }
+        }
       `}</style>
-    </aside>
+    </>
   );
 }

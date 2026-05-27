@@ -26,6 +26,7 @@ export default function Dashboard() {
       <Head>
         <title>Dashboard — Waletto</title>
         <meta name="theme-color" content="#0A0A0F" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className="app">
@@ -38,10 +39,10 @@ export default function Dashboard() {
               <span className="currency-badge">{currency}</span>
             </div>
             <div className="header-actions">
-              <button type="button" className="btn btn--ghost" disabled>
+              <button type="button" className="btn" disabled>
                 + New income
               </button>
-              <button type="button" className="btn btn--ghost" disabled>
+              <button type="button" className="btn" disabled>
                 + New expense
               </button>
             </div>
@@ -96,26 +97,30 @@ export default function Dashboard() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 24px 32px;
+          padding: 20px 28px;
           border-bottom: 1px solid var(--line, #2a2a38);
-          flex-wrap: wrap;
           gap: 12px;
         }
 
         .header-left {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
+          min-width: 0;
         }
 
         .welcome {
           margin: 0;
-          font-size: 1.2rem;
+          font-size: 1.1rem;
           font-weight: 700;
           color: var(--fg-0, #f0f0f5);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .currency-badge {
+          flex-shrink: 0;
           font-size: 0.72rem;
           font-weight: 600;
           padding: 3px 8px;
@@ -128,18 +133,20 @@ export default function Dashboard() {
         .header-actions {
           display: flex;
           gap: 8px;
+          flex-shrink: 0;
         }
 
         .btn {
-          padding: 8px 16px;
+          padding: 8px 14px;
           border-radius: 8px;
           font-family: inherit;
-          font-size: 0.83rem;
+          font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
           border: 1px solid var(--line-strong, #3a3a4d);
           background: var(--bg-1, #14141b);
           color: var(--fg-1, #b8b8c8);
+          white-space: nowrap;
         }
 
         .btn:disabled {
@@ -148,10 +155,10 @@ export default function Dashboard() {
         }
 
         .main {
-          padding: 28px 32px;
+          padding: 24px 28px;
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 20px;
         }
 
         .row {
@@ -159,23 +166,32 @@ export default function Dashboard() {
           gap: 16px;
         }
 
-        @media (max-width: 1024px) {
-          .app {
+        /* Tablet: stack cards at ≤900px while sidebar is still visible */
+        @media (max-width: 900px) {
+          .row {
             flex-direction: column;
           }
         }
 
-        @media (max-width: 768px) {
-          .row {
-            flex-direction: column;
+        /* Mobile: bottom nav is present, sidebar is hidden */
+        @media (max-width: 767px) {
+          .header {
+            padding: 14px 16px;
+          }
+
+          .welcome {
+            font-size: 1rem;
+          }
+
+          /* Hide action buttons on mobile — disabled anyway, clutters small screens */
+          .header-actions {
+            display: none;
           }
 
           .main {
-            padding: 20px 16px;
-          }
-
-          .header {
-            padding: 16px;
+            padding: 16px 16px;
+            /* leave room for the fixed bottom nav */
+            padding-bottom: 80px;
           }
         }
       `}</style>

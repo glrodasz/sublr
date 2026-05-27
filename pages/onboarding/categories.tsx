@@ -15,6 +15,7 @@ export default function OnboardingCategories() {
       <Head>
         <title>Set up categories — Waletto</title>
         <meta name="theme-color" content="#0A0A0F" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className="layout">
@@ -128,13 +129,19 @@ export default function OnboardingCategories() {
           padding: 32px;
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 600px) {
+          .main {
+            padding: 24px 16px;
+            gap: 20px;
+          }
+
           .step-label {
             display: none;
           }
 
           .card {
-            padding: 20px;
+            padding: 20px 16px;
+            border-radius: 12px;
           }
         }
       `}</style>

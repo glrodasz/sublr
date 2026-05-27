@@ -105,7 +105,7 @@ function CategorySection({ domain, label, icon }: { domain: Domain; label: strin
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 6px 14px;
+          padding: 8px 14px;
           border-radius: 999px;
           font-size: 0.85rem;
           font-family: inherit;
@@ -144,8 +144,14 @@ function CategorySection({ domain, label, icon }: { domain: Domain; label: strin
           cursor: pointer;
           font-size: 1rem;
           line-height: 1;
-          padding: 0;
-          margin-left: 2px;
+          padding: 2px 4px;
+          margin-left: 0;
+          /* ensure minimum tap target */
+          min-width: 24px;
+          min-height: 24px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .chip-remove:hover {
