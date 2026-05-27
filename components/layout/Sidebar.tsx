@@ -11,66 +11,59 @@ const NAV_ITEMS = [
   { label: "Settings", href: "/settings" },
 ];
 
+// Icon paths only — SVGs are rendered inline so styled-jsx doesn't need to scope them
 const BOTTOM_NAV = [
-  {
-    label: "Home",
-    href: "/",
-    icon: (
+  { label: "Home", href: "/" },
+  { label: "Incomes", href: "/incomes" },
+  { label: "Expenses", href: "/expenses" },
+  { label: "Invest", href: "/investments" },
+  { label: "Settings", href: "/settings" },
+];
+
+function NavIcon({ href }: { href: string }) {
+  if (href === "/")
+    return (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
         <polyline points="9 22 9 12 15 12 15 22" />
       </svg>
-    ),
-  },
-  {
-    label: "Incomes",
-    href: "/incomes",
-    icon: (
+    );
+  if (href === "/incomes")
+    return (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <line x1="12" y1="19" x2="12" y2="5" />
         <polyline points="5 12 12 5 19 12" />
       </svg>
-    ),
-  },
-  {
-    label: "Expenses",
-    href: "/expenses",
-    icon: (
+    );
+  if (href === "/expenses")
+    return (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <line x1="12" y1="5" x2="12" y2="19" />
         <polyline points="19 12 12 19 5 12" />
       </svg>
-    ),
-  },
-  {
-    label: "Invest",
-    href: "/investments",
-    icon: (
+    );
+  if (href === "/investments")
+    return (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
         <polyline points="17 6 23 6 23 12" />
       </svg>
-    ),
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
-    ),
-  },
-];
+    );
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
 
 export function Sidebar() {
   const { pathname } = useRouter();
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="sidebar">
+      {/* ── Desktop sidebar ──────────────────────────── */}
+      <aside className="waletto-sidebar">
         <div className="logo">Waletto</div>
         <nav className="nav">
           {NAV_ITEMS.map((item) => (
@@ -85,24 +78,68 @@ export function Sidebar() {
         </nav>
       </aside>
 
-      {/* Mobile bottom nav */}
-      <nav className="bottom-nav" aria-label="Main navigation">
-        {BOTTOM_NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`bottom-item ${pathname === item.href ? "bottom-item--active" : ""}`}
-          >
-            <span className="bottom-icon">{item.icon}</span>
-            <span className="bottom-label">{item.label}</span>
-          </Link>
-        ))}
+      {/* ── Mobile bottom nav ────────────────────────── */}
+      {/*
+       * All structural styles use the `style` prop directly.
+       * styled-jsx doesn't reliably scope flex layout onto Link-rendered <a> tags,
+       * so inline styles are used for layout; global CSS handles show/hide only.
+       */}
+      <nav
+        className="waletto-bnav"
+        aria-label="Main navigation"
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 64,
+          display: "flex",
+          alignItems: "stretch",
+          background: "var(--bg-1, #14141b)",
+          borderTop: "1px solid var(--line, #2a2a38)",
+          zIndex: 200,
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+      >
+        {BOTTOM_NAV.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+                color: active ? "var(--accent, #7cffb2)" : "var(--fg-2, #7a7a9a)",
+                textDecoration: "none",
+                padding: "8px 4px 4px",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              <NavIcon href={item.href} />
+              <span
+                style={{
+                  fontSize: "0.6rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  lineHeight: 1,
+                }}
+              >
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
 
+      {/* Desktop sidebar: styled-jsx (works fine for non-Link elements) */}
       <style jsx>{`
-        /* ─── Desktop sidebar ─────────────────────────── */
-
-        .sidebar {
+        .waletto-sidebar {
           width: 220px;
           flex-shrink: 0;
           background: var(--bg-1, #14141b);
@@ -151,67 +188,21 @@ export function Sidebar() {
           color: var(--fg-0, #f0f0f5);
           font-weight: 600;
         }
+      `}</style>
 
-        /* ─── Mobile bottom nav ───────────────────────── */
-        /*
-         * Base styles are defined here (outside @media) so styled-jsx
-         * scopes them correctly. The media query only toggles visibility.
-         */
-
-        .bottom-nav {
-          display: none;
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 64px;
-          background: var(--bg-1, #14141b);
-          border-top: 1px solid var(--line, #2a2a38);
-          z-index: 200;
-          padding-bottom: env(safe-area-inset-bottom, 0px);
+      {/* Global CSS for show/hide only — avoids styled-jsx scoping issues */}
+      <style jsx global>{`
+        .waletto-bnav {
+          display: none !important;
         }
 
-        .bottom-item {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 4px;
-          color: var(--fg-2, #7a7a9a);
-          text-decoration: none;
-          padding: 8px 4px 6px;
-          transition: color 0.1s;
-          -webkit-tap-highlight-color: transparent;
-        }
-
-        .bottom-item--active {
-          color: var(--accent, #7cffb2);
-        }
-
-        .bottom-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .bottom-label {
-          font-size: 0.6rem;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          line-height: 1;
-        }
-
-        /* Only this toggles at the breakpoint */
         @media (max-width: 767px) {
-          .sidebar {
-            display: none;
+          .waletto-sidebar {
+            display: none !important;
           }
 
-          .bottom-nav {
-            display: flex;
+          .waletto-bnav {
+            display: flex !important;
           }
         }
       `}</style>
