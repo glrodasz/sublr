@@ -1,0 +1,1 @@
+export { seedDefaultCategories } from "./seedDefaultCategories";
