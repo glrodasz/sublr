@@ -16,7 +16,7 @@ export const getServerSideProps = auth0.withPageAuthRequired();
 export default function Dashboard() {
   const { user } = useUser();
   const userDoc = useUserDoc();
-  const { totals, expensesByCategory, recentPayments, upcoming, momDelta } = useDashboard();
+  const { totals, expensesByCategory, recentPayments, upcoming, momDelta, loading } = useDashboard();
 
   const currency: Currency = userDoc?.mainCurrency ?? "USD";
   const firstName = (user?.name ?? user?.nickname ?? "there").split(" ")[0];
@@ -71,9 +71,9 @@ export default function Dashboard() {
             </section>
 
             <section className="row">
-              <ExpenseBreakdown rows={expensesByCategory} currency={currency} />
-              <RecentPayments transactions={recentPayments} />
-              <UpcomingExpirations items={upcoming} />
+              <ExpenseBreakdown rows={expensesByCategory} currency={currency} loading={loading} />
+              <RecentPayments transactions={recentPayments} loading={loading} />
+              <UpcomingExpirations items={upcoming} loading={loading} />
             </section>
           </main>
         </div>

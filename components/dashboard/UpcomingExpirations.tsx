@@ -2,6 +2,7 @@ import type { RecurringItem } from "../../types";
 
 interface Props {
   items: RecurringItem[];
+  loading?: boolean;
 }
 
 function formatDate(ts: RecurringItem["nextOccurrence"]): string {
@@ -14,12 +15,14 @@ function formatDate(ts: RecurringItem["nextOccurrence"]): string {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
 }
 
-export function UpcomingExpirations({ items }: Props) {
+export function UpcomingExpirations({ items, loading }: Props) {
   return (
     <div className="card">
       <span className="card-title">Next to expire</span>
 
-      {items.length === 0 ? (
+      {loading ? (
+        <p className="empty">Loading…</p>
+      ) : items.length === 0 ? (
         <p className="empty">No upcoming items</p>
       ) : (
         <ul className="list">

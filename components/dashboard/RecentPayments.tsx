@@ -2,6 +2,7 @@ import type { Transaction } from "../../types";
 
 interface Props {
   transactions: Transaction[];
+  loading?: boolean;
 }
 
 function formatDate(ts: Transaction["occurredAt"]): string {
@@ -24,12 +25,14 @@ function formatDate(ts: Transaction["occurredAt"]): string {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
 }
 
-export function RecentPayments({ transactions }: Props) {
+export function RecentPayments({ transactions, loading }: Props) {
   return (
     <div className="card">
       <span className="card-title">Recent payments</span>
 
-      {transactions.length === 0 ? (
+      {loading ? (
+        <p className="empty">Loading…</p>
+      ) : transactions.length === 0 ? (
         <p className="empty">No data yet</p>
       ) : (
         <ul className="list">

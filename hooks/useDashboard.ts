@@ -6,12 +6,13 @@ import { useCategories } from "./useCategories";
 import { sumMonthly, groupByCategory, computeMoM } from "../helpers";
 
 export function useDashboard() {
-  const { items: incomes } = useRecurringItems("INCOME");
-  const { items: expenses } = useRecurringItems("EXPENSE");
-  const { items: investments } = useRecurringItems("INVESTMENT");
-  const { categories } = useCategories();
-  const { transactions } = useRecentTransactions(30);
-  const { items: upcoming } = useUpcomingItems(5);
+  const { items: incomes, loading: l1 } = useRecurringItems("INCOME");
+  const { items: expenses, loading: l2 } = useRecurringItems("EXPENSE");
+  const { items: investments, loading: l3 } = useRecurringItems("INVESTMENT");
+  const { categories, loading: l4 } = useCategories();
+  const { transactions, loading: l5 } = useRecentTransactions(30);
+  const { items: upcoming, loading: l6 } = useUpcomingItems(5);
+  const loading = l1 || l2 || l3 || l4 || l5 || l6;
 
   const totals = useMemo(
     () => ({
@@ -43,5 +44,6 @@ export function useDashboard() {
     recentPayments: transactions.slice(0, 5),
     upcoming,
     momDelta,
+    loading,
   };
 }

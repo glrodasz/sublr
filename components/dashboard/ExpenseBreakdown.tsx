@@ -10,9 +10,10 @@ interface CategoryRow {
 interface Props {
   rows: CategoryRow[];
   currency: string;
+  loading?: boolean;
 }
 
-export function ExpenseBreakdown({ rows, currency }: Props) {
+export function ExpenseBreakdown({ rows, currency, loading }: Props) {
   return (
     <div className="card">
       <div className="card-header">
@@ -22,7 +23,9 @@ export function ExpenseBreakdown({ rows, currency }: Props) {
         </Link>
       </div>
 
-      {rows.length === 0 ? (
+      {loading ? (
+        <p className="empty">Loading…</p>
+      ) : rows.length === 0 ? (
         <p className="empty">No data yet</p>
       ) : (
         <ul className="rows">
