@@ -1,5 +1,5 @@
 import React from "react";
-import Input from "./Input";
+import CurrencyInput from "./CurrencyInput";
 import Select from "./Select";
 import type { Currency, FieldChange } from "../types";
 import { LANG_PER_CURRENCY } from "../constants";
@@ -35,28 +35,37 @@ const Price = ({ children, currency, size = "md", decimals = 2, isEditable, onCh
           size ? sizeClass[size] || "" : ""
         }`}
       >
-        <span className="amount mono tabular-nums">
-          {isEditable ? (
-            <Input id="price" value={children as number} onChange={onChange} className="mono" />
-          ) : (
-            price
-          )}
-        </span>
-        <span className="currency-pill" aria-label={`Currency ${currency}`}>
-          {isEditable ? (
-            <Select
-              id="currency"
-              value={currency}
-              onChange={onChange!}
-              options={Object.keys(LANG_PER_CURRENCY).map((key) => ({
-                value: key,
-                label: key,
-              }))}
-            />
-          ) : (
-            <span className="currency-code">{currency}</span>
-          )}
-        </span>
+        {isEditable ? (
+          <>
+            <span className="currency-pill" aria-label={`Currency ${currency}`}>
+              <Select
+                id="currency"
+                value={currency}
+                onChange={onChange!}
+                options={Object.keys(LANG_PER_CURRENCY).map((key) => ({
+                  value: key,
+                  label: key,
+                }))}
+              />
+            </span>
+            <span className="amount mono tabular-nums">
+              <CurrencyInput
+                id="price"
+                currency={currency}
+                value={children as number}
+                onChange={onChange}
+                className="mono"
+              />
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="amount mono tabular-nums">{price}</span>
+            <span className="currency-pill" aria-label={`Currency ${currency}`}>
+              <span className="currency-code">{currency}</span>
+            </span>
+          </>
+        )}
       </div>
       <style jsx>{`
         .container {

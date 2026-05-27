@@ -43,6 +43,7 @@ const BacksideCardSubscription = ({
           <div className="tags">
             <TagsInput
               creatable
+              collapse
               options={knownTags}
               values={originalTags}
               setValues={(next) => onChange({ id: "tags", value: next })}
@@ -51,14 +52,21 @@ const BacksideCardSubscription = ({
           </div>
         </div>
         <div className="content">
-          <Subscription
-            price={price}
-            currency={currency}
-            time={time}
-            onChange={onChange}
-            isEditable
-          />
-          <CreditCardIcon {...creditCard} isEditable onChange={onChange} />
+          <div className="field">
+            <span className="field-label">Plan price</span>
+            <Subscription
+              price={price}
+              currency={currency}
+              time={time}
+              onChange={onChange}
+              isEditable
+              periodVariant="compact"
+            />
+          </div>
+          <div className="field">
+            <span className="field-label">Payment method</span>
+            <CreditCardIcon {...creditCard} isEditable onChange={onChange} />
+          </div>
         </div>
         <div className="actions">
           <div className="circle-button update" onClick={onUpdate}>
@@ -80,16 +88,16 @@ const BacksideCardSubscription = ({
           flex-direction: column;
           justify-content: flex-end;
           color: var(--text, #fff);
-          padding: 16px 20px;
+          padding: 12px 18px;
           background: var(--bg-3, #242433);
           border-bottom: 1px solid var(--line-strong, #3a3a4d);
           box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
           border-radius: 8px 8px 0 0;
-          gap: 10px;
+          gap: 8px;
         }
 
         .title {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: bold;
         }
 
@@ -111,8 +119,23 @@ const BacksideCardSubscription = ({
         .content {
           display: flex;
           flex-direction: column;
-          padding: 20px;
+          padding: 12px 18px;
           gap: 10px;
+        }
+
+        .field {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .field-label {
+          font-size: 0.65rem;
+          font-weight: 600;
+          line-height: 1;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--fg-1, #b8b8c8);
         }
 
         .backside-content {

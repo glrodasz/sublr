@@ -1,9 +1,13 @@
 import React from "react";
 
 import Price from "./Price";
-import Select from "./Select";
+import Toggle from "./Toggle";
 import type { Currency, TimeAttribute, FieldChange } from "../types";
-import { TIME_DESCRIPTION } from "../constants";
+
+const PERIOD_OPTIONS: { label: string; value: TimeAttribute }[] = [
+  { label: "Monthly", value: "MONTHLY" },
+  { label: "Yearly", value: "YEARLY" },
+];
 
 const PERIOD_PILL: Record<TimeAttribute, string> = {
   MONTHLY: "mo",
@@ -46,12 +50,7 @@ const Subscription = ({
 
         <span className={`period-pill size-${size}`}>
           {isEditable ? (
-            <Select
-              id="time"
-              value={time}
-              onChange={onChange!}
-              options={Object.entries(TIME_DESCRIPTION).map(([value, label]) => ({ label, value }))}
-            />
+            <Toggle id="time" value={time} onChange={onChange!} options={PERIOD_OPTIONS} />
           ) : (
             <span className="period-label">{PERIOD_PILL[time] ?? time}</span>
           )}
@@ -73,11 +72,6 @@ const Subscription = ({
         .period-pill {
           display: inline-flex;
           align-items: center;
-        }
-
-        .period-pill :global(select) {
-          min-width: 100px;
-          font-size: 0.8em;
         }
 
         .period-label {
