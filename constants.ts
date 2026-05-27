@@ -1,23 +1,12 @@
-import type { Currency, TimeAttribute } from "./types";
-
-export const TIME_DESCRIPTION: Record<TimeAttribute, string> = {
-  MONTHLY: "/mo",
-  YEARLY: "/year",
-};
-
-export const TIME_ATTRIBUTE: Record<TimeAttribute, string> = {
-  MONTHLY: "monthly",
-  YEARLY: "yearly",
-};
-
-export const CREDIT_CARD_TYPES: Record<string, string> = {
-  MASTERCARD: "MasterCard",
-  VISA: "VISA",
-};
+import type { Currency } from "./types";
 
 export const LANG_PER_CURRENCY: Record<Currency, string> = {
   USD: "en-US",
-  COP: "es-CO",
-  SEK: "en-SE",
   EUR: "en-IE",
+  MXN: "es-MX",
+  GBP: "en-GB",
+  SEK: "en-SE",
+  CHF: "de-CH",
+  JPY: "ja-JP",
+  COP: "es-CO",
 };

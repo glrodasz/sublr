@@ -1,5 +1,9 @@
 import React from "react";
-import type { FieldChange } from "../types";
+
+interface FieldChange {
+  id: string;
+  value: string | number;
+}
 
 const noop = (_change: FieldChange) => {};
 

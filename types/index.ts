@@ -1,52 +1,64 @@
-export type Currency = "USD" | "COP" | "SEK" | "EUR";
-export type TimeAttribute = "MONTHLY" | "YEARLY";
-export type CardSide = "frontside" | "backside";
-
-export interface CreditCard {
-  type: string;
-  number: number | string;
+// Structural interface compatible with both firebase-admin and firebase client SDK Timestamps
+export interface Timestamp {
+  seconds: number;
+  nanoseconds: number;
+  toDate(): Date;
 }
 
-export interface Subscription {
-  id?: string;
-  title?: string;
-  tags?: string[];
-  price: number;
-  currency: Currency;
-  time: TimeAttribute;
-  creditCard?: CreditCard;
-  userId?: string;
-}
+export type Currency = "USD" | "EUR" | "MXN" | "GBP" | "SEK" | "CHF" | "JPY" | "COP";
+export type Domain = "INCOME" | "EXPENSE" | "INVESTMENT" | "SAVING";
+export type Frequency =
+  | "ONE_TIME"
+  | "WEEKLY"
+  | "BIWEEKLY"
+  | "MONTHLY"
+  | "QUARTERLY"
+  | "YEARLY";
 
-export type ExchangeRates = Partial<Record<Currency, number>>;
-
-export interface GroupedCardEntry {
-  price: number;
-  currency: Currency | undefined;
-}
-
-export type GroupedByCard = Record<string, GroupedCardEntry>;
-
-export interface SummaryEntry {
-  key: string;
-  creditCard: { type: string; number: string };
-  monthly: { price: number; currency: Currency | undefined };
-  yearly: { price: number; currency: Currency | undefined };
-}
-
-export interface SummaryTotal {
-  monthly: number;
-  yearly: number;
-}
-
-export interface FieldChange {
+export interface User {
   id: string;
-  value: string | string[] | number;
+  mainCurrency: Currency;
+  onboardingCompleted: boolean;
+  onboardingMode?: "MAGIC" | "ASSISTED";
+  createdAt: Timestamp;
 }
 
-export interface FilterState {
-  search: string;
-  tag: string | null;
+export interface Category {
+  id?: string;
+  userId: string;
+  domain: Domain;
+  name: string;
+  isDefault?: boolean;
+  archived?: boolean;
+  createdAt: Timestamp;
+}
+
+export interface RecurringItem {
+  id?: string;
+  userId: string;
+  domain: Domain;
+  categoryId: string;
+  name: string;
+  amount: number;
   currency: Currency;
-  time: TimeAttribute | null;
+  frequency: Frequency;
+  paymentMethodId?: string;
+  startDate: Timestamp;
+  endDate?: Timestamp;
+  nextOccurrence?: Timestamp;
+  active: boolean;
+}
+
+export interface Transaction {
+  id?: string;
+  userId: string;
+  domain: Domain;
+  recurringItemId?: string;
+  categoryId: string;
+  name: string;
+  amount: number;
+  currency: Currency;
+  paymentMethodId?: string;
+  occurredAt: Timestamp;
+  status: "PENDING" | "PAID" | "SKIPPED";
 }
