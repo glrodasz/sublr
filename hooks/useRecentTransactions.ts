@@ -29,10 +29,17 @@ export function useRecentTransactions(count: number = 10) {
       limit(count)
     );
 
-    return onSnapshot(q, (snap) => {
-      setTransactions(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction)));
-      setLoading(false);
-    });
+    return onSnapshot(
+      q,
+      (snap) => {
+        setTransactions(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction)));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("useRecentTransactions onSnapshot error:", err);
+        setLoading(false);
+      }
+    );
   }, [ready, user?.sub, count]);
 
   return { transactions, loading };

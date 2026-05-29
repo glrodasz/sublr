@@ -21,10 +21,17 @@ export function useRecurringItems(domain?: Domain) {
     ];
 
     const q = query(collection(db, "recurringItems"), ...constraints);
-    return onSnapshot(q, (snap) => {
-      setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurringItem)));
-      setLoading(false);
-    });
+    return onSnapshot(
+      q,
+      (snap) => {
+        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurringItem)));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("useRecurringItems onSnapshot error:", err);
+        setLoading(false);
+      }
+    );
   }, [ready, user?.sub, domain]);
 
   return { items, loading };
