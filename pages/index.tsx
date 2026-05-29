@@ -1,11 +1,12 @@
 import Head from "next/head";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import auth0 from "../lib/auth0";
-import { Sidebar } from "../components/layout/Sidebar";
-import { TotalCard } from "../components/dashboard/TotalCard";
-import { ExpenseBreakdown } from "../components/dashboard/ExpenseBreakdown";
-import { RecentPayments } from "../components/dashboard/RecentPayments";
-import { UpcomingExpirations } from "../components/dashboard/UpcomingExpirations";
+import { Sidebar } from "../components/organisms/Sidebar";
+import { StatCard } from "../components/molecules/StatCard";
+import { ExpenseBreakdown } from "../components/organisms/ExpenseBreakdown";
+import { RecentPayments } from "../components/organisms/RecentPayments";
+import { UpcomingExpirations } from "../components/organisms/UpcomingExpirations";
+import { Badge } from "../components/atoms/Badge";
 import Skeleton from "../components/Skeleton";
 import { useDashboard } from "../hooks/useDashboard";
 import { useUserDoc } from "../hooks/useUserDoc";
@@ -36,7 +37,7 @@ export default function Dashboard() {
           <header className="header">
             <div className="header-left">
               <h1 className="welcome">Welcome back, {firstName}</h1>
-              <span className="currency-badge">{currency}</span>
+              <Badge label={currency} />
             </div>
             <div className="header-actions">
               <button type="button" className="btn" disabled>
@@ -52,14 +53,15 @@ export default function Dashboard() {
             <section className="row">
               {userDoc ? (
                 <>
-                  <TotalCard title="Income" amount={totals.income} currency={currency} />
-                  <TotalCard
+                  <StatCard title="Income" amount={totals.income} currency={currency} domain="INCOME" />
+                  <StatCard
                     title="Expenses"
                     amount={totals.expense}
                     currency={currency}
+                    domain="EXPENSE"
                     delta={momDelta.deltaPct}
                   />
-                  <TotalCard title="Investments" amount={totals.investment} currency={currency} />
+                  <StatCard title="Investments" amount={totals.investment} currency={currency} domain="INVESTMENT" />
                 </>
               ) : (
                 <>
@@ -83,7 +85,7 @@ export default function Dashboard() {
         .app {
           display: flex;
           min-height: 100vh;
-          background: var(--bg-0, #0a0a0f);
+          background: var(--bg-0);
         }
 
         .content {
@@ -98,7 +100,7 @@ export default function Dashboard() {
           align-items: center;
           justify-content: space-between;
           padding: 20px 28px;
-          border-bottom: 1px solid var(--line, #2a2a38);
+          border-bottom: 1px solid var(--line);
           gap: 12px;
         }
 
@@ -113,21 +115,10 @@ export default function Dashboard() {
           margin: 0;
           font-size: 1.1rem;
           font-weight: 700;
-          color: var(--fg-0, #f0f0f5);
+          color: var(--fg-0);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-        }
-
-        .currency-badge {
-          flex-shrink: 0;
-          font-size: 0.72rem;
-          font-weight: 600;
-          padding: 3px 8px;
-          border-radius: 6px;
-          background: var(--bg-2, #1e1e2e);
-          color: var(--fg-2, #7a7a9a);
-          border: 1px solid var(--line, #2a2a38);
         }
 
         .header-actions {
@@ -143,9 +134,9 @@ export default function Dashboard() {
           font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
-          border: 1px solid var(--line-strong, #3a3a4d);
-          background: var(--bg-1, #14141b);
-          color: var(--fg-1, #b8b8c8);
+          border: 1px solid var(--line-strong);
+          background: var(--bg-1);
+          color: var(--fg-1);
           white-space: nowrap;
         }
 
@@ -166,14 +157,12 @@ export default function Dashboard() {
           gap: 16px;
         }
 
-        /* Tablet: stack cards at ≤900px while sidebar is still visible */
         @media (max-width: 900px) {
           .row {
             flex-direction: column;
           }
         }
 
-        /* Mobile: bottom nav is present, sidebar is hidden */
         @media (max-width: 767px) {
           .header {
             padding: 14px 16px;
@@ -183,14 +172,12 @@ export default function Dashboard() {
             font-size: 1rem;
           }
 
-          /* Hide action buttons on mobile — disabled anyway, clutters small screens */
           .header-actions {
             display: none;
           }
 
           .main {
-            padding: 16px 16px;
-            /* leave room for the fixed bottom nav */
+            padding: 16px;
             padding-bottom: 80px;
           }
         }

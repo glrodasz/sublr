@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { Card } from "../atoms/Card";
+import { SectionTitle } from "../atoms/SectionTitle";
 
 interface CategoryRow {
   categoryId: string;
@@ -13,15 +14,10 @@ interface Props {
   loading?: boolean;
 }
 
-export function ExpenseBreakdown({ rows, currency, loading }: Props) {
+export function ExpenseBreakdown({ rows, loading }: Props) {
   return (
-    <div className="card">
-      <div className="card-header">
-        <span className="card-title">Expenses</span>
-        <Link href="/expenses" className="view-all">
-          View all
-        </Link>
-      </div>
+    <Card accentColor="var(--domain-expense)">
+      <SectionTitle title="Expenses" href="/expenses" />
 
       {loading ? (
         <p className="empty">Loading…</p>
@@ -44,44 +40,10 @@ export function ExpenseBreakdown({ rows, currency, loading }: Props) {
       )}
 
       <style jsx>{`
-        .card {
-          background: var(--bg-1, #14141b);
-          border: 1px solid var(--line, #2a2a38);
-          border-radius: 16px;
-          padding: 24px;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          flex: 1;
-          min-width: 0;
-        }
-
-        .card-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .card-title {
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: var(--fg-0, #f0f0f5);
-        }
-
-        .view-all {
-          font-size: 0.78rem;
-          color: var(--fg-2, #7a7a9a);
-          text-decoration: none;
-        }
-
-        .view-all:hover {
-          color: var(--fg-1, #b8b8c8);
-        }
-
         .empty {
           margin: 0;
           font-size: 0.85rem;
-          color: var(--fg-2, #7a7a9a);
+          color: var(--fg-2);
         }
 
         .rows {
@@ -107,28 +69,28 @@ export function ExpenseBreakdown({ rows, currency, loading }: Props) {
 
         .row-name {
           font-size: 0.83rem;
-          color: var(--fg-1, #b8b8c8);
+          color: var(--fg-1);
         }
 
         .row-pct {
           font-size: 0.75rem;
-          color: var(--fg-2, #7a7a9a);
+          color: var(--fg-2);
         }
 
         .bar-track {
           height: 4px;
-          background: var(--bg-2, #1e1e2e);
+          background: var(--bg-2);
           border-radius: 2px;
           overflow: hidden;
         }
 
         .bar-fill {
           height: 100%;
-          background: var(--accent, #7cffb2);
+          background: var(--domain-expense);
           border-radius: 2px;
           transition: width 0.3s ease;
         }
       `}</style>
-    </div>
+    </Card>
   );
 }
