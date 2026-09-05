@@ -1,0 +1,250 @@
+import { useMemo, useState } from "react";
+import { Card } from "../../../components/atoms/Card";
+import { SectionTitle } from "../../../components/atoms/SectionTitle";
+import { Amount, formatAmount } from "../../../components/atoms/Amount";
+import { Button } from "../../../components/atoms/Button";
+import { ErrorState } from "../../../components/atoms/ErrorState";
+import { FlowChart } from "../../../components/molecules/FlowChart";
+import { KebabMenu } from "../../../components/molecules/KebabMenu";
+import { useDomainTransactions } from "../../../hooks/useDomainTransactions";
+import { useInvestmentValuations } from "../../../hooks/useInvestmentValuations";
+import { convert } from "../../../helpers/fx";
+import type { MoneyContext } from "../../../helpers/aggregations";
+import { costBasisAt, gainFromValue, valuationSeries } from "../helpers/valuation";
+import { ValuationModal } from "./ValuationModal";
+import type { Currency, InvestmentValuation } from "../../../types";
+
+interface Props {
+  categoryId: string;
+  categoryName: string;
+  ctx: MoneyContext;
+  currency: Currency;
+}
+
+/** Cost basis needs the category's whole history, not the page's selected period. */
+const INCEPTION = new Date(2000, 0, 1);
+const CHART_MONTHS = 12;
+const DATE = new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" });
+
+/**
+ * What an investment category is worth versus what went into it. Only
+ * mounted on the Investments page, so the inception-to-date listener it
+ * needs runs nowhere else.
+ */
+export function InvestmentValuePanel({ categoryId, categoryName, ctx, currency }: Props) {
+  const { transactions, loading: txLoading } = useDomainTransactions("INVESTMENT", INCEPTION);
+  const { valuations, loading, error, remove } = useInvestmentValuations(categoryId);
+  const [modal, setModal] = useState<{ open: boolean; editing?: InvestmentValuation }>({
+    open: false,
+  });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const now = useMemo(() => new Date(), []);
+  const invested = useMemo(
+    () => costBasisAt(transactions, categoryId, now, ctx),
+    [transactions, categoryId, now, ctx]
+  );
+  const latest = valuations[0] ?? null;
+  const value = latest ? convert(latest.value, latest.currency, currency, ctx.rates) : invested;
+  const gain = value - invested;
+  const gainPct = gainFromValue(invested, value);
+
+  const series = useMemo(
+    () => valuationSeries(transactions, valuations, categoryId, ctx, CHART_MONTHS, now),
+    [transactions, valuations, categoryId, ctx, now]
+  );
+
+  const del = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await remove(id);
+    } catch (err) {
+      console.error("Failed to delete valuation:", err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <Card accentColor="var(--domain-investment)">
+      <div className="head">
+        <SectionTitle title={`${categoryName} — value`} />
+        <Button variant="primary" size="sm" onClick={() => setModal({ open: true })}>
+          Record valuation
+        </Button>
+      </div>
+
+      {error && <ErrorState error={error} />}
+
+      <div className="figures">
+        <div>
+          <span className="label">Invested</span>
+          <Amount value={invested} currency={currency} size="md" />
+        </div>
+        <div>
+          <span className="label">Current value</span>
+          <Amount
+            value={value}
+            currency={currency}
+            size="md"
+            approximate={!!latest && latest.currency !== currency}
+          />
+          <span className="meta">
+            {latest ? `as of ${DATE.format(latest.asOf.toDate())}` : "no valuation yet"}
+          </span>
+        </div>
+        <div>
+          <span className="label">Gain</span>
+          <Amount value={gain} currency={currency} size="md" colorize />
+          {gainPct !== null && (
+            <span className={`meta ${gain >= 0 ? "up" : "down"}`}>
+              {gain >= 0 ? "+" : ""}
+              {gainPct.toFixed(1)}%
+            </span>
+          )}
+        </div>
+      </div>
+
+      <FlowChart
+        data={series}
+        currency={currency}
+        loading={txLoading || loading}
+        labelA="Invested"
+        labelB="Value"
+        colorA="var(--fg-2)"
+        colorB="var(--domain-investment)"
+        height={200}
+      />
+
+      {valuations.length > 0 && (
+        <ul className="history">
+          {valuations.map((v) => (
+            <li key={v.id} className="row">
+              <span className="row-date">{DATE.format(v.asOf.toDate())}</span>
+              <span className="row-figures">
+                <span className="row-value">{formatAmount(v.value, v.currency)}</span>
+                <span className={`row-pct ${v.gainPct >= 0 ? "up" : "down"}`}>
+                  {v.gainPct >= 0 ? "+" : ""}
+                  {v.gainPct.toFixed(1)}% on {formatAmount(v.costBasis, v.currency)}
+                </span>
+                {v.note && <span className="row-note">{v.note}</span>}
+              </span>
+              <KebabMenu
+                aria-label={`Actions for valuation ${DATE.format(v.asOf.toDate())}`}
+                actions={[
+                  { label: "Edit", onSelect: () => setModal({ open: true, editing: v }) },
+                  {
+                    label: deletingId === v.id ? "Deleting…" : "Delete",
+                    onSelect: () => v.id && del(v.id),
+                    danger: true,
+                    disabled: deletingId === v.id,
+                  },
+                ]}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <ValuationModal
+        open={modal.open}
+        categoryId={categoryId}
+        categoryName={categoryName}
+        costBasis={invested}
+        currency={currency}
+        valuation={modal.editing}
+        onClose={() => setModal({ open: false })}
+      />
+
+      <style jsx>{`
+        .head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .figures {
+          display: flex;
+          gap: 28px;
+          flex-wrap: wrap;
+          padding: 4px 0 12px;
+        }
+
+        .figures > div {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .label {
+          font-size: 0.72rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          color: var(--fg-2);
+        }
+
+        .meta {
+          font-size: 0.75rem;
+          color: var(--fg-2);
+        }
+
+        .up {
+          color: var(--accent);
+        }
+
+        .down {
+          color: var(--accent-hot);
+        }
+
+        .history {
+          list-style: none;
+          margin: 12px 0 0;
+          padding: 12px 0 0;
+          border-top: 1px solid var(--line);
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .row-date {
+          flex: 0 0 120px;
+          font-size: 0.82rem;
+          color: var(--fg-1);
+        }
+
+        .row-figures {
+          flex: 1;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+        }
+
+        .row-value {
+          font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+          font-variant-numeric: tabular-nums;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: var(--fg-0);
+        }
+
+        .row-pct {
+          font-size: 0.72rem;
+        }
+
+        .row-note {
+          font-size: 0.72rem;
+          color: var(--fg-2);
+        }
+      `}</style>
+    </Card>
+  );
+}

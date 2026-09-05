@@ -177,6 +177,26 @@ export const TransactionUpdateSchema = z
     refineChargedPair(v, ctx);
   });
 
+export const InvestmentValuationInputSchema = z.object({
+  categoryId: z.string().min(1),
+  asOf: z.iso.datetime(),
+  gainPct: z.number().finite(),
+  value: z.number().min(0),
+  costBasis: z.number().min(0),
+  currency: CurrencySchema,
+  note: z.string().max(200).trim().optional(),
+});
+
+export const InvestmentValuationUpdateSchema = z
+  .object({
+    asOf: z.iso.datetime().optional(),
+    gainPct: z.number().finite().optional(),
+    value: z.number().min(0).optional(),
+    costBasis: z.number().min(0).optional(),
+    note: z.string().max(200).trim().nullable().optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: "At least one field is required" });
+
 export const UserUpdateSchema = z
   .object({
     mainCurrency: CurrencySchema.optional(),
@@ -196,4 +216,6 @@ export type RecurrentTransactionInput = z.infer<typeof RecurrentTransactionInput
 export type RecurrentTransactionUpdate = z.infer<typeof RecurrentTransactionUpdateSchema>;
 export type TransactionInput = z.infer<typeof TransactionInputSchema>;
 export type TransactionUpdate = z.infer<typeof TransactionUpdateSchema>;
+export type InvestmentValuationInput = z.infer<typeof InvestmentValuationInputSchema>;
+export type InvestmentValuationUpdate = z.infer<typeof InvestmentValuationUpdateSchema>;
 export type UserUpdate = z.infer<typeof UserUpdateSchema>;

@@ -6,6 +6,7 @@ import { DomainChart } from "./DomainChart";
 import { DomainCategoryTable } from "./DomainCategoryTable";
 import { RecurrentTransactionModal } from "./RecurrentTransactionModal";
 import { SubscriptionInsights } from "../../insights/components/SubscriptionInsights";
+import { InvestmentValuePanel } from "../../investments/components/InvestmentValuePanel";
 import { PERIODS, DEFAULT_PERIOD_INDEX, getStartDate } from "../helpers/periods";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
 import { toDomainChartData } from "../helpers/domainChartData";
@@ -168,6 +169,16 @@ export function DomainPage({ domain }: Props) {
         <SubscriptionInsights
           items={recurringItems}
           categories={categories}
+          ctx={ctx}
+          currency={currency}
+        />
+      )}
+
+      {domain === "INVESTMENT" && selectedCatId && selectedCategoryName && (
+        <InvestmentValuePanel
+          key={selectedCatId}
+          categoryId={selectedCatId}
+          categoryName={selectedCategoryName}
           ctx={ctx}
           currency={currency}
         />

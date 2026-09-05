@@ -12,6 +12,8 @@ import { usePaymentMethods } from "../../../hooks/usePaymentMethods";
 import { useRecurrentTransactions } from "../../../hooks/useRecurrentTransactions";
 import { useUserDoc } from "../../../hooks/useUserDoc";
 import { materializeNow } from "../../../hooks/useMaterialize";
+import { createInvestmentValuation } from "../../../hooks/useInvestmentValuations";
+import { valueFromGain } from "../../investments/helpers/valuation";
 import { paymentMethodOptionLabel } from "../../../helpers/paymentMethodLabel";
 import {
   BACKFILL_MONTHS,
@@ -50,6 +52,8 @@ interface FormState extends ScheduleValue {
   paymentMethodId: string;
   /** Create only: anchor the schedule BACKFILL_MONTHS back so history gets written. */
   backfill: boolean;
+  /** Create only, INVESTMENT + ONE_TIME: record how the purchase has done so far. */
+  gainPct: string;
   chargedEnabled: boolean;
   chargedAmount: string;
   chargedCurrency: Currency | "";
@@ -75,6 +79,7 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
       month: 0,
       date: toDateInputValue(new Date()),
       backfill: true,
+      gainPct: "",
       chargedEnabled: false,
       chargedAmount: "",
       chargedCurrency: "",
@@ -108,6 +113,7 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
       month: schedule.month ?? 0,
       date: schedule.date ?? empty.date,
       backfill: false,
+      gainPct: "",
       chargedEnabled: item.chargedAmount !== undefined,
       chargedAmount: item.chargedAmount !== undefined ? String(item.chargedAmount) : "",
       chargedCurrency: item.chargedCurrency ?? "",
@@ -155,6 +161,8 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
   };
 
   const isRecurring = form.frequency !== "ONE_TIME";
+  const offersGain = !item && domain === "INVESTMENT" && !isRecurring;
+  const gainPct = offersGain && form.gainPct.trim() !== "" ? Number(form.gainPct) : null;
 
   const submit = async () => {
     const amount = Number(form.amount);
@@ -168,6 +176,9 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
         return setFormError("Fill both charged fields or turn the toggle off");
       if (form.chargedCurrency === effectiveCurrency)
         return setFormError("Charged currency must differ from the item's currency");
+    }
+    if (gainPct !== null && !Number.isFinite(gainPct)) {
+      return setFormError("Gain % must be a number (0 means break-even)");
     }
 
     const startDate = anchorStartDate({
@@ -218,6 +229,20 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
         // Anything anchored in the past has occurrences to write.
         if (startDate < new Date()) {
           await materializeNow().catch((err) => console.error("materialize failed:", err));
+        }
+        // A past one-time investment can carry its performance so far. The
+        // basis is this purchase alone; the Investments page recomputes the
+        // category's live basis and the user can re-value there any time.
+        if (gainPct !== null) {
+          await createInvestmentValuation({
+            categoryId: form.categoryId,
+            asOf: new Date().toISOString(),
+            gainPct,
+            value: valueFromGain(amount, gainPct),
+            costBasis: amount,
+            currency: effectiveCurrency,
+            note: `Recorded with ${form.name.trim()}`,
+          }).catch((err) => console.error("valuation failed:", err));
         }
       }
       onClose();
@@ -319,6 +344,23 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
           </label>
         )}
 
+        {offersGain && (
+          <div className="pair">
+            <TextField
+              label="Gain so far % (optional)"
+              placeholder="0"
+              inputMode="decimal"
+              align="right"
+              value={form.gainPct}
+              onValueChange={(v) => patch({ gainPct: v.replace(/[^\d.-]/g, "") })}
+            />
+            <p className="field-hint">
+              0 = break-even, 100 = doubled. Records a first valuation for this category; you can
+              refine it on the Investments page.
+            </p>
+          </div>
+        )}
+
         <label className="toggle">
           <input
             type="checkbox"
@@ -407,6 +449,13 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
 
         .hint {
           color: var(--fg-2);
+        }
+
+        .field-hint {
+          margin: 24px 0 0;
+          font-size: 0.78rem;
+          color: var(--fg-2);
+          align-self: center;
         }
 
         .form-error {

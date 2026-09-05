@@ -30,6 +30,8 @@ helpers/aggregations.ts           montos mensuales por dominio, rate-aware (ver 
 helpers/fx.ts                     convert()/tryConvert() por cross-rates a USD, IDENTITY_RATES
 helpers/chartData.ts              serie de dos dominios (income/expense) para FlowChart
 helpers/materializeOccurrences.ts ocurrencias de un item recurrente en un rango, ids determinísticos
+helpers/scheduleAnchor.ts         elección de fecha del usuario → startDate (incl. "backfill" = 6 meses atrás)
+helpers/paymentMethodLabel.ts     "name - last4" para tablas, "SEB - Autogiro (Bank transfer)" para dropdowns
 helpers/recurrence.ts             próxima ocurrencia según Frequency
 helpers/seedDefaultCategories.ts  categorías por defecto
 ```
@@ -55,6 +57,7 @@ features/
   domains/      DomainPage — la pantalla que comparten incomes/expenses/investments/savings
   methods/      CRUD de métodos de pago (la lista de MethodsStep no alcanza para editar)
   insights/     SubscriptionInsights — costo mensual/anualizado de suscripciones
+  investments/  valoraciones por categoría: invertido vs valor, % de ganancia, historial
   prospect/     simulador what-if: qué pasa si cancelo X
 ```
 
@@ -138,7 +141,8 @@ useEffect(() => {
 
 **Otras reglas**
 
-- Borrado suave: `archived: true` en categorías y métodos de pago, `active: false` en transacciones recurrentes, `status: "SKIPPED"` en transacciones. Nunca `.delete()`.
+- Borrado suave: `archived: true` en categorías y métodos de pago, `active: false` en transacciones recurrentes, `status: "SKIPPED"` en transacciones. Nunca `.delete()` sobre algo que otro doc referencia. La única excepción es `investmentValuations`: un punto de datos que nadie apunta, se borra de verdad.
+- **Fechas de un item recurrente**: la UI nunca escribe `startDate` a mano; pasa la elección del usuario (día de pago, mes+día, fecha) por `helpers/scheduleAnchor.ts`. "Backfill los últimos 6 meses" no es un campo: es el mismo `startDate` movido 6 meses atrás, y el materializador hace el resto. Tras crear algo con fecha en el pasado, llama `materializeNow()` para que el historial aparezca sin esperar otra sesión.
 - `createdAt` con `serverTimestamp()`. Llega **`null`** en el eco local antes de que el servidor lo resuelva: cualquier orden o formato tiene que tolerarlo.
 - Los campos opcionales se **omiten**, no se mandan como `null` en `POST`. En `PATCH`, en cambio, `null` significa "borrar este campo" (`FieldValue.delete()`) — así es como `chargedAmount`/`chargedCurrency`/`paymentMethodId` se limpian sin un endpoint aparte.
 - Ocurrencias materializadas usan **id determinístico** `{itemId}_{YYYY-MM-DD}` (`helpers/materializeOccurrences.ts`): recrear el rango nunca duplica ni pisa una que el usuario ya editó o saltó.

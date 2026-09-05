@@ -106,6 +106,25 @@ export interface Transaction {
   createdAt?: Timestamp;
 }
 
+/**
+ * A point-in-time statement of what an investment category is worth. Cost
+ * basis and value are snapshots in `currency` at recording time, so history
+ * stays truthful when rates or items change later.
+ */
+export interface InvestmentValuation {
+  id?: string;
+  userId: string;
+  categoryId: string;
+  asOf: Timestamp;
+  /** 0 = break-even, 100 = doubled, -20 = lost a fifth. */
+  gainPct: number;
+  value: number;
+  costBasis: number;
+  currency: Currency;
+  note?: string;
+  createdAt?: Timestamp;
+}
+
 export interface ServicePrice {
   tier: string;
   amount: number;
