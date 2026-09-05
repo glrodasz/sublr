@@ -32,10 +32,17 @@ export function useUpcomingItems(count: number = 5) {
       limit(count)
     );
 
-    return onSnapshot(q, (snap) => {
-      setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurringItem)));
-      setLoading(false);
-    });
+    return onSnapshot(
+      q,
+      (snap) => {
+        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurringItem)));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("useUpcomingItems onSnapshot error:", err);
+        setLoading(false);
+      }
+    );
   }, [ready, user?.sub, count]);
 
   return { items, loading };

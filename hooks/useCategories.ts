@@ -28,10 +28,17 @@ export function useCategories(domain?: Domain) {
     ];
 
     const q = query(collection(db, "categories"), ...constraints);
-    return onSnapshot(q, (snap) => {
-      setCategories(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Category)));
-      setLoading(false);
-    });
+    return onSnapshot(
+      q,
+      (snap) => {
+        setCategories(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Category)));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("useCategories onSnapshot error:", err);
+        setLoading(false);
+      }
+    );
   }, [ready, user?.sub, domain]);
 
   const create = async (input: { domain: Domain; name: string }) => {
