@@ -5,12 +5,13 @@ import { DomainSummary } from "./DomainSummary";
 import { DomainChart } from "./DomainChart";
 import { DomainCategoryTable } from "./DomainCategoryTable";
 import { RecurrentTransactionModal } from "./RecurrentTransactionModal";
+import { SubscriptionInsights } from "../../insights/components/SubscriptionInsights";
 import { PERIODS, getStartDate } from "../helpers/periods";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
 import { toDomainChartData } from "../helpers/domainChartData";
 import { useDomainTransactions } from "../../../hooks/useDomainTransactions";
 import { useCategories } from "../../../hooks/useCategories";
-import { useRecurringItems } from "../../../hooks/useRecurringItems";
+import { useRecurrentTransactions } from "../../../hooks/useRecurrentTransactions";
 import { usePaymentMethods } from "../../../hooks/usePaymentMethods";
 import { useMoneyContext } from "../../../hooks/useMoneyContext";
 import { startOfPreviousMonth } from "../../../utils/startOfPreviousMonth";
@@ -69,7 +70,7 @@ export function DomainPage({ domain }: Props) {
     loading: txLoading,
     error: txError,
   } = useDomainTransactions(domain, fetchStart);
-  const { items: recurringItems, error: itemsError, remove } = useRecurringItems(domain);
+  const { items: recurringItems, error: itemsError, remove } = useRecurrentTransactions(domain);
   const { categories, loading: catLoading, error: catError } = useCategories(domain);
   const { methods } = usePaymentMethods();
   const error = txError ?? itemsError ?? catError;
@@ -122,6 +123,10 @@ export function DomainPage({ domain }: Props) {
   );
   const catTotal = useMemo(() => sumMonthly(filteredItems, ctx), [filteredItems, ctx]);
 
+  const selectedCategoryName = categories.find((c) => c.id === selectedCatId)?.name;
+  const showSubscriptionInsights =
+    domain === "EXPENSE" && selectedCategoryName?.trim().toLowerCase() === "subscriptions";
+
   return (
     <PageLayout
       title={config.title}
@@ -158,6 +163,15 @@ export function DomainPage({ domain }: Props) {
         onDelete={deleteItem}
         deletingId={deletingId}
       />
+
+      {showSubscriptionInsights && (
+        <SubscriptionInsights
+          items={recurringItems}
+          categories={categories}
+          ctx={ctx}
+          currency={currency}
+        />
+      )}
 
       <RecurrentTransactionModal
         domain={domain}

@@ -65,6 +65,3 @@ export function useRecurrentTransactions(domain?: Domain) {
 
   return { items, loading, error, create, update, remove };
 }
-
-// Backward-compat alias — callers can migrate to useRecurrentTransactions gradually
-export const useRecurringItems = useRecurrentTransactions;

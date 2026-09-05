@@ -21,10 +21,30 @@ interface Props {
   currency: Currency;
   loading: boolean;
   height?: number;
+  /** Override the two series' legend/tooltip labels — default "Income"/"Expenses". */
+  labelA?: string;
+  labelB?: string;
+  /** Override the two series' colors — default the income/expense domain tokens. */
+  colorA?: string;
+  colorB?: string;
 }
 
-/** Income vs expense over time — the two-series area chart from the mockup. */
-export function FlowChart({ data, currency, loading, height = 240 }: Props) {
+/**
+ * Two-series area chart over time. Defaults to income vs expense (the
+ * dashboard's Cash flow panel); Prospect reuses it for a current-vs-adjusted
+ * net comparison by overriding the labels and colors — the underlying
+ * `income`/`expense` data keys stay the same either way.
+ */
+export function FlowChart({
+  data,
+  currency,
+  loading,
+  height = 240,
+  labelA = "Income",
+  labelB = "Expenses",
+  colorA = "var(--domain-income)",
+  colorB = "var(--domain-expense)",
+}: Props) {
   const hasMoney = data.some((p) => p.income !== 0 || p.expense !== 0);
 
   return (
@@ -34,19 +54,25 @@ export function FlowChart({ data, currency, loading, height = 240 }: Props) {
       ) : (
         <>
           <div className="legend">
-            <span className="key income">Income</span>
-            <span className="key expense">Expenses</span>
+            <span className="key">
+              <span className="dot" style={{ background: colorA }} />
+              {labelA}
+            </span>
+            <span className="key">
+              <span className="dot" style={{ background: colorB }} />
+              {labelB}
+            </span>
           </div>
           <ResponsiveContainer width="100%" height={height}>
             <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <defs>
-                <linearGradient id="flowIncomeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--domain-income)" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="var(--domain-income)" stopOpacity={0} />
+                <linearGradient id="flowAGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={colorA} stopOpacity={0.18} />
+                  <stop offset="95%" stopColor={colorA} stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="flowExpenseGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--domain-expense)" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="var(--domain-expense)" stopOpacity={0} />
+                <linearGradient id="flowBGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={colorB} stopOpacity={0.18} />
+                  <stop offset="95%" stopColor={colorB} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="4 4" stroke="var(--line)" vertical={false} />
@@ -78,19 +104,19 @@ export function FlowChart({ data, currency, loading, height = 240 }: Props) {
                 labelStyle={{ color: "var(--fg-2)", marginBottom: 4 }}
                 formatter={(v, name) => [
                   typeof v === "number" ? formatAmount(v, currency) : String(v),
-                  name === "income" ? "Income" : "Expenses",
+                  name === "income" ? labelA : labelB,
                 ]}
               />
               <Area
                 type="monotone"
                 dataKey="income"
-                stroke="var(--domain-income)"
+                stroke={colorA}
                 strokeWidth={2}
-                fill="url(#flowIncomeGrad)"
+                fill="url(#flowAGrad)"
                 dot={false}
                 activeDot={{
                   r: 5,
-                  fill: "var(--domain-income)",
+                  fill: colorA,
                   stroke: "var(--bg-1)",
                   strokeWidth: 2,
                 }}
@@ -98,13 +124,13 @@ export function FlowChart({ data, currency, loading, height = 240 }: Props) {
               <Area
                 type="monotone"
                 dataKey="expense"
-                stroke="var(--domain-expense)"
+                stroke={colorB}
                 strokeWidth={2}
-                fill="url(#flowExpenseGrad)"
+                fill="url(#flowBGrad)"
                 dot={false}
                 activeDot={{
                   r: 5,
-                  fill: "var(--domain-expense)",
+                  fill: colorB,
                   stroke: "var(--bg-1)",
                   strokeWidth: 2,
                 }}
@@ -133,19 +159,11 @@ export function FlowChart({ data, currency, loading, height = 240 }: Props) {
           gap: 6px;
         }
 
-        .key::before {
-          content: "";
+        .dot {
           width: 8px;
           height: 8px;
           border-radius: 50%;
-        }
-
-        .key.income::before {
-          background: var(--domain-income);
-        }
-
-        .key.expense::before {
-          background: var(--domain-expense);
+          flex-shrink: 0;
         }
 
         .empty {

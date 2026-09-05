@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { label: "Expenses", href: "/expenses" },
   { label: "Investments", href: "/investments" },
   { label: "Savings", href: "/savings" },
+  { label: "Prospect", href: "/prospect" },
   { label: "Methods", href: "/methods" },
   { label: "Settings", href: "/settings" },
 ];
@@ -66,6 +67,13 @@ function NavIcon({ href, size = 20 }: { href: string; size?: number }) {
         <path d="M12 6V4" />
         <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
         <path d="M19 13c0-1.1-.4-2.1-1-3" />
+      </svg>
+    );
+  if (href === "/prospect")
+    return (
+      <svg {...p}>
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
       </svg>
     );
   if (href === "/methods")
@@ -206,7 +214,9 @@ export function Sidebar() {
           font-size: 0.875rem;
           color: var(--fg-2, #6e6e85);
           text-decoration: none;
-          transition: background 0.15s, color 0.15s;
+          transition:
+            background 0.15s,
+            color 0.15s;
         }
 
         .nav-item:hover {

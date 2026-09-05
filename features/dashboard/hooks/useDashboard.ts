@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRecurringItems } from "../../../hooks/useRecurringItems";
+import { useRecurrentTransactions } from "../../../hooks/useRecurrentTransactions";
 import { useDomainTransactions } from "../../../hooks/useDomainTransactions";
 import { useRecentTransactions } from "./useRecentTransactions";
 import { useUpcomingItems } from "./useUpcomingItems";
@@ -10,7 +10,7 @@ import type { MoneyContext } from "../../../helpers";
 import { toFlowSeries } from "../../../helpers/chartData";
 
 function buildCategoryList(
-  items: ReturnType<typeof useRecurringItems>["items"],
+  items: ReturnType<typeof useRecurrentTransactions>["items"],
   categories: ReturnType<typeof useCategories>["categories"],
   ctx: MoneyContext
 ) {
@@ -27,10 +27,10 @@ function buildCategoryList(
 }
 
 export function useDashboard() {
-  const { items: incomes, loading: l1, error: e1 } = useRecurringItems("INCOME");
-  const { items: expenses, loading: l2, error: e2 } = useRecurringItems("EXPENSE");
-  const { items: investments, loading: l3, error: e3 } = useRecurringItems("INVESTMENT");
-  const { items: savings, loading: l7, error: e7 } = useRecurringItems("SAVING");
+  const { items: incomes, loading: l1, error: e1 } = useRecurrentTransactions("INCOME");
+  const { items: expenses, loading: l2, error: e2 } = useRecurrentTransactions("EXPENSE");
+  const { items: investments, loading: l3, error: e3 } = useRecurrentTransactions("INVESTMENT");
+  const { items: savings, loading: l7, error: e7 } = useRecurrentTransactions("SAVING");
   const { categories, loading: l4, error: e4 } = useCategories();
   const { transactions: recentPayments, loading: l5, error: e5 } = useRecentTransactions(5);
   const { items: upcoming, loading: l6, error: e6, markPaid } = useUpcomingItems(5);

@@ -5,7 +5,7 @@ import { TextField } from "../../../components/atoms/TextField";
 import { Button } from "../../../components/atoms/Button";
 import { useCategories } from "../../../hooks/useCategories";
 import { usePaymentMethods } from "../../../hooks/usePaymentMethods";
-import { useRecurringItems } from "../../../hooks/useRecurringItems";
+import { useRecurrentTransactions } from "../../../hooks/useRecurrentTransactions";
 import { useUserDoc } from "../../../hooks/useUserDoc";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
 import { SELECTABLE_CURRENCIES, CURRENCY_SYMBOL, FREQUENCY_LABELS } from "../../../constants";
@@ -46,7 +46,7 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
   const { userDoc } = useUserDoc();
   const { categories } = useCategories(domain);
   const { methods } = usePaymentMethods();
-  const { create, update } = useRecurringItems(domain);
+  const { create, update } = useRecurrentTransactions(domain);
 
   const empty: FormState = useMemo(
     () => ({

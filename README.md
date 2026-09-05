@@ -1,5 +1,33 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## What this app does
+
+Waletto tracks subscription expenses, savings and investments, and gives a
+money-flow view of your finances (net = income − expenses − savings −
+investments). It supports multiple currencies first-class: every amount
+stores its native currency, and reporting converts through live exchange
+rates into a per-user display currency.
+
+- **Dashboard** (`/`) — net-flow hero, per-domain stat cards, cash-flow
+  chart, expense breakdown, recent payments, next to expire.
+- **Incomes / Expenses / Investments / Savings** (`/incomes`, `/expenses`,
+  `/investments`, `/savings`) — one parameterized page (`DomainPage`) per
+  domain: KPI header, period control, area chart, category tabs, item table
+  with create/edit/delete. Expenses' Subscriptions tab surfaces subscription
+  cost insights (monthly/annualized, % of income, next charge).
+- **Prospect** (`/prospect`) — a what-if simulator: check any recurring
+  expense, investment or saving to see the monthly/annual amount it would
+  free and how your net would change, projected 6 or 12 months out.
+- **Methods** (`/methods`) — payment methods CRUD (cards, wallets, bank
+  transfers, cash, crypto).
+- **Settings** (`/settings`) — account info, main reporting currency, redo
+  onboarding.
+
+Day-to-day manual transaction entry has an API (`POST /api/transactions`)
+but no UI yet — recurring items are the only write path exposed today.
+Six months of synthetic PAID transaction history is backfilled from active
+recurring items on first dashboard visit (`useMaterialize`), idempotently.
+
 ## Getting Started
 
 First, run the development server:
@@ -44,7 +72,7 @@ This project uses Firebase Firestore as database and Auth0 as Auth provider so y
 5. Go to [Auth0 website](https://auth0.com) and create and account if you don't have one or log in
 6. Create a web classic project and select Next JS as technology
 7. Copy your Auth0 application config from "Settings" and paste it in their respective variables inside the `.env.local` file
-8. Follow the Auth0 example to configure the callback URL's 
+8. Follow the Auth0 example to configure the callback URL's
 
 Now the project is ready to run. Run the project to check everything is working fine and the subscriptions list will now show empty because you won't have any data in your firestore database.
 
@@ -61,17 +89,8 @@ pnpm seed:user <userId>
 To find your `userId`, add a temporary `console.log` in any page to print the Auth0 `user.sub` value after logging in.
 
 ## Firebase Rules
-NOTE: This rules should be added **only after** the seeder script has ran
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /subscriptions/{sub} {
-	  allow read: if request.auth.uid == resource.data.userId
-      allow write: if request.auth.uid == request.resource.data.userId
-      allow delete: if request.auth.uid == resource.data.userId
-    }
-  }
-}
-```
+The deployed security rules live in [`firestore.rules`](./firestore.rules) —
+deploy them with `firebase deploy --only firestore:rules` (or paste the file
+into the Firebase console). Composite indexes live in
+[`firestore.indexes.json`](./firestore.indexes.json).

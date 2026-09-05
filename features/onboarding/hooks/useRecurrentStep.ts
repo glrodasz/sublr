@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useCategories } from "../../../hooks/useCategories";
 import { usePaymentMethods } from "../../../hooks/usePaymentMethods";
-import { useRecurrentTransactions } from "../../../hooks/useRecurringItems";
+import { useRecurrentTransactions } from "../../../hooks/useRecurrentTransactions";
 import { useDraftRows } from "../../../hooks/useDraftRows";
 import type { DraftRow } from "../../../hooks/useDraftRows";
 import type { Currency, Domain, Frequency, RecurrentTransactionType } from "../../../types";

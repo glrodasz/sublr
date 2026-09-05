@@ -12,7 +12,7 @@ let itemsValue: {
 }[] = [];
 let loadingValue = false;
 
-jest.mock("../../../hooks/useRecurringItems", () => ({
+jest.mock("../../../hooks/useRecurrentTransactions", () => ({
   useRecurrentTransactions: () => ({
     items: itemsValue,
     loading: loadingValue,

@@ -13,9 +13,10 @@ Stack: Next.js 14 (Pages Router) · TypeScript estricto · Firestore + `firebase
 Utilidades que funcionarían igual en cualquier otro proyecto, al estilo de lodash. **No** importan de `types/`, `helpers/` ni `features/`.
 
 ```
-utils/request.ts          wrapper de fetch
-utils/normalizeTag.ts     normalización de strings
-utils/sortByCreatedAt.ts  ordenar por createdAt, nulls al final
+utils/request.ts               wrapper de fetch
+utils/sortByCreatedAt.ts       ordenar por createdAt, nulls al final
+utils/startOfPreviousMonth.ts  medianoche del 1° del mes anterior
+utils/formatList.ts            "A", "A y B", "A, B y C"
 ```
 
 > Si una utilidad necesita importar un tipo del dominio (`Domain`, `Currency`, `Frequency`…), **no es un util: es un helper**. Esa es la prueba rápida.
@@ -25,10 +26,12 @@ utils/sortByCreatedAt.ts  ordenar por createdAt, nulls al final
 Misma idea de "utilidad", pero conoce el negocio de sublr.
 
 ```
-helpers/aggregations.ts           montos mensuales por dominio
+helpers/aggregations.ts           montos mensuales por dominio, rate-aware (ver §3.1)
+helpers/fx.ts                     convert()/tryConvert() por cross-rates a USD, IDENTITY_RATES
+helpers/chartData.ts              serie de dos dominios (income/expense) para FlowChart
+helpers/materializeOccurrences.ts ocurrencias de un item recurrente en un rango, ids determinísticos
 helpers/recurrence.ts             próxima ocurrencia según Frequency
 helpers/seedDefaultCategories.ts  categorías por defecto
-helpers/tagStyles.ts              color por tag, con presets del dominio
 ```
 
 ### `lib/` y `firebase/` — configuración de terceros
@@ -48,9 +51,11 @@ Todo lo que solo sirve a una feature vive junta:
 ```
 features/
   onboarding/   el wizard de configuración inicial + el guard de acceso
-  dashboard/    la home: breakdown, pagos recientes, próximos vencimientos
-  domains/      DomainView, la vista que comparten incomes/investments/savings
-  expenses/     la página de gastos: summary, chart y desglose por categoría
+  dashboard/    la home: net-flow, stat cards, cash-flow chart, próximos vencimientos
+  domains/      DomainPage — la pantalla que comparten incomes/expenses/investments/savings
+  methods/      CRUD de métodos de pago (la lista de MethodsStep no alcanza para editar)
+  insights/     SubscriptionInsights — costo mensual/anualizado de suscripciones
+  prospect/     simulador what-if: qué pasa si cancelo X
 ```
 
 Cada una con la misma forma interna: `components/`, `hooks/`, `helpers/`, `data/`.
@@ -60,7 +65,7 @@ Cada una con la misma forma interna: `components/`, `hooks/`, `helpers/`, `data/
 - **Un solo consumidor** → baja a la feature.
 - **Dos o más** → sube a la raíz, aunque hoy "parezca" de una feature.
 
-Ejemplos reales: `Combobox` nació en el wizard y vive en `components/atoms/` porque es genérico; `helpers/aggregations` parece de `domains` pero lo usan también dashboard y expenses, así que se queda compartido.
+Ejemplos reales: `Combobox` nació en el wizard y vive en `components/atoms/` porque es genérico; `helpers/aggregations` y `hooks/useMoneyContext` parecen de `domains` pero los usan también dashboard, insights y prospect, así que se quedan compartidos. `hooks/useDomainTransactions` nació en `expenses/` (dos consumidores después: dashboard y domains) y subió a `hooks/`.
 
 > Cuidado con los barrels: `helpers/index.ts` reexporta, así que un `grep` por el nombre del archivo **no** encuentra a quien lo importa como `from "../helpers"`. Cuenta consumidores mirando también los barrels, o te llevarás a una feature algo que usan tres.
 
@@ -73,6 +78,8 @@ schemas/                                esquemas Zod
 types/                                  tipos del dominio
 constants.ts                            constantes y mapas de presentación
 ```
+
+`components/atoms/EmptyState.tsx` y `components/atoms/ErrorState.tsx` son **distintos a propósito**: una regla de Firestore rota o un índice building deben leerse como error, nunca como "sin datos" — esa ambigüedad ya vació la lista de categorías del wizard una vez (ver §3). `components/molecules/Modal.tsx` y `KebabMenu.tsx` son los building blocks de cualquier CRUD nuevo (crear/editar en un modal, acciones por fila en un kebab) — no reinventes overlay ni dropdown.
 
 ---
 
@@ -118,9 +125,21 @@ useEffect(() => {
 
 **Otras reglas**
 
-- Borrado suave: `archived: true` en categorías y métodos de pago, `active: false` en transacciones recurrentes. Nunca `.delete()`.
+- Borrado suave: `archived: true` en categorías y métodos de pago, `active: false` en transacciones recurrentes, `status: "SKIPPED"` en transacciones. Nunca `.delete()`.
 - `createdAt` con `serverTimestamp()`. Llega **`null`** en el eco local antes de que el servidor lo resuelva: cualquier orden o formato tiene que tolerarlo.
-- Los campos opcionales se **omiten**, no se mandan como `null` (Firestore distingue).
+- Los campos opcionales se **omiten**, no se mandan como `null` en `POST`. En `PATCH`, en cambio, `null` significa "borrar este campo" (`FieldValue.delete()`) — así es como `chargedAmount`/`chargedCurrency`/`paymentMethodId` se limpian sin un endpoint aparte.
+- Ocurrencias materializadas usan **id determinístico** `{itemId}_{YYYY-MM-DD}` (`helpers/materializeOccurrences.ts`): recrear el rango nunca duplica ni pisa una que el usuario ya editó o saltó.
+
+### 3.1 Dinero y monedas
+
+Todo monto se **guarda en su moneda nativa** y se **convierte solo al leer**. El punto único de conversión es `helpers/aggregations.ts` (`convertedAmount`/`toMonthlyAmount`/`sumMonthly`/`groupByCategory`/`computeMoM`/`computeFlow`), todas reciben un `MoneyContext = { rates, target }`.
+
+- **`useMoneyContext()`** (`hooks/useMoneyContext.ts`) es el único lugar que decide moneda objetivo y tasas: `target = displayCurrency ?? mainCurrency`, `rates = useExchangeRates() ?? IDENTITY_RATES`. Cualquier pantalla que muestre montos agregados lo usa — no leas `mainCurrency` directo de `useUserDoc`.
+- **Precedencia del par charged**: si un item tiene `chargedAmount`/`chargedCurrency` y `chargedCurrency === target`, se usa `chargedAmount` tal cual — lo que de verdad se cobró le gana a cualquier tasa de mercado.
+- **`IDENTITY_RATES`** (`helpers/fx.ts`) son tasas 1:1 — útiles en tests y como fallback cuando no hay tasas reales; con ellas la salida es la suma cruda (para verificar mecánicamente un refactor).
+- **Honestidad ante la falta de datos**: `fxMissing` (nunca hubo cache) y `fxStale` (sirviendo cache vencido o el fallback del servidor) se propagan hasta la UI. Nunca se inventa un número — cuando `fxMissing` y hay monedas mezcladas, se muestra un aviso en vez de una suma falsa (ver `pages/index.tsx`).
+- **`Amount`** (`components/atoms/Amount.tsx`): `colorize` para netos (verde ≥0, rojo <0), `showCode` cuando la moneda difiere del target, `approximate` antepone "≈" en agregados convertidos. Decimales por moneda vía `ZERO_DECIMAL_CURRENCIES` en `constants.ts` (JPY, COP sin centavos), no un `maximumFractionDigits` fijo.
+- **`/api/currencies`**: cache in-memory de 12h + mirror diario a Firestore (`rates/{YYYY-MM-DD}`) como fallback; el cliente cachea 24h en `localStorage` (`hooks/useExchangeRates.ts`). Nunca lo llames sin pasar por ese hook.
 
 ---
 
@@ -177,3 +196,15 @@ Otras notas:
 
 - `pnpm seed:global` siembra el catálogo de `services`; `pnpm seed:user <userId>` siembra datos de un usuario.
 - Husky + lint-staged formatean con Prettier al commitear, así que no pelees con el formato.
+
+---
+
+## 7. Deferido a propósito
+
+Decisiones explícitas de scope, no descuidos:
+
+- **Migración de producción**: no hay suite de migración en el repo. Cuando toque promover, el owner baja los datos de prod y se escribe un script local en ese momento — el schema actual de la DB es con el que se trabaja.
+- **Entrada manual de transacciones día a día**: `POST /api/transactions` existe (el modelo está listo), pero no hay UI. Los recurrentes son el único write path expuesto.
+- **Persistencia de escenarios what-if** (`features/prospect`): el estado vive en memoria (`useWhatIf`), se pierde al salir de la página.
+- **Entradas "Simulate cancel"** desde otras pantallas (tablas, insights) hacia un escenario de Prospect precargado — la página funciona standalone con su propio checklist.
+- Scheduler / Cloud Functions, integraciones bancarias, y una versión mobile dedicada de los dashboards (hoy es responsive, no una experiencia nativa).
