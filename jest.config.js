@@ -18,7 +18,6 @@ const customJestConfig = {
     "lib/tagStyles.ts",
     "!**/*.test.ts",
     // server-only Firestore batch helpers tested via integration, not unit tests
-    "!helpers/seedDefaultCategories.ts",
     "!helpers/aggregations.ts",
   ],
   coverageThreshold: {

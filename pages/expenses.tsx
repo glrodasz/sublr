@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import auth0 from "../lib/auth0";
+import { withOnboardingGuard } from "../lib/withOnboardingGuard";
 import { PageLayout } from "../components/organisms/PageLayout";
 import { Card } from "../components/atoms/Card";
 import { Amount, formatAmount } from "../components/atoms/Amount";
@@ -15,11 +15,15 @@ const AreaChart = dynamic(() => import("recharts").then((m) => m.AreaChart), { s
 const Area = dynamic(() => import("recharts").then((m) => m.Area), { ssr: false });
 const XAxis = dynamic(() => import("recharts").then((m) => m.XAxis), { ssr: false });
 const YAxis = dynamic(() => import("recharts").then((m) => m.YAxis), { ssr: false });
-const CartesianGrid = dynamic(() => import("recharts").then((m) => m.CartesianGrid), { ssr: false });
+const CartesianGrid = dynamic(() => import("recharts").then((m) => m.CartesianGrid), {
+  ssr: false,
+});
 const Tooltip = dynamic(() => import("recharts").then((m) => m.Tooltip), { ssr: false });
-const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.ResponsiveContainer), { ssr: false });
+const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.ResponsiveContainer), {
+  ssr: false,
+});
 
-export const getServerSideProps = auth0.withPageAuthRequired();
+export const getServerSideProps = withOnboardingGuard();
 
 const PERIODS = [
   { label: "Current", months: 0 },
@@ -54,7 +58,7 @@ function freqLabel(f: string) {
 }
 
 export default function ExpensesPage() {
-  const userDoc = useUserDoc();
+  const { userDoc } = useUserDoc();
   const currency: Currency = userDoc?.mainCurrency ?? "USD";
 
   const [periodIdx, setPeriodIdx] = useState(0);
@@ -84,8 +88,19 @@ export default function ExpensesPage() {
   const newExpenseBtn = (
     <button type="button" className="new-btn" disabled>
       + New expense
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" />
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <polyline points="19 12 12 19 5 12" />
       </svg>
       <style jsx>{`
         .new-btn {
@@ -103,7 +118,10 @@ export default function ExpensesPage() {
           cursor: pointer;
           white-space: nowrap;
         }
-        .new-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .new-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
       `}</style>
     </button>
   );
@@ -177,7 +195,8 @@ export default function ExpensesPage() {
                 labelStyle={{ display: "none" }}
                 formatter={(v, _name, entry) => {
                   const amt = typeof v === "number" ? formatAmount(v, currency) : String(v);
-                  const { label, name } = (entry as { payload?: { label?: string; name?: string } }).payload ?? {};
+                  const { label, name } =
+                    (entry as { payload?: { label?: string; name?: string } }).payload ?? {};
                   return [`${amt}`, `${label ?? ""}${name ? `, ${name}` : ""}`];
                 }}
               />
@@ -188,7 +207,12 @@ export default function ExpensesPage() {
                 strokeWidth={2}
                 fill="url(#expGrad)"
                 dot={false}
-                activeDot={{ r: 5, fill: "var(--accent-hot)", stroke: "var(--bg-1)", strokeWidth: 2 }}
+                activeDot={{
+                  r: 5,
+                  fill: "var(--accent-hot)",
+                  stroke: "var(--bg-1)",
+                  strokeWidth: 2,
+                }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -200,8 +224,19 @@ export default function ExpensesPage() {
         <div className="cat-header">
           <span className="cat-title">Categories</span>
           <button type="button" className="filter-btn" disabled aria-label="Filter">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+              <line x1="11" y1="18" x2="13" y2="18" />
             </svg>
           </button>
         </div>
@@ -226,8 +261,7 @@ export default function ExpensesPage() {
 
             {selectedCat && (
               <p className="cat-total">
-                Expenses by {selectedCat.name}:{" "}
-                <strong>{formatAmount(catTotal, currency)}</strong>
+                Expenses by {selectedCat.name}: <strong>{formatAmount(catTotal, currency)}</strong>
               </p>
             )}
 
@@ -252,7 +286,14 @@ export default function ExpensesPage() {
                       <td className="muted">{freqLabel(item.frequency)}</td>
                       <td className="muted">—</td>
                       <td className="actions">
-                        <button type="button" className="more-btn" disabled aria-label="More options">⋮</button>
+                        <button
+                          type="button"
+                          className="more-btn"
+                          disabled
+                          aria-label="More options"
+                        >
+                          ⋮
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -322,7 +363,9 @@ export default function ExpensesPage() {
           font-weight: 600;
           font-family: inherit;
           cursor: pointer;
-          transition: background 0.15s, color 0.15s;
+          transition:
+            background 0.15s,
+            color 0.15s;
         }
 
         .period-btn.active {
@@ -357,7 +400,9 @@ export default function ExpensesPage() {
           color: var(--fg-2);
           cursor: pointer;
           border-radius: var(--r-sm);
-          transition: background 0.15s, color 0.15s;
+          transition:
+            background 0.15s,
+            color 0.15s;
         }
 
         .filter-btn:hover:not(:disabled) {
@@ -388,7 +433,9 @@ export default function ExpensesPage() {
           cursor: pointer;
           border-bottom: 2px solid transparent;
           margin-bottom: -1px;
-          transition: color 0.15s, border-color 0.15s;
+          transition:
+            color 0.15s,
+            border-color 0.15s;
           white-space: nowrap;
         }
 
@@ -429,7 +476,9 @@ export default function ExpensesPage() {
           white-space: nowrap;
         }
 
-        .table th:last-child { padding-right: 0; }
+        .table th:last-child {
+          padding-right: 0;
+        }
 
         .table td {
           padding: 12px 12px 12px 0;
@@ -438,7 +487,9 @@ export default function ExpensesPage() {
           vertical-align: middle;
         }
 
-        .table td:last-child { padding-right: 0; }
+        .table td:last-child {
+          padding-right: 0;
+        }
 
         .table tr:last-child td {
           border-bottom: none;
@@ -473,7 +524,9 @@ export default function ExpensesPage() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          transition: background 0.15s, color 0.15s;
+          transition:
+            background 0.15s,
+            color 0.15s;
         }
 
         .more-btn:hover:not(:disabled) {

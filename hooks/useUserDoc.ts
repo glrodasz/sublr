@@ -4,10 +4,12 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { db } from "../firebase/client";
 import { useFirebaseAuth } from "./useFirebaseAuth";
 import type { Currency } from "../types";
+import type { UserUpdate } from "../schemas";
 
 interface UserDoc {
   mainCurrency: Currency;
   onboardingCompleted: boolean;
+  onboardingMode?: "MAGIC" | "ASSISTED";
 }
 
 export function useUserDoc() {
@@ -22,5 +24,14 @@ export function useUserDoc() {
     });
   }, [ready, user?.sub]);
 
-  return userDoc;
+  const update = async (patch: UserUpdate) => {
+    const res = await fetch("/api/user", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) throw new Error(await res.text());
+  };
+
+  return { userDoc, update };
 }

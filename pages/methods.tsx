@@ -1,9 +1,9 @@
-import auth0 from "../lib/auth0";
+import { withOnboardingGuard } from "../lib/withOnboardingGuard";
 import { PageLayout } from "../components/organisms/PageLayout";
 import { Card } from "../components/atoms/Card";
 import { EmptyState } from "../components/atoms/EmptyState";
 
-export const getServerSideProps = auth0.withPageAuthRequired();
+export const getServerSideProps = withOnboardingGuard();
 
 export default function MethodsPage() {
   return (

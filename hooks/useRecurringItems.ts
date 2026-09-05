@@ -4,6 +4,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { db } from "../firebase/client";
 import { useFirebaseAuth } from "./useFirebaseAuth";
 import type { Domain, RecurrentTransaction } from "../types";
+import type { RecurrentTransactionInput } from "../schemas";
 
 export function useRecurrentTransactions(domain?: Domain) {
   const { user } = useUser();
@@ -24,7 +25,7 @@ export function useRecurrentTransactions(domain?: Domain) {
     return onSnapshot(
       q,
       (snap) => {
-        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurrentTransaction)));
+        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as RecurrentTransaction));
         setLoading(false);
       },
       (err) => {
@@ -34,7 +35,23 @@ export function useRecurrentTransactions(domain?: Domain) {
     );
   }, [ready, user?.sub, domain]);
 
-  return { items, loading };
+  const create = async (input: RecurrentTransactionInput): Promise<string> => {
+    const res = await fetch("/api/recurrent-transactions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const { id } = (await res.json()) as { id: string };
+    return id;
+  };
+
+  const remove = async (id: string) => {
+    const res = await fetch(`/api/recurrent-transactions/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error(await res.text());
+  };
+
+  return { items, loading, create, remove };
 }
 
 // Backward-compat alias — callers can migrate to useRecurrentTransactions gradually

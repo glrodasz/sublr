@@ -61,7 +61,7 @@ describe("/api/firebase", () => {
     getAppsMock.mockReset().mockReturnValue([{}]);
     userDocGetMock.mockReset().mockResolvedValue({ exists: true });
     userDocSetMock.mockReset().mockResolvedValue(undefined);
-    seedDefaultCategoriesMock.mockReset().mockResolvedValue(undefined);
+    seedDefaultCategoriesMock.mockReset().mockResolvedValue(0);
     batchCommitMock.mockReset().mockResolvedValue(undefined);
   });
 

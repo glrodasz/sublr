@@ -7,13 +7,7 @@ export interface Timestamp {
 
 export type Currency = "USD" | "EUR" | "MXN" | "GBP" | "SEK" | "CHF" | "JPY" | "COP";
 export type Domain = "INCOME" | "EXPENSE" | "INVESTMENT" | "SAVING";
-export type Frequency =
-  | "ONE_TIME"
-  | "WEEKLY"
-  | "BIWEEKLY"
-  | "MONTHLY"
-  | "QUARTERLY"
-  | "YEARLY";
+export type Frequency = "ONE_TIME" | "WEEKLY" | "BIWEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
 
 export type TransactionStatus = "PENDING" | "PAID" | "SKIPPED";
 
@@ -60,6 +54,8 @@ export interface PaymentMethod {
   type: PaymentMethodType;
   currencies: Currency[];
   defaultCurrency?: Currency;
+  last4?: string;
+  alias?: string;
   archived?: boolean;
   createdAt: Timestamp;
 }

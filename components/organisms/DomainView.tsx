@@ -25,7 +25,7 @@ const FREQ_LABEL: Record<string, string> = {
 export function DomainView({ domain, monthlyLabel }: Props) {
   const { items, loading } = useRecurringItems(domain);
   const { categories } = useCategories(domain);
-  const userDoc = useUserDoc();
+  const { userDoc } = useUserDoc();
 
   const currency: Currency = userDoc?.mainCurrency ?? "USD";
   const monthlyTotal = sumMonthly(items);
@@ -48,12 +48,7 @@ export function DomainView({ domain, monthlyLabel }: Props) {
   return (
     <>
       <section className="row">
-        <StatCard
-          title={monthlyLabel}
-          amount={monthlyTotal}
-          currency={currency}
-          domain={domain}
-        />
+        <StatCard title={monthlyLabel} amount={monthlyTotal} currency={currency} domain={domain} />
       </section>
 
       <section className="groups">

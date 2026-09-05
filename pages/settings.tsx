@@ -1,13 +1,36 @@
+import { useState } from "react";
+import { useRouter } from "next/router";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import auth0 from "../lib/auth0";
 import { PageLayout } from "../components/organisms/PageLayout";
 import { Card } from "../components/atoms/Card";
 import { SectionTitle } from "../components/atoms/SectionTitle";
+import { Button } from "../components/atoms/Button";
+import { useUserDoc } from "../hooks/useUserDoc";
 
 export const getServerSideProps = auth0.withPageAuthRequired();
 
 export default function SettingsPage() {
   const { user } = useUser();
+  const router = useRouter();
+  const { update } = useUserDoc();
+  const [busy, setBusy] = useState(false);
+
+  const redoOnboarding = async () => {
+    setBusy(true);
+    try {
+      // Fills in any defaults added since this account was created. Idempotent,
+      // so nothing the user already has is touched or duplicated.
+      const res = await fetch("/api/categories/defaults", { method: "POST" });
+      if (!res.ok) throw new Error(await res.text());
+
+      await update({ onboardingCompleted: false });
+      router.push("/onboarding/categories");
+    } catch (err) {
+      console.error("Failed to restart onboarding:", err);
+      setBusy(false);
+    }
+  };
 
   return (
     <PageLayout title="Settings">
@@ -28,6 +51,19 @@ export default function SettingsPage() {
           <a href="/api/auth/logout" className="logout">
             Log out
           </a>
+        </Card>
+
+        <Card>
+          <SectionTitle title="Setup" />
+          <p className="hint">
+            Re-run the assisted setup to review your categories, payment methods, and recurring
+            incomes and expenses.
+          </p>
+          <div className="redo">
+            <Button variant="secondary" size="sm" onClick={redoOnboarding} disabled={busy}>
+              {busy ? "Starting…" : "Redo onboarding"}
+            </Button>
+          </div>
         </Card>
       </section>
 
@@ -66,6 +102,16 @@ export default function SettingsPage() {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+        }
+
+        .hint {
+          margin: 0;
+          font-size: 0.85rem;
+          color: var(--fg-1);
+        }
+
+        .redo {
+          margin-top: 4px;
         }
 
         .logout {

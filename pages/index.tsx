@@ -1,5 +1,5 @@
 import { useUser } from "@auth0/nextjs-auth0/client";
-import auth0 from "../lib/auth0";
+import { withOnboardingGuard } from "../lib/withOnboardingGuard";
 import { PageLayout } from "../components/organisms/PageLayout";
 import { StatCard } from "../components/molecules/StatCard";
 import { ExpenseBreakdown } from "../components/organisms/ExpenseBreakdown";
@@ -10,12 +10,21 @@ import { useDashboard } from "../hooks/useDashboard";
 import { useUserDoc } from "../hooks/useUserDoc";
 import type { Currency } from "../types";
 
-export const getServerSideProps = auth0.withPageAuthRequired();
+export const getServerSideProps = withOnboardingGuard();
 
 export default function Dashboard() {
   const { user } = useUser();
-  const userDoc = useUserDoc();
-  const { totals, expensesByCategory, incomesByCategory, investmentsByCategory, recentPayments, upcoming, momDelta, loading } = useDashboard();
+  const { userDoc } = useUserDoc();
+  const {
+    totals,
+    expensesByCategory,
+    incomesByCategory,
+    investmentsByCategory,
+    recentPayments,
+    upcoming,
+    momDelta,
+    loading,
+  } = useDashboard();
 
   const currency: Currency = userDoc?.mainCurrency ?? "USD";
   const firstName = (user?.name ?? user?.nickname ?? "there").split(" ")[0];
