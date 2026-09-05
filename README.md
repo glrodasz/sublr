@@ -1,5 +1,36 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## What this app does
+
+Waletto tracks subscription expenses, savings and investments, and gives a
+money-flow view of your finances (net = income − expenses − savings −
+investments). It supports multiple currencies first-class: every amount
+stores its native currency, and reporting converts through live exchange
+rates into a per-user display currency.
+
+- **Dashboard** (`/`) — net-flow hero, per-domain stat cards, cash-flow
+  chart, expense breakdown, recent payments, next to expire.
+- **Incomes / Expenses / Investments / Savings** (`/incomes`, `/expenses`,
+  `/investments`, `/savings`) — one parameterized page (`DomainPage`) per
+  domain: KPI header, period control, area chart, category tabs, item table
+  with create/edit/delete. Expenses' Subscriptions tab surfaces subscription
+  cost insights (monthly/annualized, % of income, next charge). Investments
+  adds a valuation panel per category: what you've paid in versus what it's
+  worth now, a gain-% history you record over time, and an Invested-vs-Value
+  chart.
+- **Prospect** (`/prospect`) — a what-if simulator: check any recurring
+  expense, investment or saving to see the monthly/annual amount it would
+  free and how your net would change, projected 6 or 12 months out.
+- **Methods** (`/methods`) — payment methods CRUD (cards, wallets, bank
+  transfers, cash, crypto).
+- **Settings** (`/settings`) — account info, main reporting currency, redo
+  onboarding.
+
+Day-to-day manual transaction entry has an API (`POST /api/transactions`)
+but no UI yet — recurring items are the only write path exposed today.
+Six months of synthetic PAID transaction history is backfilled from active
+recurring items on first dashboard visit (`useMaterialize`), idempotently.
+
 ## Getting Started
 
 First, run the development server:
@@ -44,30 +75,59 @@ This project uses Firebase Firestore as database and Auth0 as Auth provider so y
 5. Go to [Auth0 website](https://auth0.com) and create and account if you don't have one or log in
 6. Create a web classic project and select Next JS as technology
 7. Copy your Auth0 application config from "Settings" and paste it in their respective variables inside the `.env.local` file
-8. Follow the Auth0 example to configure the callback URL's 
+8. Follow the Auth0 example to configure the callback URL's
 
 Now the project is ready to run. Run the project to check everything is working fine and the subscriptions list will now show empty because you won't have any data in your firestore database.
 
-To populate your firestore database you will find a seed script inside of `/scripts/firestoreSeed.js` . That script will create entries in the database with a pre-configured admin id as resource owner. To configure that you could:
+To populate your Firestore database run the two seed scripts:
 
-1. Add a `console.log` in some view to print the current logged user id
-2. Log in with social like gmail or github 
-3. Take the printed id and paste it into `ADMIN_USER_ID` inside `.env.local`
+```bash
+# 1. Seed the global services catalogue (Netflix, Spotify, etc.) — run once
+pnpm seed:global
 
-After setting an `ADMIN_USER_ID` you can proceed to run the seeder script and check the data has been loaded into the app
+# 2. Preview the demo profile without writing anything (no credentials needed)
+pnpm seed:user <userId> --dry-run
 
-## Firebase Rules
-NOTE: This rules should be added **only after** the seeder script has ran
-
+# 3. Seed per-user demo data — run after first login
+pnpm seed:user <userId>
 ```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /subscriptions/{sub} {
-	  allow read: if request.auth.uid == resource.data.userId
-      allow write: if request.auth.uid == request.resource.data.userId
-      allow delete: if request.auth.uid == resource.data.userId
-    }
-  }
-}
+
+To find your `userId`, add a temporary `console.log` in any page to print the Auth0 `user.sub` value after logging in.
+
+### What the demo profile contains
+
+`pnpm seed:user` writes a curated multi-currency profile (`data/testSeedData.json`):
+USD as the main currency, with income in USD/EUR/COP, subscriptions billed in
+COP against USD prices (so implied exchange rates show up), and expenses,
+investments and savings across all four domains — roughly $6.8k/mo in, $2.1k/mo
+of unallocated net.
+
+- **It wipes first.** By default it deletes that user's categories, payment
+  methods, recurrent transactions and transactions before writing. Pass
+  `--no-wipe` to add on top instead.
+- **History is derived, not hand-written.** Twelve months of PAID transactions
+  are generated from the recurring items through the same
+  `helpers/materializeOccurrences` the app uses, with the same deterministic
+  `{itemId}_{YYYY-MM-DD}` ids — so the materializer that runs on dashboard mount
+  finds them already there and never writes a duplicate.
+- **It also seeds `users/{id}`** (main currency, onboarding marked complete) and a
+  `rates/{today}` document, so conversion works even without
+  `EXCHANGE_RATES_API_KEY`; a real key overwrites those rates on the first fetch.
+
+## Firebase rules and indexes
+
+Security rules live in [`firestore.rules`](./firestore.rules) and composite
+indexes in [`firestore.indexes.json`](./firestore.indexes.json). Both are
+deployed together with:
+
+```bash
+pnpm firebase:deploy
 ```
+
+**Deploying the indexes is not optional.** Several queries — the per-domain
+transaction history behind the charts and period totals, and the recent
+payments list — combine equality filters with a range or an `orderBy`, which
+Firestore refuses to run without a matching composite index. A missing index
+fails the whole listener, so the panel renders empty rather than wrong. When
+that happens the app now shows Firestore's own message, which includes a
+one-click link to create the index it wants.

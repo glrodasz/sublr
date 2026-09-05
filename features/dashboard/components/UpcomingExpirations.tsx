@@ -1,0 +1,95 @@
+import { useState } from "react";
+import type { Currency, RecurrentTransaction } from "../../../types";
+import { Card } from "../../../components/atoms/Card";
+import { SectionTitle } from "../../../components/atoms/SectionTitle";
+import { TransactionRow } from "../../../components/molecules/TransactionRow";
+import { KebabMenu } from "../../../components/molecules/KebabMenu";
+
+interface Props {
+  items: RecurrentTransaction[];
+  displayCurrency: Currency;
+  loading?: boolean;
+  onMarkPaid?: (id: string) => Promise<void>;
+}
+
+function formatDate(ts: RecurrentTransaction["nextOccurrence"]): string {
+  if (!ts) return "—";
+  const date =
+    typeof (ts as { toDate?: () => Date }).toDate === "function"
+      ? (ts as { toDate: () => Date }).toDate()
+      : new Date(ts as unknown as string);
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
+}
+
+export function UpcomingExpirations({ items, displayCurrency, loading, onMarkPaid }: Props) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  const markPaid = async (id: string) => {
+    if (!onMarkPaid) return;
+    setPendingId(id);
+    try {
+      await onMarkPaid(id);
+    } catch (err) {
+      console.error("Failed to mark item paid:", err);
+    } finally {
+      setPendingId(null);
+    }
+  };
+
+  return (
+    <Card>
+      <SectionTitle title="Next to expire" />
+
+      {loading ? (
+        <p className="empty">Loading…</p>
+      ) : items.length === 0 ? (
+        <p className="empty">No upcoming items</p>
+      ) : (
+        <ul className="list">
+          {items.map((item) => (
+            <TransactionRow
+              key={item.id}
+              name={item.name}
+              amount={item.amount}
+              currency={item.currency}
+              displayCurrency={displayCurrency}
+              meta={formatDate(item.nextOccurrence)}
+              trailing={
+                onMarkPaid &&
+                item.id && (
+                  <KebabMenu
+                    aria-label={`Actions for ${item.name}`}
+                    actions={[
+                      {
+                        label: pendingId === item.id ? "Marking paid…" : "Mark as paid",
+                        onSelect: () => markPaid(item.id!),
+                        disabled: pendingId === item.id,
+                      },
+                    ]}
+                  />
+                )
+              }
+            />
+          ))}
+        </ul>
+      )}
+
+      <style jsx>{`
+        .empty {
+          margin: 0;
+          font-size: 0.85rem;
+          color: var(--fg-2);
+        }
+
+        .list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+      `}</style>
+    </Card>
+  );
+}

@@ -1,163 +1,211 @@
-import Head from "next/head";
-import auth0 from "../lib/auth0";
-
-import HomeSkeleton from "../components/HomeSkeleton";
-import SummaryHeader from "../components/SummaryHeader";
-import SubscriptionList from "../components/SubscriptionList";
-import TopNav from "../components/TopNav";
-
-import useCurrencyExchangeRates from "../hooks/useCurrencyExchangeRates";
-import useSubscriptions from "../hooks/useSubscriptions";
-import useSubscriptionFilters from "../hooks/useSubscriptionFilters";
-import useSubscriptionMutations from "../hooks/useSubscriptionMutations";
-import { useSummary } from "../hooks/useSummary";
+import { useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { needsExchangeRates } from "../helpers";
+import { withOnboardingGuard } from "../features/onboarding/helpers/onboardingGuard";
+import { PageLayout } from "../components/organisms/PageLayout";
+import { StatCard } from "../components/molecules/StatCard";
+import { ExpenseBreakdown } from "../features/dashboard/components/ExpenseBreakdown";
+import { RecentPayments } from "../features/dashboard/components/RecentPayments";
+import { UpcomingExpirations } from "../features/dashboard/components/UpcomingExpirations";
+import Skeleton from "../components/Skeleton";
+import { ErrorState } from "../components/atoms/ErrorState";
+import { CurrencySelector } from "../features/dashboard/components/CurrencySelector";
+import { NetFlowCard } from "../features/dashboard/components/NetFlowCard";
+import { topWithOther } from "../features/dashboard/helpers/topWithOther";
+import { Card } from "../components/atoms/Card";
+import { SectionTitle } from "../components/atoms/SectionTitle";
+import { FlowChart } from "../components/molecules/FlowChart";
+import { RecurrentTransactionModal } from "../features/domains/components/RecurrentTransactionModal";
+import { useDashboard } from "../features/dashboard/hooks/useDashboard";
+import { useUserDoc } from "../hooks/useUserDoc";
+import { useMaterialize } from "../hooks/useMaterialize";
+import type { Domain } from "../types";
 
-export const getServerSideProps = auth0.withPageAuthRequired();
+export const getServerSideProps = withOnboardingGuard();
 
-export default function Home() {
+export default function Dashboard() {
   const { user } = useUser();
+  const { userDoc } = useUserDoc();
+  useMaterialize();
   const {
-    subscriptions,
-    create,
-    remove,
-    update,
-    finishedFirstFetch,
-    error: subscriptionsError,
-  } = useSubscriptions();
-  const { rates, error: ratesError, isLoading: ratesLoading } = useCurrencyExchangeRates();
-
-  const {
-    time,
-    setTime,
     currency,
-    setCurrency,
-    sortBy,
-    setSortBy,
-    card,
-    setCard,
-    tags,
-    setTags,
-    tagOptions,
-    filteredSubscriptions,
-  } = useSubscriptionFilters(subscriptions, rates);
-  const mutations = useSubscriptionMutations(remove, update);
+    setDisplayCurrency,
+    totals,
+    flow,
+    approximate,
+    fxUnavailable,
+    expensesByCategory,
+    incomesByCategory,
+    investmentsByCategory,
+    savingsByCategory,
+    recentPayments,
+    upcoming,
+    markPaid,
+    momDelta,
+    flowSeries,
+    loading,
+    error,
+  } = useDashboard();
 
-  const { cards } = useSummary(subscriptions, currency, time, rates);
-  const { summaryData, uniqueCurrencies, primaryTotal, secondaryTotal, primaryIsYearly } =
-    useSummary(filteredSubscriptions, currency, time, rates);
+  const firstName = (user?.name ?? user?.nickname ?? "there").split(" ")[0];
+  const [newDomain, setNewDomain] = useState<Domain | null>(null);
 
-  const isFiltered = Boolean(card) || tags.length > 0;
-  const clearFilters = () => {
-    setCard("");
-    setTags([]);
-  };
-
-  const ratesUnavailable =
-    needsExchangeRates(subscriptions) && !ratesLoading && (!!ratesError || !rates);
-
-  if (!finishedFirstFetch) {
-    return <HomeSkeleton />;
-  }
-
-  return (
+  const actions = (
     <>
-      <Head>
-        <title>Sublr</title>
-        <meta name="theme-color" content="#0A0A0F" />
-      </Head>
-      <TopNav
-        user={user}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        currency={currency}
-        setCurrency={setCurrency}
-        time={time}
-        setTime={setTime}
-        card={card}
-        setCard={setCard}
-        tags={tags}
-        setTags={setTags}
-        tagOptions={tagOptions}
-        cards={cards}
-      />
-      <main className="container">
-        {subscriptionsError && (
-          <section className="load-error" role="alert">
-            <p className="load-error-title">Couldn&apos;t load your subscriptions</p>
-            <p className="load-error-body">
-              Something went wrong while connecting to the server. Refresh the page to try again.
-            </p>
-          </section>
-        )}
-        <SummaryHeader
-          subscriptions={filteredSubscriptions}
-          time={time}
-          currency={currency}
-          primaryTotal={primaryTotal}
-          secondaryTotal={secondaryTotal}
-          primaryIsYearly={primaryIsYearly}
-          uniqueCurrencies={uniqueCurrencies}
-          summaryData={summaryData}
-          ratesUnavailable={ratesUnavailable}
-          isFiltered={isFiltered}
-          onClearFilters={clearFilters}
-        />
-        <SubscriptionList
-          subscriptions={filteredSubscriptions}
-          user={user}
-          create={create}
-          mutations={mutations}
-          knownTags={tagOptions}
-        />
-      </main>
-
+      <button type="button" className="btn" onClick={() => setNewDomain("INCOME")}>
+        + New income
+      </button>
+      <button type="button" className="btn" onClick={() => setNewDomain("EXPENSE")}>
+        + New expense
+      </button>
       <style jsx>{`
-        .container {
-          width: 100%;
-          max-width: 800px;
-          padding: 20px 20px 48px;
-          margin: 0 auto;
-          display: flex;
-          flex-direction: column;
-          gap: 36px;
+        .btn {
+          padding: 8px 14px;
+          border-radius: 8px;
+          font-family: inherit;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid var(--line-strong);
+          background: var(--bg-1);
+          color: var(--fg-1);
+          white-space: nowrap;
         }
 
-        .load-error {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          padding: 16px 20px;
-          border: 1px solid var(--accent-hot, #ff3d68);
-          border-radius: var(--r-lg, 16px);
-          background: color-mix(in srgb, var(--accent-hot, #ff3d68) 12%, transparent);
-        }
-
-        .load-error-title {
-          margin: 0;
-          font-weight: 700;
-          color: var(--accent-hot, #ff3d68);
-        }
-
-        .load-error-body {
-          margin: 0;
-          font-size: 0.85rem;
-          color: var(--fg-1, #b8b8c8);
-        }
-
-        @media only screen and (min-width: 800px) {
-          .container {
-            max-width: 900px;
-          }
-        }
-
-        @media only screen and (min-width: 1000px) {
-          .container {
-            max-width: 1440px;
-          }
+        .btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
         }
       `}</style>
     </>
+  );
+
+  return (
+    <PageLayout
+      title={`Welcome back, ${firstName}`}
+      currency={currency}
+      currencyControl={<CurrencySelector value={currency} onChange={setDisplayCurrency} />}
+      actions={actions}
+    >
+      {error && <ErrorState error={error} />}
+      {fxUnavailable && (
+        <ErrorState
+          title="Exchange rates unavailable"
+          description="Totals mix currencies without conversion right now. They'll correct themselves when rates load again."
+        />
+      )}
+
+      <section className="row">
+        {userDoc ? (
+          <NetFlowCard flow={flow} currency={currency} approximate={approximate} />
+        ) : (
+          <Skeleton.Box width="100%" height={140} />
+        )}
+      </section>
+
+      <section className="row">
+        {userDoc ? (
+          <>
+            <StatCard
+              title="Income"
+              amount={totals.income}
+              currency={currency}
+              domain="INCOME"
+              summary={incomesByCategory.slice(0, 2)}
+            />
+            <StatCard
+              title="Expenses"
+              amount={totals.expense}
+              currency={currency}
+              domain="EXPENSE"
+              delta={momDelta.deltaPct}
+              summary={expensesByCategory.slice(0, 2)}
+            />
+            <StatCard
+              title="Investments"
+              amount={totals.investment}
+              currency={currency}
+              domain="INVESTMENT"
+              summary={investmentsByCategory.slice(0, 2)}
+            />
+            <StatCard
+              title="Savings"
+              amount={totals.saving}
+              currency={currency}
+              domain="SAVING"
+              summary={savingsByCategory.slice(0, 2)}
+            />
+          </>
+        ) : (
+          <>
+            <Skeleton.Box width="100%" height={120} />
+            <Skeleton.Box width="100%" height={120} />
+            <Skeleton.Box width="100%" height={120} />
+            <Skeleton.Box width="100%" height={120} />
+          </>
+        )}
+      </section>
+
+      <section className="row">
+        <Card>
+          <SectionTitle title="Cash flow" />
+          <FlowChart data={flowSeries} currency={currency} loading={loading} />
+        </Card>
+      </section>
+
+      <section className="row">
+        <ExpenseBreakdown
+          rows={topWithOther(expensesByCategory, 5)}
+          currency={currency}
+          loading={loading}
+        />
+        <RecentPayments
+          transactions={recentPayments}
+          displayCurrency={currency}
+          loading={loading}
+        />
+        <UpcomingExpirations
+          items={upcoming}
+          displayCurrency={currency}
+          loading={loading}
+          onMarkPaid={markPaid}
+        />
+      </section>
+
+      {newDomain && (
+        <RecurrentTransactionModal domain={newDomain} open onClose={() => setNewDomain(null)} />
+      )}
+
+      <style jsx>{`
+        .row {
+          display: flex;
+          gap: 16px;
+        }
+
+        .row > :global(*) {
+          flex: 1;
+          min-width: 0;
+        }
+
+        @media (max-width: 1100px) {
+          .row {
+            flex-wrap: wrap;
+          }
+
+          .row > :global(*) {
+            flex-basis: calc(50% - 8px);
+          }
+        }
+
+        @media (max-width: 640px) {
+          .row {
+            flex-direction: column;
+          }
+
+          .row > :global(*) {
+            flex-basis: auto;
+          }
+        }
+      `}</style>
+    </PageLayout>
   );
 }
