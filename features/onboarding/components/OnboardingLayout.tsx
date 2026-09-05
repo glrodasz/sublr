@@ -16,10 +16,23 @@ interface Props {
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Header arrow. Pages pass a save-first handler; defaults to plain navigation. */
   onBack?: () => void;
+  /** Stepper click. When absent the stepper is display-only. */
+  onNavigate?: (href: string) => void;
+  /** Disables the stepper while the current step is saving. */
+  busy?: boolean;
 }
 
-export function OnboardingLayout({ step, description, children, footer, onBack }: Props) {
+export function OnboardingLayout({
+  step,
+  description,
+  children,
+  footer,
+  onBack,
+  onNavigate,
+  busy = false,
+}: Props) {
   const router = useRouter();
   const progress = (step / ONBOARDING_STEPS.length) * 100;
 
@@ -51,11 +64,18 @@ export function OnboardingLayout({ step, description, children, footer, onBack }
               {ONBOARDING_STEPS.map((s, i) => {
                 const n = i + 1;
                 const state = n === step ? "current" : n < step ? "done" : "todo";
+                const isCurrent = n === step;
                 return (
                   <li key={s.href} className={`tab tab--${state}`}>
-                    <span aria-current={n === step ? "step" : undefined}>
+                    <button
+                      type="button"
+                      className="tab-btn"
+                      aria-current={isCurrent ? "step" : undefined}
+                      disabled={isCurrent || busy || !onNavigate}
+                      onClick={() => onNavigate?.(s.href)}
+                    >
                       {n}. {s.label}
-                    </span>
+                    </button>
                   </li>
                 );
               })}
@@ -117,11 +137,6 @@ export function OnboardingLayout({ step, description, children, footer, onBack }
           background: var(--bg-2);
         }
 
-        .back:focus-visible {
-          outline: 2px solid var(--accent);
-          outline-offset: 2px;
-        }
-
         .title {
           margin: 0;
           font-size: 1.375rem;
@@ -145,20 +160,47 @@ export function OnboardingLayout({ step, description, children, footer, onBack }
         }
 
         .tab {
+          min-width: 0;
+        }
+
+        .tab-btn {
+          width: 100%;
+          padding: 6px 8px;
+          border: none;
+          border-radius: var(--r-sm);
+          background: transparent;
+          font: inherit;
           font-size: 0.9375rem;
           font-weight: 600;
+          text-align: left;
           color: var(--fg-2);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          cursor: pointer;
+          transition:
+            background 0.15s,
+            color 0.15s;
         }
 
-        .tab--current {
+        .tab-btn:hover:not(:disabled) {
+          background: var(--bg-2);
           color: var(--fg-0);
         }
 
-        .tab--done {
+        /* The current step is disabled only so it can't be re-navigated to;
+           it must not look faded like a truly unavailable control would. */
+        .tab--current .tab-btn {
+          color: var(--fg-0);
+          cursor: default;
+        }
+
+        .tab--done .tab-btn {
           color: var(--fg-1);
+        }
+
+        .tab-btn:disabled:not(.tab--current .tab-btn) {
+          cursor: default;
         }
 
         .track {
@@ -215,8 +257,9 @@ export function OnboardingLayout({ step, description, children, footer, onBack }
             gap: 4px;
           }
 
-          .tab {
+          .tab-btn {
             font-size: 0.75rem;
+            padding: 6px 4px;
           }
 
           .footer {

@@ -2,6 +2,7 @@ import { Card } from "../../../components/atoms/Card";
 import { formatAmount, formatNative } from "../../../components/atoms/Amount";
 import { KebabMenu } from "../../../components/molecules/KebabMenu";
 import { FREQUENCY_LABELS } from "../../../constants";
+import { paymentMethodLabel } from "../../../helpers/paymentMethodLabel";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
 import type {
   Category,
@@ -25,12 +26,6 @@ interface Props {
   onDelete?: (id: string) => void;
   /** id currently being deleted — disables its row's menu instead of the whole table. */
   deletingId?: string | null;
-}
-
-/** "{name} - {last4}" when the method has digits, its plain name otherwise. */
-export function paymentMethodLabel(method: PaymentMethod | undefined): string {
-  if (!method) return "—";
-  return method.last4 ? `${method.name} - ${method.last4}` : method.name;
 }
 
 export function DomainCategoryTable({

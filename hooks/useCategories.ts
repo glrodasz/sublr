@@ -43,13 +43,20 @@ export function useCategories(domain?: Domain) {
     );
   }, [ready, user?.sub, domain]);
 
-  const create = async (input: { domain: Domain; name: string; parentId?: string }) => {
+  /** Resolves to the new id so a form can select what it just created. */
+  const create = async (input: {
+    domain: Domain;
+    name: string;
+    parentId?: string;
+  }): Promise<string> => {
     const res = await fetch("/api/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
     });
     if (!res.ok) throw new Error(await res.text());
+    const { id } = (await res.json()) as { id: string };
+    return id;
   };
 
   const remove = async (id: string) => {

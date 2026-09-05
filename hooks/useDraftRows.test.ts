@@ -24,6 +24,13 @@ describe("useDraftRows", () => {
     expect(new Set(keys).size).toBe(3);
   });
 
+  it("can pre-fill an added row", () => {
+    const { result } = renderHook(() => useDraftRows<Row>(makeEmpty));
+    act(() => result.current.add({ name: "Rent" }));
+    expect(result.current.rows[1].name).toBe("Rent");
+    expect(result.current.rows[1].key).toBeDefined();
+  });
+
   it("updates a row by key without touching its siblings", () => {
     const { result } = renderHook(() => useDraftRows<Row>(makeEmpty));
     act(() => result.current.add());

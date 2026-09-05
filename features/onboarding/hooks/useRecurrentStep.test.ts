@@ -7,8 +7,10 @@ let itemsValue: {
   categoryId: string;
   name: string;
   amount: number;
+  currency: string;
   frequency: string;
   paymentMethodId?: string;
+  startDate: { toDate: () => Date };
 }[] = [];
 let loadingValue = false;
 
@@ -23,7 +25,10 @@ jest.mock("../../../hooks/useRecurrentTransactions", () => ({
 
 jest.mock("../../../hooks/useCategories", () => ({
   useCategories: () => ({
-    categories: [{ id: "cat1", name: "Salary", domain: "INCOME" }],
+    categories: [
+      { id: "cat1", name: "Salary", domain: "INCOME" },
+      { id: "cat-subs", name: "Subscriptions", domain: "EXPENSE" },
+    ],
     loading: false,
     error: null,
     create: jest.fn(),
@@ -42,14 +47,20 @@ jest.mock("../../../hooks/usePaymentMethods", () => ({
 
 import { useRecurrentStep } from "./useRecurrentStep";
 
-const fillValidRow = (result: { current: ReturnType<typeof useRecurrentStep> }) =>
+const fillValidRow = (
+  result: { current: ReturnType<typeof useRecurrentStep> },
+  extra: Record<string, unknown> = {}
+) =>
   act(() =>
     result.current.update(result.current.rows[0].key, {
       categoryId: "cat1",
       name: "Monthly salary",
       amount: "5000",
+      ...extra,
     })
   );
+
+const ts = (date: Date) => ({ toDate: () => date });
 
 beforeEach(() => {
   createMock.mockReset().mockResolvedValue("new-rt");
@@ -59,7 +70,7 @@ beforeEach(() => {
 });
 
 describe("useRecurrentStep", () => {
-  it("creates a row with the domain's default type", async () => {
+  it("creates a row with the domain's default type, its own currency and a startDate", async () => {
     const { result } = renderHook(() => useRecurrentStep("INCOME", "USD"));
 
     fillValidRow(result);
@@ -74,9 +85,82 @@ describe("useRecurrentStep", () => {
         name: "Monthly salary",
         amount: 5000,
         currency: "USD",
+        frequency: "MONTHLY",
         type: "SALARY",
+        startDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
       })
     );
+  });
+
+  it("new rows start in the step's default currency but can be switched per row", async () => {
+    const { result } = renderHook(() => useRecurrentStep("INCOME", "EUR"));
+    expect(result.current.rows[0].currency).toBe("EUR");
+
+    fillValidRow(result, { currency: "COP" });
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ currency: "COP" }));
+  });
+
+  it("backfills recurring rows by anchoring startDate six months back", async () => {
+    const { result } = renderHook(() => useRecurrentStep("INCOME", "USD"));
+    fillValidRow(result, { dayOfMonth: 15 });
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    const sent = new Date(createMock.mock.calls[0][0].startDate);
+    const now = new Date();
+    const expected = new Date(now.getFullYear(), now.getMonth() - 6, 15);
+    expect(sent.getFullYear()).toBe(expected.getFullYear());
+    expect(sent.getMonth()).toBe(expected.getMonth());
+    expect(sent.getDate()).toBe(15);
+  });
+
+  it("does not backfill when the option is turned off", async () => {
+    const { result } = renderHook(() => useRecurrentStep("INCOME", "USD"));
+    act(() => result.current.setBackfill(false));
+    fillValidRow(result, { dayOfMonth: 15 });
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    const sent = new Date(createMock.mock.calls[0][0].startDate);
+    expect(sent.getMonth()).toBe(new Date().getMonth());
+    expect(sent.getDate()).toBe(15);
+  });
+
+  it("never backfills a one-time row — it has one date", async () => {
+    const { result } = renderHook(() => useRecurrentStep("EXPENSE", "USD"));
+    fillValidRow(result, { frequency: "ONE_TIME", date: "2026-03-09" });
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    const sent = new Date(createMock.mock.calls[0][0].startDate);
+    expect([sent.getFullYear(), sent.getMonth(), sent.getDate()]).toEqual([2026, 2, 9]);
+  });
+
+  it("tags items in the Subscriptions category as SUBSCRIPTION", async () => {
+    const { result } = renderHook(() => useRecurrentStep("EXPENSE", "USD"));
+    fillValidRow(result, { categoryId: "cat-subs", name: "Netflix", amount: "15.49" });
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ type: "SUBSCRIPTION" }));
+  });
+
+  it("addTo seeds the row with the section's frequency", () => {
+    const { result } = renderHook(() => useRecurrentStep("EXPENSE", "USD"));
+    act(() => result.current.addTo("YEARLY"));
+    expect(result.current.rows[1].frequency).toBe("YEARLY");
   });
 
   it("skips rows that are blank or only partially filled", async () => {
@@ -128,7 +212,7 @@ describe("useRecurrentStep", () => {
     expect(result.current.rows.some((r) => r.key === unsavedKey)).toBe(false);
   });
 
-  it("hydrates from already-saved transactions", async () => {
+  it("hydrates from already-saved transactions, including currency and schedule", async () => {
     loadingValue = true;
     const { result, rerender } = renderHook(() => useRecurrentStep("INCOME", "USD"));
     expect(result.current.rows).toHaveLength(1);
@@ -139,8 +223,10 @@ describe("useRecurrentStep", () => {
         categoryId: "cat1",
         name: "Freelance",
         amount: 1200,
+        currency: "EUR",
         frequency: "MONTHLY",
         paymentMethodId: "pm1",
+        startDate: ts(new Date(2026, 2, 17, 12)),
       },
     ];
     loadingValue = false;
@@ -151,5 +237,7 @@ describe("useRecurrentStep", () => {
     // Amounts round-trip through a string, since the input is text.
     expect(result.current.rows[0].amount).toBe("1200");
     expect(result.current.rows[0].paymentMethodId).toBe("pm1");
+    expect(result.current.rows[0].currency).toBe("EUR");
+    expect(result.current.rows[0].dayOfMonth).toBe(17);
   });
 });

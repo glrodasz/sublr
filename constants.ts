@@ -1,4 +1,4 @@
-import type { Currency, Frequency } from "./types";
+import type { Currency, Frequency, PaymentMethodType } from "./types";
 
 /**
  * The single source of truth for supported currencies. `Currency` (types),
@@ -26,6 +26,16 @@ export const SELECTABLE_CURRENCIES: { value: Currency; label: string }[] = CURRE
   value: c,
   label: c,
 }));
+
+export const PAYMENT_METHOD_TYPE_LABELS: Record<PaymentMethodType, string> = {
+  CREDIT_CARD: "Credit card",
+  DEBIT_CARD: "Debit card",
+  BANK_TRANSFER: "Bank transfer",
+  DIGITAL_WALLET: "Digital wallet",
+  CASH: "Cash",
+  CRYPTO_WALLET: "Crypto wallet",
+  OTHER: "Other",
+};
 
 export const FREQUENCY_LABELS: Record<Frequency, string> = {
   ONE_TIME: "One time",

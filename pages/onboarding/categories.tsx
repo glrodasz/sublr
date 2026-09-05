@@ -24,16 +24,21 @@ export default function OnboardingCategories() {
     }
   };
 
+  // Categories persist as they're created, so there is nothing to flush.
+  const go = (href: string) => router.push(href);
+
   return (
     <OnboardingLayout
       step={1}
       description="Let's start with your categories. Add your main categories."
+      onNavigate={go}
+      busy={busy}
       footer={
         <div className="footer">
           <button type="button" className="skip" onClick={skip} disabled={busy}>
             Skip for now
           </button>
-          <WizardActions onNext={() => router.push("/onboarding/methods")} busy={busy} />
+          <WizardActions onNext={() => go("/onboarding/methods")} busy={busy} />
 
           <style jsx>{`
             .footer {

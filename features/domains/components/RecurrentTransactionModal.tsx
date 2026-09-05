@@ -1,12 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "../../../components/molecules/Modal";
+import { ScheduleFields } from "../../../components/molecules/ScheduleFields";
+import type { ScheduleValue } from "../../../components/molecules/ScheduleFields";
 import { Select } from "../../../components/atoms/Select";
 import { TextField } from "../../../components/atoms/TextField";
 import { Button } from "../../../components/atoms/Button";
+import { Chip } from "../../../components/atoms/Chip";
+import { Combobox } from "../../../components/atoms/Combobox";
 import { useCategories } from "../../../hooks/useCategories";
 import { usePaymentMethods } from "../../../hooks/usePaymentMethods";
 import { useRecurrentTransactions } from "../../../hooks/useRecurrentTransactions";
 import { useUserDoc } from "../../../hooks/useUserDoc";
+import { materializeNow } from "../../../hooks/useMaterialize";
+import { paymentMethodOptionLabel } from "../../../helpers/paymentMethodLabel";
+import {
+  BACKFILL_MONTHS,
+  anchorStartDate,
+  scheduleChoiceFromStartDate,
+  toDateInputValue,
+} from "../../../helpers/scheduleAnchor";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
 import { SELECTABLE_CURRENCIES, CURRENCY_SYMBOL, FREQUENCY_LABELS } from "../../../constants";
 import type { Currency, Domain, Frequency, RecurrentTransaction } from "../../../types";
@@ -29,13 +41,15 @@ interface Props {
   onClose: () => void;
 }
 
-interface FormState {
+interface FormState extends ScheduleValue {
   categoryId: string;
   name: string;
   amount: string;
   currency: Currency | "";
   frequency: Frequency;
   paymentMethodId: string;
+  /** Create only: anchor the schedule BACKFILL_MONTHS back so history gets written. */
+  backfill: boolean;
   chargedEnabled: boolean;
   chargedAmount: string;
   chargedCurrency: Currency | "";
@@ -43,8 +57,9 @@ interface FormState {
 
 export function RecurrentTransactionModal({ domain, open, item, onClose }: Props) {
   const config = DOMAIN_CONFIG[domain];
+  const noun = config.noun.replace(/s$/, "");
   const { userDoc } = useUserDoc();
-  const { categories } = useCategories(domain);
+  const { categories, create: createCategory } = useCategories(domain);
   const { methods } = usePaymentMethods();
   const { create, update } = useRecurrentTransactions(domain);
 
@@ -56,6 +71,10 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
       currency: "",
       frequency: "MONTHLY",
       paymentMethodId: "",
+      dayOfMonth: 1,
+      month: 0,
+      date: toDateInputValue(new Date()),
+      backfill: true,
       chargedEnabled: false,
       chargedAmount: "",
       chargedCurrency: "",
@@ -66,32 +85,39 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
   const [form, setForm] = useState<FormState>(empty);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [creatingCategory, setCreatingCategory] = useState(false);
 
   // Re-seed whenever the modal opens for a different target.
   useEffect(() => {
     if (!open) return;
     setFormError(null);
-    setForm(
-      item
-        ? {
-            categoryId: item.categoryId,
-            name: item.name,
-            amount: String(item.amount),
-            currency: item.currency,
-            frequency: item.frequency,
-            paymentMethodId: item.paymentMethodId ?? "",
-            chargedEnabled: item.chargedAmount !== undefined,
-            chargedAmount: item.chargedAmount !== undefined ? String(item.chargedAmount) : "",
-            chargedCurrency: item.chargedCurrency ?? "",
-          }
-        : empty
-    );
+    setCreatingCategory(false);
+    if (!item) {
+      setForm(empty);
+      return;
+    }
+    const schedule = scheduleChoiceFromStartDate(item.startDate.toDate(), item.frequency);
+    setForm({
+      categoryId: item.categoryId,
+      name: item.name,
+      amount: String(item.amount),
+      currency: item.currency,
+      frequency: item.frequency,
+      paymentMethodId: item.paymentMethodId ?? "",
+      dayOfMonth: schedule.dayOfMonth ?? 1,
+      month: schedule.month ?? 0,
+      date: schedule.date ?? empty.date,
+      backfill: false,
+      chargedEnabled: item.chargedAmount !== undefined,
+      chargedAmount: item.chargedAmount !== undefined ? String(item.chargedAmount) : "",
+      chargedCurrency: item.chargedCurrency ?? "",
+    });
   }, [open, item, empty]);
 
   const patch = (p: Partial<FormState>) => setForm((f) => ({ ...f, ...p }));
 
-  // Per-item currency default: the chosen method's defaultCurrency, stored
-  // since onboarding but read by nobody until now; mainCurrency otherwise.
+  // Per-item currency default: the chosen method's defaultCurrency when it
+  // has one, the user's main currency otherwise.
   const effectiveCurrency: Currency =
     form.currency ||
     methods.find((m) => m.id === form.paymentMethodId)?.defaultCurrency ||
@@ -108,13 +134,27 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
     });
   };
 
-  const categoryOptions = categories
-    .filter((c) => !c.parentId)
-    .map((c) => ({ value: c.id!, label: c.name }));
-  const methodOptions = methods.map((m) => ({
-    value: m.id!,
-    label: m.network ? `${m.name} (${m.network})` : m.name,
-  }));
+  const roots = categories.filter((c) => !c.parentId);
+  const categoryOptions = roots.map((c) => ({ value: c.id!, label: c.name }));
+  const methodOptions = methods.map((m) => ({ value: m.id!, label: paymentMethodOptionLabel(m) }));
+
+  const commitNewCategory = async (name: string) => {
+    setCreatingCategory(false);
+    const existing = roots.find((c) => c.name.toLowerCase() === name.trim().toLowerCase());
+    if (existing?.id) {
+      patch({ categoryId: existing.id });
+      return;
+    }
+    try {
+      const id = await createCategory({ domain, name: name.trim() });
+      patch({ categoryId: id });
+    } catch (err) {
+      console.error("Failed to create category:", err);
+      setFormError(`Couldn't create the category "${name.trim()}"`);
+    }
+  };
+
+  const isRecurring = form.frequency !== "ONE_TIME";
 
   const submit = async () => {
     const amount = Number(form.amount);
@@ -130,20 +170,37 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
         return setFormError("Charged currency must differ from the item's currency");
     }
 
+    const startDate = anchorStartDate({
+      frequency: form.frequency,
+      dayOfMonth: form.dayOfMonth,
+      month: form.month,
+      date: form.date,
+      backfill: !item && isRecurring && form.backfill,
+    });
+
     setBusy(true);
     setFormError(null);
     try {
       if (item?.id) {
+        const scheduleChanged =
+          form.frequency !== item.frequency ||
+          startDate.getTime() !== item.startDate.toDate().getTime();
         await update(item.id, {
           categoryId: form.categoryId,
           name: form.name.trim(),
           amount,
           currency: effectiveCurrency,
-          frequency: form.frequency,
+          // Only a real schedule change should move nextOccurrence.
+          ...(scheduleChanged
+            ? { frequency: form.frequency, startDate: startDate.toISOString() }
+            : {}),
           paymentMethodId: form.paymentMethodId || null,
           chargedAmount: form.chargedEnabled ? chargedAmount! : null,
           chargedCurrency: form.chargedEnabled ? (form.chargedCurrency as Currency) : null,
         });
+        if (scheduleChanged && startDate < new Date()) {
+          await materializeNow().catch((err) => console.error("materialize failed:", err));
+        }
       } else {
         await create({
           domain,
@@ -152,11 +209,16 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
           amount,
           currency: effectiveCurrency,
           frequency: form.frequency,
+          startDate: startDate.toISOString(),
           ...(form.paymentMethodId ? { paymentMethodId: form.paymentMethodId } : {}),
           ...(form.chargedEnabled
             ? { chargedAmount: chargedAmount!, chargedCurrency: form.chargedCurrency as Currency }
             : {}),
         });
+        // Anything anchored in the past has occurrences to write.
+        if (startDate < new Date()) {
+          await materializeNow().catch((err) => console.error("materialize failed:", err));
+        }
       }
       onClose();
     } catch (err) {
@@ -168,23 +230,35 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
   };
 
   return (
-    <Modal
-      open={open}
-      title={
-        item
-          ? `Edit ${form.name || config.noun.replace(/s$/, "")}`
-          : `New ${config.noun.replace(/s$/, "")}`
-      }
-      onClose={onClose}
-    >
+    <Modal open={open} title={item ? `Edit ${form.name || noun}` : `New ${noun}`} onClose={onClose}>
       <div className="form">
-        <Select
-          label="Category"
-          placeholder="Pick a category"
-          options={categoryOptions}
-          value={form.categoryId}
-          onValueChange={(v) => patch({ categoryId: v })}
-        />
+        <div className="category">
+          {creatingCategory ? (
+            <Combobox
+              autoFocus
+              label={`New ${config.title.toLowerCase()} category`}
+              placeholder="Type a name"
+              suggestions={[]}
+              onSelect={commitNewCategory}
+              onCancel={() => setCreatingCategory(false)}
+            />
+          ) : (
+            <>
+              <Select
+                label="Category"
+                placeholder="Pick a category"
+                options={categoryOptions}
+                value={form.categoryId}
+                onValueChange={(v) => patch({ categoryId: v })}
+              />
+              <div className="category-add">
+                <Chip variant="add" onClick={() => setCreatingCategory(true)}>
+                  New category
+                </Chip>
+              </div>
+            </>
+          )}
+        </div>
 
         <TextField
           label="Name"
@@ -227,13 +301,38 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
           />
         </div>
 
-        <label className="charged-toggle">
+        <div className="pair">
+          <ScheduleFields frequency={form.frequency} value={form} onChange={(p) => patch(p)} />
+        </div>
+
+        {!item && isRecurring && (
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={form.backfill}
+              onChange={(e) => patch({ backfill: e.currentTarget.checked })}
+            />
+            <span>
+              Backfill the last {BACKFILL_MONTHS} months
+              <span className="hint"> — I&rsquo;ve been paying this for a while</span>
+            </span>
+          </label>
+        )}
+
+        <label className="toggle">
           <input
             type="checkbox"
             checked={form.chargedEnabled}
             onChange={(e) => patch({ chargedEnabled: e.currentTarget.checked })}
           />
-          Charged in a different currency
+          <span>
+            My card was charged a different amount
+            <span className="hint">
+              {" "}
+              — e.g. a $15.49 subscription billed as 62,700 COP. Records the real cost and the
+              exchange rate you actually paid.
+            </span>
+          </span>
         </label>
 
         {form.chargedEnabled && (
@@ -275,19 +374,39 @@ export function RecurrentTransactionModal({ domain, open, item, onClose }: Props
           gap: 14px;
         }
 
+        .category {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .category-add {
+          display: flex;
+        }
+
         .pair {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
 
-        .charged-toggle {
+        .toggle {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           gap: 8px;
           font-size: 0.85rem;
           color: var(--fg-1);
           cursor: pointer;
+        }
+
+        .toggle input {
+          margin-top: 3px;
+          flex-shrink: 0;
+          accent-color: var(--accent);
+        }
+
+        .hint {
+          color: var(--fg-2);
         }
 
         .form-error {

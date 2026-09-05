@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
 import auth0 from "../../lib/auth0";
 import { OnboardingLayout } from "../../features/onboarding/components/OnboardingLayout";
 import { RecurrentStep } from "../../features/onboarding/components/RecurrentStep";
 import { useRecurrentStep } from "../../features/onboarding/hooks/useRecurrentStep";
+import { useStepNavigation } from "../../features/onboarding/hooks/useStepNavigation";
 import { CurrencyPicker } from "../../features/onboarding/components/CurrencyPicker";
 import { WizardActions } from "../../features/onboarding/components/WizardActions";
 import { useUserDoc } from "../../hooks/useUserDoc";
@@ -12,13 +12,12 @@ import type { Currency } from "../../types";
 export const getServerSideProps = auth0.withPageAuthRequired();
 
 export default function OnboardingIncomes() {
-  const router = useRouter();
   const { userDoc, update } = useUserDoc();
   const [currency, setCurrency] = useState<Currency>("USD");
   const [currencyTouched, setCurrencyTouched] = useState(false);
+  // The picker sets the reporting currency and the default for new rows; each
+  // row can still be switched to its own currency.
   const state = useRecurrentStep("INCOME", currency);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Adopt the stored currency until the user picks one themselves.
   useEffect(() => {
@@ -27,33 +26,23 @@ export default function OnboardingIncomes() {
     }
   }, [userDoc?.mainCurrency, currencyTouched]);
 
-  const flush = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      if (currency !== userDoc?.mainCurrency) {
-        await update({ mainCurrency: currency });
-      }
-      await state.save();
-      return true;
-    } catch (err) {
-      console.error("Failed to save incomes:", err);
-      setError("Could not save your incomes. Please try again.");
-      return false;
-    } finally {
-      setBusy(false);
+  const { busy, error, go } = useStepNavigation(async () => {
+    if (currency !== userDoc?.mainCurrency) {
+      await update({ mainCurrency: currency });
     }
-  };
+    await state.save();
+  }, "Could not save your incomes. Please try again.");
 
   return (
     <OnboardingLayout
       step={3}
+      onBack={() => go("/onboarding/methods")}
+      onNavigate={go}
+      busy={busy}
       footer={
         <WizardActions
-          onBack={() => router.push("/onboarding/methods")}
-          onNext={async () => {
-            if (await flush()) router.push("/onboarding/expenses");
-          }}
+          onBack={() => go("/onboarding/methods")}
+          onNext={() => go("/onboarding/expenses")}
           busy={busy}
           error={error}
         />

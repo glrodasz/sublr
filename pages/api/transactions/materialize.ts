@@ -5,17 +5,19 @@ import {
   materializeOccurrences,
   occurrenceToTransaction,
 } from "../../../helpers/materializeOccurrences";
+import { BACKFILL_MONTHS } from "../../../helpers/scheduleAnchor";
 import type { RecurrentTransaction } from "../../../types";
 
-/** How far back the synthetic PAID history reaches (owner decision: 6 months). */
-const BACKFILL_MONTHS = 6;
 const BATCH_LIMIT = 450;
 
 /**
- * Materializes every active recurrent item's occurrences for the past
- * 6 months into the transactions collection as PAID docs. Deterministic ids
- * ({itemId}_{date}) make the whole operation idempotent: existing docs —
- * including ones the user has since edited or SKIPPED — are left untouched.
+ * Materializes every active recurrent item's past occurrences into the
+ * transactions collection as PAID docs. Recurring items are backfilled at
+ * most BACKFILL_MONTHS; a ONE_TIME item is always written, however old, since
+ * it has exactly one occurrence and skipping it would lose the purchase.
+ * Deterministic ids ({itemId}_{date}) make the whole operation idempotent:
+ * existing docs — including ones the user has since edited or SKIPPED — are
+ * left untouched.
  */
 export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await auth0.getSession(req, res);
@@ -31,8 +33,9 @@ export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextAp
 
   const db = admin.firestore();
   const now = new Date();
-  const from = new Date(now);
-  from.setMonth(from.getMonth() - BACKFILL_MONTHS);
+  // Built from y/m/d rather than setMonth(): on the 29th–31st, setMonth
+  // overflows into the following month and silently shortens the window.
+  const windowStart = new Date(now.getFullYear(), now.getMonth() - BACKFILL_MONTHS, 1);
 
   const itemsSnap = await db
     .collection("recurrentTransactions")
@@ -43,6 +46,7 @@ export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextAp
   const pending: { ref: FirebaseFirestore.DocumentReference; doc: Record<string, unknown> }[] = [];
   for (const d of itemsSnap.docs) {
     const item = { id: d.id, ...d.data() } as RecurrentTransaction;
+    const from = item.frequency === "ONE_TIME" ? item.startDate.toDate() : windowStart;
     for (const occ of materializeOccurrences(item, from, now)) {
       pending.push({
         ref: db.collection("transactions").doc(occ.id),

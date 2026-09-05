@@ -2,7 +2,7 @@ import { Card } from "../../../components/atoms/Card";
 import { SectionTitle } from "../../../components/atoms/SectionTitle";
 import { KebabMenu } from "../../../components/molecules/KebabMenu";
 import { EmptyState } from "../../../components/atoms/EmptyState";
-import { PAYMENT_METHOD_TYPE_OPTIONS } from "../../onboarding/paymentMethodOptions";
+import { PAYMENT_METHOD_TYPE_LABELS } from "../../../constants";
 import type { PaymentMethod } from "../../../types";
 
 interface Props {
@@ -12,10 +12,6 @@ interface Props {
   onEdit: (method: PaymentMethod) => void;
   onArchive: (id: string) => void;
 }
-
-const TYPE_LABEL: Record<string, string> = Object.fromEntries(
-  PAYMENT_METHOD_TYPE_OPTIONS.map((o) => [o.value, o.label])
-);
 
 export function MethodsList({ methods, loading, archivingId, onEdit, onArchive }: Props) {
   return (
@@ -45,7 +41,7 @@ export function MethodsList({ methods, loading, archivingId, onEdit, onArchive }
             {methods.map((m) => (
               <tr key={m.id}>
                 <td>{m.name}</td>
-                <td className="muted">{TYPE_LABEL[m.type] ?? m.type}</td>
+                <td className="muted">{PAYMENT_METHOD_TYPE_LABELS[m.type]}</td>
                 <td className="muted">{m.network || "—"}</td>
                 <td className="muted mono">{m.last4 ? `••${m.last4}` : "—"}</td>
                 <td className="muted">{m.defaultCurrency ?? "—"}</td>

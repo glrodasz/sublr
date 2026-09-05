@@ -4,8 +4,10 @@ import auth0 from "../../lib/auth0";
 import { OnboardingLayout } from "../../features/onboarding/components/OnboardingLayout";
 import { RecurrentStep } from "../../features/onboarding/components/RecurrentStep";
 import { useRecurrentStep } from "../../features/onboarding/hooks/useRecurrentStep";
+import { useStepNavigation } from "../../features/onboarding/hooks/useStepNavigation";
 import { WizardActions } from "../../features/onboarding/components/WizardActions";
 import { useUserDoc } from "../../hooks/useUserDoc";
+import { materializeNow } from "../../hooks/useMaterialize";
 
 export const getServerSideProps = auth0.withPageAuthRequired();
 
@@ -13,33 +15,43 @@ export default function OnboardingExpenses() {
   const router = useRouter();
   const { userDoc, update } = useUserDoc();
   const state = useRecurrentStep("EXPENSE", userDoc?.mainCurrency ?? "USD");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [finishing, setFinishing] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
 
-  const finish = async () => {
-    setBusy(true);
-    setError(null);
+  const { busy, error, flush, go } = useStepNavigation(async () => {
+    await state.save();
+  }, "Could not save your expenses. Please try again.");
+
+  const complete = async () => {
+    if (!(await flush())) return;
+    setFinishing(true);
+    setFinishError(null);
     try {
-      await state.save();
       await update({ onboardingCompleted: true, onboardingMode: "ASSISTED" });
+      // Backfilled items were saved with a startDate in the past; write their
+      // history now so the dashboard isn't empty until a later session.
+      await materializeNow().catch((err) => console.error("materialize failed:", err));
       router.push("/");
     } catch (err) {
       console.error("Failed to finish onboarding:", err);
-      setError("Could not save your expenses. Please try again.");
-      setBusy(false);
+      setFinishError("Could not finish setup. Please try again.");
+      setFinishing(false);
     }
   };
 
   return (
     <OnboardingLayout
       step={4}
+      onBack={() => go("/onboarding/incomes")}
+      onNavigate={go}
+      busy={busy || finishing}
       footer={
         <WizardActions
-          onBack={() => router.push("/onboarding/incomes")}
-          onNext={finish}
+          onBack={() => go("/onboarding/incomes")}
+          onNext={complete}
           nextLabel="Finish"
-          busy={busy}
-          error={error}
+          busy={busy || finishing}
+          error={error ?? finishError}
         />
       }
     >

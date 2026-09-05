@@ -76,6 +76,51 @@ describe("OnboardingLayout", () => {
     expect(pushMock).toHaveBeenCalledWith("/");
   });
 
+  it("lets the user jump to another step through onNavigate", () => {
+    const onNavigate = jest.fn();
+    render(
+      <OnboardingLayout step={3} onNavigate={onNavigate}>
+        <p>body</p>
+      </OnboardingLayout>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "1. Categories" }));
+    expect(onNavigate).toHaveBeenCalledWith("/onboarding/categories");
+    // Steps ahead are reachable too — nothing forces a linear walk.
+    fireEvent.click(screen.getByRole("button", { name: "4. Expenses" }));
+    expect(onNavigate).toHaveBeenCalledWith("/onboarding/expenses");
+  });
+
+  it("does not let a click re-enter the current step or fire while saving", () => {
+    const onNavigate = jest.fn();
+    const { rerender } = render(
+      <OnboardingLayout step={3} onNavigate={onNavigate}>
+        <p>body</p>
+      </OnboardingLayout>
+    );
+    expect(screen.getByRole("button", { name: "3. Incomes" })).toBeDisabled();
+
+    rerender(
+      <OnboardingLayout step={3} onNavigate={onNavigate} busy>
+        <p>body</p>
+      </OnboardingLayout>
+    );
+    expect(screen.getByRole("button", { name: "1. Categories" })).toBeDisabled();
+  });
+
+  it("routes the header arrow through onBack when a page provides one", () => {
+    const onBack = jest.fn();
+    render(
+      <OnboardingLayout step={3} onBack={onBack}>
+        <p>body</p>
+      </OnboardingLayout>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+    expect(onBack).toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
   it("renders the description and footer when provided", () => {
     render(
       <OnboardingLayout

@@ -34,7 +34,9 @@ export function useDraftRows<T extends DraftRow>(
     }
   }, [hydrate?.ready, hydrate?.rows]);
 
-  const add = () => setRows((prev) => [...prev, blank()]);
+  /** Appends a blank row, optionally pre-filled (e.g. a section's frequency). */
+  const add = (overrides: Partial<Omit<T, "key">> = {}) =>
+    setRows((prev) => [...prev, { ...blank(), ...overrides }]);
 
   const update = (key: string, patch: Partial<T>) =>
     setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
