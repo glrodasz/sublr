@@ -1,5 +1,6 @@
 import { Card } from "../../../components/atoms/Card";
 import { formatAmount } from "../../../components/atoms/Amount";
+import { KebabMenu } from "../../../components/molecules/KebabMenu";
 import { FREQUENCY_LABELS } from "../../../constants";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
 import type {
@@ -20,6 +21,10 @@ interface Props {
   currency: Currency;
   loading: boolean;
   onSelectCategory: (id: string | null) => void;
+  onEdit?: (item: RecurrentTransaction) => void;
+  onDelete?: (id: string) => void;
+  /** id currently being deleted — disables its row's menu instead of the whole table. */
+  deletingId?: string | null;
 }
 
 /** "{name} - {last4}" when the method has digits, its plain name otherwise. */
@@ -38,6 +43,9 @@ export function DomainCategoryTable({
   currency,
   loading,
   onSelectCategory,
+  onEdit,
+  onDelete,
+  deletingId,
 }: Props) {
   const config = DOMAIN_CONFIG[domain];
   const selected = categories.find((c) => c.id === selectedCategoryId);
@@ -102,9 +110,22 @@ export function DomainCategoryTable({
                       </td>
                     )}
                     <td className="actions">
-                      <button type="button" className="more-btn" disabled aria-label="More options">
-                        ⋮
-                      </button>
+                      <KebabMenu
+                        aria-label={`Actions for ${item.name}`}
+                        actions={[
+                          {
+                            label: "Edit",
+                            onSelect: () => onEdit?.(item),
+                            disabled: !onEdit,
+                          },
+                          {
+                            label: deletingId === item.id ? "Deleting…" : "Delete",
+                            onSelect: () => item.id && onDelete?.(item.id),
+                            danger: true,
+                            disabled: !onDelete || deletingId === item.id,
+                          },
+                        ]}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -223,33 +244,6 @@ export function DomainCategoryTable({
         .actions {
           text-align: right;
           width: 32px;
-        }
-
-        .more-btn {
-          width: 28px;
-          height: 28px;
-          border: none;
-          background: transparent;
-          color: var(--fg-2);
-          font-size: 1.1rem;
-          cursor: pointer;
-          border-radius: var(--r-sm);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          transition:
-            background 0.15s,
-            color 0.15s;
-        }
-
-        .more-btn:hover:not(:disabled) {
-          background: var(--bg-2);
-          color: var(--fg-1);
-        }
-
-        .more-btn:disabled {
-          opacity: 0.35;
-          cursor: not-allowed;
         }
 
         .empty {

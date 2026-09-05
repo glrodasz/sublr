@@ -6,15 +6,35 @@ import { PageLayout } from "../components/organisms/PageLayout";
 import { Card } from "../components/atoms/Card";
 import { SectionTitle } from "../components/atoms/SectionTitle";
 import { Button } from "../components/atoms/Button";
+import { Select } from "../components/atoms/Select";
 import { useUserDoc } from "../hooks/useUserDoc";
+import { SELECTABLE_CURRENCIES, CURRENCY_SYMBOL } from "../constants";
+import type { Currency } from "../types";
 
 export const getServerSideProps = auth0.withPageAuthRequired();
+
+const CURRENCY_OPTIONS = SELECTABLE_CURRENCIES.map((c) => ({
+  value: c.value,
+  label: `${CURRENCY_SYMBOL[c.value]} ${c.label}`,
+}));
 
 export default function SettingsPage() {
   const { user } = useUser();
   const router = useRouter();
-  const { update } = useUserDoc();
+  const { userDoc, update } = useUserDoc();
   const [busy, setBusy] = useState(false);
+  const [savingCurrency, setSavingCurrency] = useState(false);
+
+  const changeMainCurrency = async (currency: string) => {
+    setSavingCurrency(true);
+    try {
+      await update({ mainCurrency: currency as Currency });
+    } catch (err) {
+      console.error("Failed to update main currency:", err);
+    } finally {
+      setSavingCurrency(false);
+    }
+  };
 
   const redoOnboarding = async () => {
     setBusy(true);
@@ -51,6 +71,23 @@ export default function SettingsPage() {
           <a href="/api/auth/logout" className="logout">
             Log out
           </a>
+        </Card>
+
+        <Card>
+          <SectionTitle title="Currency" />
+          <p className="hint">
+            Your main currency for reporting. Amounts always stay in the currency they were entered
+            in — this only controls the default target for totals.
+          </p>
+          <div className="currency-field">
+            <Select
+              aria-label="Main currency"
+              options={CURRENCY_OPTIONS}
+              value={userDoc?.mainCurrency ?? ""}
+              disabled={savingCurrency || !userDoc}
+              onValueChange={changeMainCurrency}
+            />
+          </div>
         </Card>
 
         <Card>
@@ -112,6 +149,10 @@ export default function SettingsPage() {
 
         .redo {
           margin-top: 4px;
+        }
+
+        .currency-field {
+          max-width: 200px;
         }
 
         .logout {

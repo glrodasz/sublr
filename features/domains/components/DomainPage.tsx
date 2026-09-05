@@ -4,6 +4,7 @@ import { ErrorState } from "../../../components/atoms/ErrorState";
 import { DomainSummary } from "./DomainSummary";
 import { DomainChart } from "./DomainChart";
 import { DomainCategoryTable } from "./DomainCategoryTable";
+import { RecurrentTransactionModal } from "./RecurrentTransactionModal";
 import { PERIODS, getStartDate } from "../helpers/periods";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
 import { toDomainChartData } from "../helpers/domainChartData";
@@ -14,15 +15,15 @@ import { usePaymentMethods } from "../../../hooks/usePaymentMethods";
 import { useMoneyContext } from "../../../hooks/useMoneyContext";
 import { startOfPreviousMonth } from "../../../utils/startOfPreviousMonth";
 import { sumMonthly, computeMoM, convertedAmount } from "../../../helpers";
-import type { Currency, Domain } from "../../../types";
+import type { Currency, Domain, RecurrentTransaction } from "../../../types";
 
 interface Props {
   domain: Domain;
 }
 
-function NewItemButton({ label }: { label: string }) {
+function NewItemButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button type="button" className="new-btn" disabled>
+    <button type="button" className="new-btn" onClick={onClick}>
       + {label}
       <style jsx>{`
         .new-btn {
@@ -39,10 +40,6 @@ function NewItemButton({ label }: { label: string }) {
           font-weight: 700;
           cursor: pointer;
           white-space: nowrap;
-        }
-        .new-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
         }
       `}</style>
     </button>
@@ -72,13 +69,36 @@ export function DomainPage({ domain }: Props) {
     loading: txLoading,
     error: txError,
   } = useDomainTransactions(domain, fetchStart);
-  const { items: recurringItems, error: itemsError } = useRecurringItems(domain);
+  const { items: recurringItems, error: itemsError, remove } = useRecurringItems(domain);
   const { categories, loading: catLoading, error: catError } = useCategories(domain);
   const { methods } = usePaymentMethods();
   const error = txError ?? itemsError ?? catError;
 
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const selectedCatId = activeCatId ?? categories[0]?.id ?? null;
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<RecurrentTransaction | undefined>(undefined);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const openCreate = () => {
+    setEditingItem(undefined);
+    setModalOpen(true);
+  };
+  const openEdit = (recurringItem: RecurrentTransaction) => {
+    setEditingItem(recurringItem);
+    setModalOpen(true);
+  };
+  const deleteItem = async (recurringItemId: string) => {
+    setDeletingId(recurringItemId);
+    try {
+      await remove(recurringItemId);
+    } catch (err) {
+      console.error("Failed to delete recurrent item:", err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const transactions = useMemo(
     () => fetched.filter((t) => t.occurredAt.toDate() >= startDate),
@@ -105,7 +125,9 @@ export function DomainPage({ domain }: Props) {
   return (
     <PageLayout
       title={config.title}
-      actions={<NewItemButton label={`New ${config.noun.replace(/s$/, "")}`} />}
+      actions={
+        <NewItemButton label={`New ${config.noun.replace(/s$/, "")}`} onClick={openCreate} />
+      }
     >
       {error && <ErrorState />}
 
@@ -132,6 +154,16 @@ export function DomainPage({ domain }: Props) {
         currency={currency}
         loading={catLoading}
         onSelectCategory={setActiveCatId}
+        onEdit={openEdit}
+        onDelete={deleteItem}
+        deletingId={deletingId}
+      />
+
+      <RecurrentTransactionModal
+        domain={domain}
+        open={modalOpen}
+        item={editingItem}
+        onClose={() => setModalOpen(false)}
       />
     </PageLayout>
   );

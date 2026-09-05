@@ -48,5 +48,10 @@ export function useUpcomingItems(count: number = 5) {
     );
   }, [ready, user?.sub, count]);
 
-  return { items, loading, error };
+  const markPaid = async (id: string) => {
+    const res = await fetch(`/api/recurrent-transactions/${id}/mark-paid`, { method: "POST" });
+    if (!res.ok) throw new Error(await res.text());
+  };
+
+  return { items, loading, error, markPaid };
 }

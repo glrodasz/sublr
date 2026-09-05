@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { withOnboardingGuard } from "../features/onboarding/helpers/onboardingGuard";
 import { PageLayout } from "../components/organisms/PageLayout";
@@ -13,9 +14,11 @@ import { topWithOther } from "../features/dashboard/helpers/topWithOther";
 import { Card } from "../components/atoms/Card";
 import { SectionTitle } from "../components/atoms/SectionTitle";
 import { FlowChart } from "../components/molecules/FlowChart";
+import { RecurrentTransactionModal } from "../features/domains/components/RecurrentTransactionModal";
 import { useDashboard } from "../features/dashboard/hooks/useDashboard";
 import { useUserDoc } from "../hooks/useUserDoc";
 import { useMaterialize } from "../hooks/useMaterialize";
+import type { Domain } from "../types";
 
 export const getServerSideProps = withOnboardingGuard();
 
@@ -36,6 +39,7 @@ export default function Dashboard() {
     savingsByCategory,
     recentPayments,
     upcoming,
+    markPaid,
     momDelta,
     flowSeries,
     loading,
@@ -43,13 +47,14 @@ export default function Dashboard() {
   } = useDashboard();
 
   const firstName = (user?.name ?? user?.nickname ?? "there").split(" ")[0];
+  const [newDomain, setNewDomain] = useState<Domain | null>(null);
 
   const actions = (
     <>
-      <button type="button" className="btn" disabled>
+      <button type="button" className="btn" onClick={() => setNewDomain("INCOME")}>
         + New income
       </button>
-      <button type="button" className="btn" disabled>
+      <button type="button" className="btn" onClick={() => setNewDomain("EXPENSE")}>
         + New expense
       </button>
       <style jsx>{`
@@ -154,8 +159,12 @@ export default function Dashboard() {
           loading={loading}
         />
         <RecentPayments transactions={recentPayments} loading={loading} />
-        <UpcomingExpirations items={upcoming} loading={loading} />
+        <UpcomingExpirations items={upcoming} loading={loading} onMarkPaid={markPaid} />
       </section>
+
+      {newDomain && (
+        <RecurrentTransactionModal domain={newDomain} open onClose={() => setNewDomain(null)} />
+      )}
 
       <style jsx>{`
         .row {

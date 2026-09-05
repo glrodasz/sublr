@@ -1,11 +1,14 @@
+import { useState } from "react";
 import type { RecurrentTransaction } from "../../../types";
 import { Card } from "../../../components/atoms/Card";
 import { SectionTitle } from "../../../components/atoms/SectionTitle";
 import { TransactionRow } from "../../../components/molecules/TransactionRow";
+import { KebabMenu } from "../../../components/molecules/KebabMenu";
 
 interface Props {
   items: RecurrentTransaction[];
   loading?: boolean;
+  onMarkPaid?: (id: string) => Promise<void>;
 }
 
 function formatDate(ts: RecurrentTransaction["nextOccurrence"]): string {
@@ -17,7 +20,21 @@ function formatDate(ts: RecurrentTransaction["nextOccurrence"]): string {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
 }
 
-export function UpcomingExpirations({ items, loading }: Props) {
+export function UpcomingExpirations({ items, loading, onMarkPaid }: Props) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  const markPaid = async (id: string) => {
+    if (!onMarkPaid) return;
+    setPendingId(id);
+    try {
+      await onMarkPaid(id);
+    } catch (err) {
+      console.error("Failed to mark item paid:", err);
+    } finally {
+      setPendingId(null);
+    }
+  };
+
   return (
     <Card>
       <SectionTitle title="Next to expire" />
@@ -35,6 +52,21 @@ export function UpcomingExpirations({ items, loading }: Props) {
               amount={item.amount}
               currency={item.currency}
               meta={formatDate(item.nextOccurrence)}
+              trailing={
+                onMarkPaid &&
+                item.id && (
+                  <KebabMenu
+                    aria-label={`Actions for ${item.name}`}
+                    actions={[
+                      {
+                        label: pendingId === item.id ? "Marking paid…" : "Mark as paid",
+                        onSelect: () => markPaid(item.id!),
+                        disabled: pendingId === item.id,
+                      },
+                    ]}
+                  />
+                )
+              }
             />
           ))}
         </ul>

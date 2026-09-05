@@ -33,7 +33,7 @@ export function useDashboard() {
   const { items: savings, loading: l7, error: e7 } = useRecurringItems("SAVING");
   const { categories, loading: l4, error: e4 } = useCategories();
   const { transactions: recentPayments, loading: l5, error: e5 } = useRecentTransactions(5);
-  const { items: upcoming, loading: l6, error: e6 } = useUpcomingItems(5);
+  const { items: upcoming, loading: l6, error: e6, markPaid } = useUpcomingItems(5);
   // One window serves both consumers: the cash-flow chart wants the 6 months
   // the materializer backfills, and computeMoM slices its own current/previous
   // months out of the same set — so the previous month is never truncated and
@@ -131,6 +131,7 @@ export function useDashboard() {
     savingsByCategory,
     recentPayments,
     upcoming,
+    markPaid,
     momDelta,
     flowSeries,
     loading,

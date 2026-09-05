@@ -4,7 +4,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { db } from "../firebase/client";
 import { useFirebaseAuth } from "./useFirebaseAuth";
 import type { PaymentMethod } from "../types";
-import type { PaymentMethodInput } from "../schemas";
+import type { PaymentMethodInput, PaymentMethodUpdate } from "../schemas";
 
 export function usePaymentMethods() {
   const { user } = useUser();
@@ -48,10 +48,19 @@ export function usePaymentMethods() {
     return id;
   };
 
+  const update = async (id: string, patch: PaymentMethodUpdate) => {
+    const res = await fetch(`/api/payment-methods/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) throw new Error(await res.text());
+  };
+
   const remove = async (id: string) => {
     const res = await fetch(`/api/payment-methods/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error(await res.text());
   };
 
-  return { methods, loading, error, create, remove };
+  return { methods, loading, error, create, update, remove };
 }

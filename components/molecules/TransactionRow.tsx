@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Currency } from "../../types";
 import { formatAmount } from "../atoms/Amount";
 
@@ -6,18 +7,19 @@ interface Props {
   amount: number;
   currency: Currency;
   meta: string;
+  /** Optional trailing slot — a kebab menu, for rows that support actions. */
+  trailing?: ReactNode;
 }
 
-export function TransactionRow({ name, amount, currency, meta }: Props) {
+export function TransactionRow({ name, amount, currency, meta, trailing }: Props) {
   return (
     <li className="row">
       <span className="name">{name}</span>
       <span className="right">
-        <span className="amount">
-          {formatAmount(amount, currency)}
-        </span>
+        <span className="amount">{formatAmount(amount, currency)}</span>
         <span className="meta">{meta}</span>
       </span>
+      {trailing}
       <style jsx>{`
         .row {
           display: flex;
