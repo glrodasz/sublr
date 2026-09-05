@@ -1,14 +1,14 @@
-import type { RecurringItem } from "../../types";
+import type { RecurrentTransaction } from "../../types";
 import { Card } from "../atoms/Card";
 import { SectionTitle } from "../atoms/SectionTitle";
 import { TransactionRow } from "../molecules/TransactionRow";
 
 interface Props {
-  items: RecurringItem[];
+  items: RecurrentTransaction[];
   loading?: boolean;
 }
 
-function formatDate(ts: RecurringItem["nextOccurrence"]): string {
+function formatDate(ts: RecurrentTransaction["nextOccurrence"]): string {
   if (!ts) return "—";
   const date =
     typeof (ts as { toDate?: () => Date }).toDate === "function"

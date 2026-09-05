@@ -41,7 +41,7 @@ export function useCategories(domain?: Domain) {
     );
   }, [ready, user?.sub, domain]);
 
-  const create = async (input: { domain: Domain; name: string }) => {
+  const create = async (input: { domain: Domain; name: string; parentId?: string }) => {
     const res = await fetch("/api/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

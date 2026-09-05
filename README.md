@@ -48,13 +48,17 @@ This project uses Firebase Firestore as database and Auth0 as Auth provider so y
 
 Now the project is ready to run. Run the project to check everything is working fine and the subscriptions list will now show empty because you won't have any data in your firestore database.
 
-To populate your firestore database you will find a seed script inside of `/scripts/firestoreSeed.js` . That script will create entries in the database with a pre-configured admin id as resource owner. To configure that you could:
+To populate your Firestore database run the two seed scripts:
 
-1. Add a `console.log` in some view to print the current logged user id
-2. Log in with social like gmail or github 
-3. Take the printed id and paste it into `ADMIN_USER_ID` inside `.env.local`
+```bash
+# 1. Seed the global services catalogue (Netflix, Spotify, etc.) — run once
+pnpm seed:global
 
-After setting an `ADMIN_USER_ID` you can proceed to run the seeder script and check the data has been loaded into the app
+# 2. Seed per-user data (categories, payment methods, transactions) — run after first login
+pnpm seed:user <userId>
+```
+
+To find your `userId`, add a temporary `console.log` in any page to print the Auth0 `user.sub` value after logging in.
 
 ## Firebase Rules
 NOTE: This rules should be added **only after** the seeder script has ran

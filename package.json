@@ -7,7 +7,8 @@
     "node": ">=20 <25"
   },
   "scripts": {
-    "seed": "tsx scripts/firebase/firestoreSeed.ts",
+    "seed:global": "tsx scripts/firebase/firestoreSeedGlobalData.ts",
+    "seed:user": "tsx scripts/firebase/firestoreSeedUserData.ts",
     "dev": "next dev",
     "debug": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",

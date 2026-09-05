@@ -34,7 +34,28 @@ export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextAp
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten() });
     }
-    const { domain, name } = parsed.data;
+    const { domain, name, parentId } = parsed.data;
+
+    // Validate parentId: must exist, belong to this user, same domain, be a root category
+    if (parentId) {
+      const parentSnap = await db.collection("categories").doc(parentId).get();
+      if (!parentSnap.exists) {
+        return res.status(400).json({ error: "Parent category not found" });
+      }
+      const parentData = parentSnap.data()!;
+      if (parentData.userId !== userId) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      if (parentData.domain !== domain) {
+        return res.status(400).json({ error: "Parent category domain mismatch" });
+      }
+      if (parentData.parentId) {
+        return res.status(400).json({ error: "Cannot nest subcategories more than 2 levels" });
+      }
+      if (parentData.archived) {
+        return res.status(400).json({ error: "Cannot add subcategory to archived category" });
+      }
+    }
 
     const existing = await db
       .collection("categories")
@@ -53,6 +74,7 @@ export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextAp
       userId,
       domain,
       name,
+      ...(parentId ? { parentId } : {}),
       isDefault: false,
       archived: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),

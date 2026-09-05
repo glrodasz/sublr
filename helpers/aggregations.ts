@@ -1,6 +1,6 @@
-import type { RecurringItem, Transaction } from "../types";
+import type { RecurrentTransaction, Transaction } from "../types";
 
-const FREQ_TO_MONTHS: Record<RecurringItem["frequency"], number> = {
+const FREQ_TO_MONTHS: Record<RecurrentTransaction["frequency"], number> = {
   ONE_TIME: 0,
   WEEKLY: 4.345,
   BIWEEKLY: 2.1725,
@@ -9,15 +9,15 @@ const FREQ_TO_MONTHS: Record<RecurringItem["frequency"], number> = {
   YEARLY: 1 / 12,
 };
 
-export function toMonthlyAmount(item: RecurringItem): number {
+export function toMonthlyAmount(item: RecurrentTransaction): number {
   return item.amount * FREQ_TO_MONTHS[item.frequency];
 }
 
-export function sumMonthly(items: RecurringItem[]): number {
+export function sumMonthly(items: RecurrentTransaction[]): number {
   return items.reduce((acc, i) => acc + toMonthlyAmount(i), 0);
 }
 
-export function groupByCategory(items: RecurringItem[]): Record<string, number> {
+export function groupByCategory(items: RecurrentTransaction[]): Record<string, number> {
   return items.reduce<Record<string, number>>((acc, i) => {
     acc[i.categoryId] = (acc[i.categoryId] ?? 0) + toMonthlyAmount(i);
     return acc;

@@ -1,11 +1,11 @@
 import { toMonthlyAmount, sumMonthly, groupByCategory, computeMoM } from "./aggregations";
-import type { RecurringItem, Transaction, Timestamp } from "../types";
+import type { RecurrentTransaction, Transaction, Timestamp } from "../types";
 
 const makeItem = (
-  frequency: RecurringItem["frequency"],
+  frequency: RecurrentTransaction["frequency"],
   amount: number,
   categoryId = "cat1"
-): RecurringItem => ({
+): RecurrentTransaction => ({
   userId: "u1",
   domain: "EXPENSE",
   categoryId,

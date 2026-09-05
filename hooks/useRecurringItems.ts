@@ -3,12 +3,12 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { db } from "../firebase/client";
 import { useFirebaseAuth } from "./useFirebaseAuth";
-import type { Domain, RecurringItem } from "../types";
+import type { Domain, RecurrentTransaction } from "../types";
 
-export function useRecurringItems(domain?: Domain) {
+export function useRecurrentTransactions(domain?: Domain) {
   const { user } = useUser();
   const { ready } = useFirebaseAuth();
-  const [items, setItems] = useState<RecurringItem[]>([]);
+  const [items, setItems] = useState<RecurrentTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,15 +20,15 @@ export function useRecurringItems(domain?: Domain) {
       ...(domain ? [where("domain", "==", domain)] : []),
     ];
 
-    const q = query(collection(db, "recurringItems"), ...constraints);
+    const q = query(collection(db, "recurrentTransactions"), ...constraints);
     return onSnapshot(
       q,
       (snap) => {
-        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurringItem)));
+        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurrentTransaction)));
         setLoading(false);
       },
       (err) => {
-        console.error("useRecurringItems onSnapshot error:", err);
+        console.error("useRecurrentTransactions onSnapshot error:", err);
         setLoading(false);
       }
     );
@@ -36,3 +36,6 @@ export function useRecurringItems(domain?: Domain) {
 
   return { items, loading };
 }
+
+// Backward-compat alias — callers can migrate to useRecurrentTransactions gradually
+export const useRecurringItems = useRecurrentTransactions;

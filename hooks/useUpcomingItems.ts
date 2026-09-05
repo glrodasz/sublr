@@ -11,12 +11,12 @@ import {
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { db } from "../firebase/client";
 import { useFirebaseAuth } from "./useFirebaseAuth";
-import type { RecurringItem } from "../types";
+import type { RecurrentTransaction } from "../types";
 
 export function useUpcomingItems(count: number = 5) {
   const { user } = useUser();
   const { ready } = useFirebaseAuth();
-  const [items, setItems] = useState<RecurringItem[]>([]);
+  const [items, setItems] = useState<RecurrentTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function useUpcomingItems(count: number = 5) {
 
     const now = Timestamp.now();
     const q = query(
-      collection(db, "recurringItems"),
+      collection(db, "recurrentTransactions"),
       where("userId", "==", user.sub),
       where("active", "==", true),
       where("nextOccurrence", ">", now),
@@ -35,7 +35,7 @@ export function useUpcomingItems(count: number = 5) {
     return onSnapshot(
       q,
       (snap) => {
-        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurringItem)));
+        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecurrentTransaction)));
         setLoading(false);
       },
       (err) => {

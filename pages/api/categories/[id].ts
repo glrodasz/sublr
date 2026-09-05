@@ -48,7 +48,7 @@ export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextAp
   if (req.method === "DELETE") {
     // Check if any active recurring items reference this category
     const dependents = await db
-      .collection("recurringItems")
+      .collection("recurrentTransactions")
       .where("categoryId", "==", id)
       .where("active", "==", true)
       .limit(1)
