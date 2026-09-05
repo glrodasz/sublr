@@ -6,11 +6,13 @@ import { Badge } from "../atoms/Badge";
 interface Props {
   title: string;
   currency?: string;
+  /** Interactive replacement for the static currency badge (display-currency switcher). */
+  currencyControl?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
 }
 
-export function PageLayout({ title, currency, actions, children }: Props) {
+export function PageLayout({ title, currency, currencyControl, actions, children }: Props) {
   return (
     <>
       <Head>
@@ -26,7 +28,7 @@ export function PageLayout({ title, currency, actions, children }: Props) {
           <header className="header">
             <div className="header-left">
               <h1 className="page-title">{title}</h1>
-              {currency && <Badge label={currency} />}
+              {currencyControl ?? (currency && <Badge label={currency} />)}
             </div>
             {actions && <div className="header-actions">{actions}</div>}
           </header>

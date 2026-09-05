@@ -26,6 +26,8 @@ const DOMAIN_ACCENT: Record<Domain, string> = {
 export function StatCard({ title, amount, currency, domain, delta, summary }: Props) {
   const hasDelta = delta !== undefined && delta !== 0;
   const deltaPositive = (delta ?? 0) > 0;
+  // Sentiment is domain-aware: spending less is good, earning less is not.
+  const deltaGood = domain === "EXPENSE" ? !deltaPositive : deltaPositive;
 
   return (
     <Card accentColor={DOMAIN_ACCENT[domain]}>
@@ -42,7 +44,7 @@ export function StatCard({ title, amount, currency, domain, delta, summary }: Pr
         </span>
       )}
       {hasDelta && (
-        <span className={`delta ${deltaPositive ? "up" : "down"}`}>
+        <span className={`delta ${deltaGood ? "good" : "bad"}`}>
           {deltaPositive ? "▲" : "▼"} {Math.abs(delta ?? 0).toFixed(1)}%{" "}
           {deltaPositive ? "more" : "less"} than last month
         </span>
@@ -71,11 +73,11 @@ export function StatCard({ title, amount, currency, domain, delta, summary }: Pr
           margin-top: 2px;
         }
 
-        .up {
+        .good {
           color: var(--accent);
         }
 
-        .down {
+        .bad {
           color: var(--accent-hot);
         }
       `}</style>

@@ -1,11 +1,18 @@
 import type { Currency } from "../../types";
-import { LANG_PER_CURRENCY } from "../../constants";
+import { LANG_PER_CURRENCY, ZERO_DECIMAL_CURRENCIES } from "../../constants";
 
 interface Props {
   value: number;
   currency: Currency;
   size?: "sm" | "md" | "lg";
+  /** Sign-based coloring: green for >= 0, red for negative. For net-flow figures. */
   colorize?: boolean;
+  /** Append the ISO code — pass when the value's currency differs from the
+   *  reporting currency; USD/MXN/COP all render "$" and are otherwise
+   *  indistinguishable. */
+  showCode?: boolean;
+  /** Prefix "≈" to mark a converted (approximate) aggregate. */
+  approximate?: boolean;
 }
 
 const SIZE_MAP = {
@@ -15,24 +22,30 @@ const SIZE_MAP = {
 };
 
 export function formatAmount(value: number, currency: Currency): string {
+  const digits = ZERO_DECIMAL_CURRENCIES.has(currency) ? 0 : 2;
   return new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
     style: "currency",
     currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
   }).format(value);
 }
 
-export function Amount({ value, currency, size = "md", colorize = false }: Props) {
-  const color = colorize
-    ? value >= 0
-      ? "var(--accent)"
-      : "var(--accent-hot)"
-    : "var(--fg-0)";
+export function Amount({
+  value,
+  currency,
+  size = "md",
+  colorize = false,
+  showCode = false,
+  approximate = false,
+}: Props) {
+  const color = colorize ? (value >= 0 ? "var(--accent)" : "var(--accent-hot)") : "var(--fg-0)";
 
   return (
     <span className="amount">
-      {value > 0 ? formatAmount(value, currency) : <span className="empty">—</span>}
+      {approximate && <span className="approx">≈ </span>}
+      {formatAmount(value, currency)}
+      {showCode && <span className="code"> {currency}</span>}
       <style jsx>{`
         .amount {
           font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
@@ -43,9 +56,16 @@ export function Amount({ value, currency, size = "md", colorize = false }: Props
           color: ${color};
         }
 
-        .empty {
+        .approx {
           color: var(--fg-2);
-          font-family: var(--font-sans, "Inter", system-ui, sans-serif);
+          font-weight: 400;
+        }
+
+        .code {
+          font-size: 0.6em;
+          font-weight: 600;
+          color: var(--fg-2);
+          letter-spacing: 0.04em;
         }
       `}</style>
     </span>

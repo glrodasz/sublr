@@ -1,4 +1,12 @@
-import type { RecurrentTransaction, Transaction } from "../types";
+import { convert } from "./fx";
+import type { ExchangeRates } from "./fx";
+import type { Currency, Domain, RecurrentTransaction, Transaction } from "../types";
+
+/** Every aggregation converts into one reporting currency — never a raw mixed sum. */
+export interface MoneyContext {
+  rates: ExchangeRates;
+  target: Currency;
+}
 
 const FREQ_TO_MONTHS: Record<RecurrentTransaction["frequency"], number> = {
   ONE_TIME: 0,
@@ -9,25 +17,79 @@ const FREQ_TO_MONTHS: Record<RecurrentTransaction["frequency"], number> = {
   YEARLY: 1 / 12,
 };
 
-export function toMonthlyAmount(item: RecurrentTransaction): number {
-  return item.amount * FREQ_TO_MONTHS[item.frequency];
+interface MoneyFields {
+  amount: number;
+  currency: Currency;
+  chargedAmount?: number;
+  chargedCurrency?: Currency;
 }
 
-export function sumMonthly(items: RecurrentTransaction[]): number {
-  return items.reduce((acc, i) => acc + toMonthlyAmount(i), 0);
+/**
+ * The item's value expressed in the target currency.
+ *
+ * Charged-pair precedence: when the doc records what was actually debited in
+ * the target currency, that ground truth beats any market rate.
+ */
+export function convertedAmount(item: MoneyFields, ctx: MoneyContext): number {
+  if (item.chargedAmount !== undefined && item.chargedCurrency === ctx.target) {
+    return item.chargedAmount;
+  }
+  return convert(item.amount, item.currency, ctx.target, ctx.rates);
 }
 
-export function groupByCategory(items: RecurrentTransaction[]): Record<string, number> {
+export function toMonthlyAmount(item: RecurrentTransaction, ctx: MoneyContext): number {
+  return convertedAmount(item, ctx) * FREQ_TO_MONTHS[item.frequency];
+}
+
+export function sumMonthly(items: RecurrentTransaction[], ctx: MoneyContext): number {
+  return items.reduce((acc, i) => acc + toMonthlyAmount(i, ctx), 0);
+}
+
+export function groupByCategory(
+  items: RecurrentTransaction[],
+  ctx: MoneyContext
+): Record<string, number> {
   return items.reduce<Record<string, number>>((acc, i) => {
-    acc[i.categoryId] = (acc[i.categoryId] ?? 0) + toMonthlyAmount(i);
+    acc[i.categoryId] = (acc[i.categoryId] ?? 0) + toMonthlyAmount(i, ctx);
     return acc;
   }, {});
 }
 
+/**
+ * Monthly money flow across all four domains. `net` follows the owner's
+ * definition: what is left unallocated after spending, saving and investing.
+ */
+export interface MoneyFlow {
+  income: number;
+  expenses: number;
+  savings: number;
+  investments: number;
+  net: number;
+}
+
+export function computeFlow(
+  itemsByDomain: Partial<Record<Domain, RecurrentTransaction[]>>,
+  ctx: MoneyContext
+): MoneyFlow {
+  const income = sumMonthly(itemsByDomain.INCOME ?? [], ctx);
+  const expenses = sumMonthly(itemsByDomain.EXPENSE ?? [], ctx);
+  const savings = sumMonthly(itemsByDomain.SAVING ?? [], ctx);
+  const investments = sumMonthly(itemsByDomain.INVESTMENT ?? [], ctx);
+  return { income, expenses, savings, investments, net: income - expenses - savings - investments };
+}
+
+interface MoMOptions extends MoneyContext {
+  /** Restrict to one domain — a mixed array would otherwise pollute the delta. */
+  domain?: Domain;
+  /** Injectable clock for tests. */
+  now?: Date;
+}
+
 export function computeMoM(
-  transactions: Transaction[]
+  transactions: Transaction[],
+  opts: MoMOptions
 ): { current: number; previous: number; deltaPct: number } {
-  const now = new Date();
+  const now = opts.now ?? new Date();
   const cy = now.getFullYear();
   const cm = now.getMonth();
   const py = cm === 0 ? cy - 1 : cy;
@@ -37,13 +99,16 @@ export function computeMoM(
   let previous = 0;
 
   for (const t of transactions) {
+    if (opts.domain && t.domain !== opts.domain) continue;
+
     const d =
       typeof (t.occurredAt as { toDate?: () => Date }).toDate === "function"
         ? (t.occurredAt as { toDate: () => Date }).toDate()
         : new Date(t.occurredAt as unknown as string);
 
-    if (d.getFullYear() === cy && d.getMonth() === cm) current += t.amount;
-    else if (d.getFullYear() === py && d.getMonth() === pm) previous += t.amount;
+    const value = convertedAmount(t, opts);
+    if (d.getFullYear() === cy && d.getMonth() === cm) current += value;
+    else if (d.getFullYear() === py && d.getMonth() === pm) previous += value;
   }
 
   const deltaPct = previous === 0 ? 0 : ((current - previous) / previous) * 100;

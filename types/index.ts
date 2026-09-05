@@ -5,7 +5,9 @@ export interface Timestamp {
   toDate(): Date;
 }
 
-export type Currency = "USD" | "EUR" | "MXN" | "GBP" | "SEK" | "CHF" | "JPY" | "COP";
+import type { CURRENCIES } from "../constants";
+
+export type Currency = (typeof CURRENCIES)[number];
 export type Domain = "INCOME" | "EXPENSE" | "INVESTMENT" | "SAVING";
 export type Frequency = "ONE_TIME" | "WEEKLY" | "BIWEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
 
@@ -31,6 +33,8 @@ export type RecurrentTransactionType =
 export interface User {
   id: string;
   mainCurrency: Currency;
+  /** Reporting currency override for dashboards; falls back to mainCurrency. */
+  displayCurrency?: Currency;
   onboardingCompleted: boolean;
   onboardingMode?: "MAGIC" | "ASSISTED";
   createdAt: Timestamp;

@@ -1,7 +1,7 @@
 import type { Currency, Domain } from "../../../types";
 import { useRecurringItems } from "../../../hooks/useRecurringItems";
 import { useCategories } from "../../../hooks/useCategories";
-import { useUserDoc } from "../../../hooks/useUserDoc";
+import { useMoneyContext } from "../../../hooks/useMoneyContext";
 import { sumMonthly } from "../../../helpers/aggregations";
 import { StatCard } from "../../../components/molecules/StatCard";
 import { TransactionRow } from "../../../components/molecules/TransactionRow";
@@ -25,10 +25,10 @@ const FREQ_LABEL: Record<string, string> = {
 export function DomainView({ domain, monthlyLabel }: Props) {
   const { items, loading } = useRecurringItems(domain);
   const { categories } = useCategories(domain);
-  const { userDoc } = useUserDoc();
+  const { ctx, target } = useMoneyContext();
 
-  const currency: Currency = userDoc?.mainCurrency ?? "USD";
-  const monthlyTotal = sumMonthly(items);
+  const currency: Currency = target;
+  const monthlyTotal = sumMonthly(items, ctx);
 
   // Group items by category, preserving category order
   const grouped = categories

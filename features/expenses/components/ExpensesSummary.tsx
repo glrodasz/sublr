@@ -71,14 +71,15 @@ export function ExpensesSummary({ total, currency, deltaPct, periodIdx, onPeriod
           border-radius: 999px;
         }
 
+        /* Spending more is bad, spending less is good. */
         .delta-badge.up {
-          background: rgba(124, 255, 178, 0.12);
-          color: var(--accent);
+          background: rgba(255, 61, 104, 0.12);
+          color: var(--accent-hot);
         }
 
         .delta-badge.down {
-          background: rgba(255, 61, 104, 0.12);
-          color: var(--accent-hot);
+          background: rgba(124, 255, 178, 0.12);
+          color: var(--accent);
         }
 
         .period-tabs {

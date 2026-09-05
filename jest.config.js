@@ -18,8 +18,6 @@ const customJestConfig = {
     "helpers/**/*.ts",
     "features/**/helpers/**/*.ts",
     "!**/*.test.ts",
-    // server-only Firestore batch helpers tested via integration, not unit tests
-    "!helpers/aggregations.ts",
   ],
   coverageThreshold: {
     global: {

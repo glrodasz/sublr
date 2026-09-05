@@ -9,7 +9,7 @@ import { PERIODS, getStartDate } from "../features/expenses/helpers/periods";
 import { toChartData } from "../features/expenses/helpers/chartData";
 import { useCategories } from "../hooks/useCategories";
 import { useRecurringItems } from "../hooks/useRecurringItems";
-import { useUserDoc } from "../hooks/useUserDoc";
+import { useMoneyContext } from "../hooks/useMoneyContext";
 import { sumMonthly, computeMoM } from "../helpers";
 import type { Currency } from "../types";
 
@@ -45,8 +45,8 @@ function NewExpenseButton() {
 }
 
 export default function ExpensesPage() {
-  const { userDoc } = useUserDoc();
-  const currency: Currency = userDoc?.mainCurrency ?? "USD";
+  const { ctx, target } = useMoneyContext();
+  const currency: Currency = target;
 
   const [periodIdx, setPeriodIdx] = useState(0);
   const startDate = useMemo(() => getStartDate(PERIODS[periodIdx].months), [periodIdx]);
@@ -59,14 +59,17 @@ export default function ExpensesPage() {
   const selectedCatId = activeCatId ?? categories[0]?.id ?? null;
 
   const chartData = useMemo(() => toChartData(transactions), [transactions]);
-  const momDelta = useMemo(() => computeMoM(transactions), [transactions]);
-  const monthlyTotal = useMemo(() => sumMonthly(recurringItems), [recurringItems]);
+  const momDelta = useMemo(
+    () => computeMoM(transactions, { ...ctx, domain: "EXPENSE" }),
+    [transactions, ctx]
+  );
+  const monthlyTotal = useMemo(() => sumMonthly(recurringItems, ctx), [recurringItems, ctx]);
 
   const filteredItems = useMemo(
     () => recurringItems.filter((i) => i.categoryId === selectedCatId),
     [recurringItems, selectedCatId]
   );
-  const catTotal = useMemo(() => sumMonthly(filteredItems), [filteredItems]);
+  const catTotal = useMemo(() => sumMonthly(filteredItems, ctx), [filteredItems, ctx]);
 
   return (
     <PageLayout title="Expenses" actions={<NewExpenseButton />}>

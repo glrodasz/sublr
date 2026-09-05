@@ -6,9 +6,9 @@ import { ExpenseBreakdown } from "../features/dashboard/components/ExpenseBreakd
 import { RecentPayments } from "../features/dashboard/components/RecentPayments";
 import { UpcomingExpirations } from "../features/dashboard/components/UpcomingExpirations";
 import Skeleton from "../components/Skeleton";
+import { CurrencySelector } from "../features/dashboard/components/CurrencySelector";
 import { useDashboard } from "../features/dashboard/hooks/useDashboard";
 import { useUserDoc } from "../hooks/useUserDoc";
-import type { Currency } from "../types";
 
 export const getServerSideProps = withOnboardingGuard();
 
@@ -16,6 +16,8 @@ export default function Dashboard() {
   const { user } = useUser();
   const { userDoc } = useUserDoc();
   const {
+    currency,
+    setDisplayCurrency,
     totals,
     expensesByCategory,
     incomesByCategory,
@@ -26,7 +28,6 @@ export default function Dashboard() {
     loading,
   } = useDashboard();
 
-  const currency: Currency = userDoc?.mainCurrency ?? "USD";
   const firstName = (user?.name ?? user?.nickname ?? "there").split(" ")[0];
 
   const actions = (
@@ -60,7 +61,12 @@ export default function Dashboard() {
   );
 
   return (
-    <PageLayout title={`Welcome back, ${firstName}`} currency={currency} actions={actions}>
+    <PageLayout
+      title={`Welcome back, ${firstName}`}
+      currency={currency}
+      currencyControl={<CurrencySelector value={currency} onChange={setDisplayCurrency} />}
+      actions={actions}
+    >
       <section className="row">
         {userDoc ? (
           <>

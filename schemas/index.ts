@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { CURRENCIES } from "../constants";
 
-export const CurrencySchema = z.enum(["USD", "EUR", "MXN", "GBP", "SEK", "CHF", "JPY", "COP"]);
+export const CurrencySchema = z.enum(CURRENCIES);
 
 export const DomainSchema = z.enum(["INCOME", "EXPENSE", "INVESTMENT", "SAVING"]);
 
@@ -89,6 +90,7 @@ export const RecurrentTransactionInputSchema = z.object({
 export const UserUpdateSchema = z
   .object({
     mainCurrency: CurrencySchema.optional(),
+    displayCurrency: CurrencySchema.optional(),
     onboardingCompleted: z.boolean().optional(),
     onboardingMode: z.enum(["MAGIC", "ASSISTED"]).optional(),
   })
