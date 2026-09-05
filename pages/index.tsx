@@ -86,7 +86,7 @@ export default function Dashboard() {
       currencyControl={<CurrencySelector value={currency} onChange={setDisplayCurrency} />}
       actions={actions}
     >
-      {error && <ErrorState />}
+      {error && <ErrorState error={error} />}
       {fxUnavailable && (
         <ErrorState
           title="Exchange rates unavailable"
@@ -158,8 +158,17 @@ export default function Dashboard() {
           currency={currency}
           loading={loading}
         />
-        <RecentPayments transactions={recentPayments} loading={loading} />
-        <UpcomingExpirations items={upcoming} loading={loading} onMarkPaid={markPaid} />
+        <RecentPayments
+          transactions={recentPayments}
+          displayCurrency={currency}
+          loading={loading}
+        />
+        <UpcomingExpirations
+          items={upcoming}
+          displayCurrency={currency}
+          loading={loading}
+          onMarkPaid={markPaid}
+        />
       </section>
 
       {newDomain && (

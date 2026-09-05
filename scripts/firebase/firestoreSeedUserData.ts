@@ -1,69 +1,222 @@
 import admin from "../../firebase/admin";
 import { seedDefaultCategories } from "../../helpers/seedDefaultCategories";
+import { nextOccurrenceFrom } from "../../helpers/recurrence";
+import { computeFlow } from "../../helpers/aggregations";
+import { buildHistory } from "./seedHistory";
 import seedData from "../../data/testSeedData.json";
+import defaultCategories from "../../data/defaultCategories.json";
+import services from "../../data/services.json";
+import type { ExchangeRates } from "../../helpers/fx";
+import type { Currency, Domain, Frequency, RecurrentTransaction, Timestamp } from "../../types";
 
 const BATCH_SIZE = 400;
+/** How far back history is generated. The app's materializer covers 6 months;
+ *  seeding 12 also fills the 1Y tab and leaves its window already written. */
+const HISTORY_MONTHS = 12;
 
 const userId = process.argv[2];
 const noWipe = process.argv.includes("--no-wipe");
+const dryRun = process.argv.includes("--dry-run");
 
 if (!userId) {
-  console.error("Usage: pnpm seed:user <userId> [--no-wipe]");
+  console.error("Usage: pnpm seed:user <userId> [--no-wipe] [--dry-run]");
   process.exit(1);
 }
 
-const db = admin.firestore();
+/** Lazy so `--dry-run` works with no service account configured at all. */
+let dbInstance: admin.firestore.Firestore | null = null;
+function db() {
+  if (!dbInstance) dbInstance = admin.firestore();
+  return dbInstance;
+}
+
+/**
+ * Static demo rates, mirrored into `rates/{YYYY-MM-DD}` so the multi-currency
+ * profile converts correctly even without EXCHANGE_RATES_API_KEY — that's the
+ * fallback `/api/currencies` reads via latestMirroredRates(). A real key
+ * overwrites this on the first successful fetch.
+ */
+const SEED_RATES: ExchangeRates = {
+  base: "USD",
+  rates: { USD: 1, EUR: 0.92, MXN: 17.1, GBP: 0.79, SEK: 10.6, CHF: 0.88, JPY: 151, COP: 4050 },
+  fetchedAt: new Date().toISOString(),
+};
+
+const MAIN_CURRENCY: Currency = "USD";
+const CTX = { rates: SEED_RATES, target: MAIN_CURRENCY };
 
 function daysAgo(n: number) {
-  return admin.firestore.Timestamp.fromDate(new Date(Date.now() - n * 24 * 60 * 60 * 1000));
+  return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
 }
 
-function daysFromNow(n: number) {
-  return admin.firestore.Timestamp.fromDate(new Date(Date.now() + n * 24 * 60 * 60 * 1000));
+/** A Timestamp-shaped object — enough for the pure helpers, no SDK needed. */
+function timestampLike(date: Date): Timestamp {
+  return { seconds: Math.floor(date.getTime() / 1000), nanoseconds: 0, toDate: () => date };
 }
+
+/**
+ * Anchors an item's schedule: `monthsAgo` months back, on `dayOfMonth`, at
+ * noon. Noon (not midnight) keeps the UTC date in the occurrence id equal to
+ * the local calendar day for every timezone the app is likely to run in.
+ */
+function startDateFor(monthsAgo: number, dayOfMonth: number): Date {
+  const now = new Date();
+  const date = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1, 12, 0, 0, 0);
+  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  date.setDate(Math.min(dayOfMonth, lastDay));
+  return date;
+}
+
+/** The recurrent items as the pure helpers want them, before any Firestore ids exist. */
+function planItems(idFor: (index: number) => string): RecurrentTransaction[] {
+  return seedData.recurrentTransactions.map(
+    (rt, i) =>
+      ({
+        id: idFor(i),
+        userId,
+        domain: rt.domain as Domain,
+        categoryId: "",
+        name: rt.name,
+        amount: rt.amount,
+        currency: rt.currency as Currency,
+        frequency: rt.frequency as Frequency,
+        active: true,
+        startDate: timestampLike(startDateFor(rt.startedMonthsAgo, rt.dayOfMonth)),
+        ...(rt.chargedAmount != null ? { chargedAmount: rt.chargedAmount } : {}),
+        ...(rt.chargedCurrency != null ? { chargedCurrency: rt.chargedCurrency as Currency } : {}),
+      }) as RecurrentTransaction
+  );
+}
+
+function monthlyFlow(items: RecurrentTransaction[]) {
+  const byDomain = (domain: Domain) => items.filter((i) => i.domain === domain);
+  return computeFlow(
+    {
+      INCOME: byDomain("INCOME"),
+      EXPENSE: byDomain("EXPENSE"),
+      INVESTMENT: byDomain("INVESTMENT"),
+      SAVING: byDomain("SAVING"),
+    },
+    CTX
+  );
+}
+
+const usd = (n: number) => `$${n.toFixed(2)}`;
+
+// ── Validation (runs in both modes; the only check available offline) ────────
+
+function validate(): string[] {
+  const problems: string[] = [];
+  const methodNames = new Set(seedData.paymentMethods.map((m) => m.name));
+  const serviceNames = new Set(services.map((s) => s.name));
+  const categoryNames = new Set(
+    Object.entries(defaultCategories).flatMap(([domain, names]) =>
+      (names as string[]).map((name) => `${domain}:${name}`)
+    )
+  );
+
+  const checkRow = (row: {
+    domain: string;
+    categoryName: string;
+    name: string;
+    paymentMethodName: string | null;
+  }) => {
+    if (!categoryNames.has(`${row.domain}:${row.categoryName}`)) {
+      problems.push(`"${row.name}": no default category "${row.categoryName}" in ${row.domain}`);
+    }
+    if (row.paymentMethodName && !methodNames.has(row.paymentMethodName)) {
+      problems.push(`"${row.name}": unknown payment method "${row.paymentMethodName}"`);
+    }
+  };
+
+  seedData.recurrentTransactions.forEach((rt) => {
+    checkRow(rt);
+    if (rt.serviceRef && !serviceNames.has(rt.serviceRef)) {
+      problems.push(`"${rt.name}": unknown serviceRef "${rt.serviceRef}"`);
+    }
+    if ((rt.chargedAmount == null) !== (rt.chargedCurrency == null)) {
+      problems.push(
+        `"${rt.name}": chargedAmount and chargedCurrency must both be set or both null`
+      );
+    }
+    if (rt.chargedCurrency && rt.chargedCurrency === rt.currency) {
+      problems.push(`"${rt.name}": chargedCurrency must differ from currency`);
+    }
+  });
+  seedData.oneOffTransactions.forEach(checkRow);
+
+  return problems;
+}
+
+// ── Firestore writers ───────────────────────────────────────────────────────
 
 async function deleteCollection(collectionName: string) {
+  const query = db().collection(collectionName).where("userId", "==", userId).limit(BATCH_SIZE);
   let deleted = 0;
-  let query = db.collection(collectionName).where("userId", "==", userId).limit(BATCH_SIZE);
 
   while (true) {
     const snap = await query.get();
     if (snap.empty) break;
 
-    const batch = db.batch();
+    const batch = db().batch();
     snap.docs.forEach((d) => batch.delete(d.ref));
     await batch.commit();
     deleted += snap.docs.length;
+
+    // The query has no cursor — it only makes progress because the docs it
+    // matched are gone. Bail out rather than spin if that ever stops holding.
+    if (snap.docs.length < BATCH_SIZE) break;
   }
 
   return deleted;
 }
 
 async function wipe() {
-  const collections = ["transactions", "recurrentTransactions", "paymentMethods", "categories"];
-  for (const col of collections) {
+  for (const col of ["transactions", "recurrentTransactions", "paymentMethods", "categories"]) {
     const n = await deleteCollection(col);
     console.log(`  Wiped ${n} docs from ${col}`);
   }
 }
 
+async function seedUserDoc() {
+  const ref = db().collection("users").doc(userId);
+  const snap = await ref.get();
+
+  await ref.set(
+    {
+      mainCurrency: MAIN_CURRENCY,
+      displayCurrency: MAIN_CURRENCY,
+      onboardingCompleted: true,
+      ...(snap.exists ? {} : { createdAt: admin.firestore.FieldValue.serverTimestamp() }),
+    },
+    { merge: true }
+  );
+}
+
+async function seedRates() {
+  await db()
+    .collection("rates")
+    .doc(SEED_RATES.fetchedAt.slice(0, 10))
+    .set(SEED_RATES, { merge: true });
+}
+
 async function seedPaymentMethods(): Promise<Map<string, string>> {
   const idByName = new Map<string, string>();
-  const batch = db.batch();
+  const batch = db().batch();
 
   for (const pm of seedData.paymentMethods) {
-    const ref = db.collection("paymentMethods").doc();
-    const doc: Record<string, unknown> = {
+    const ref = db().collection("paymentMethods").doc();
+    batch.set(ref, {
       userId,
       name: pm.name,
       type: pm.type,
       currencies: pm.currencies,
       archived: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-    if (pm.defaultCurrency) doc.defaultCurrency = pm.defaultCurrency;
-    if (pm.network) doc.network = pm.network;
-    batch.set(ref, doc);
+      ...(pm.defaultCurrency ? { defaultCurrency: pm.defaultCurrency } : {}),
+      ...(pm.network ? { network: pm.network } : {}),
+      ...(pm.last4 ? { last4: pm.last4 } : {}),
+    });
     idByName.set(pm.name, ref.id);
   }
 
@@ -72,7 +225,7 @@ async function seedPaymentMethods(): Promise<Map<string, string>> {
 }
 
 async function loadCategories(): Promise<Map<string, string>> {
-  const snap = await db
+  const snap = await db()
     .collection("categories")
     .where("userId", "==", userId)
     .where("archived", "==", false)
@@ -88,7 +241,7 @@ async function loadCategories(): Promise<Map<string, string>> {
 }
 
 async function seedSubcategories(catIdByKey: Map<string, string>): Promise<Map<string, string>> {
-  const batch = db.batch();
+  const batch = db().batch();
   const subIdByKey = new Map<string, string>();
 
   for (const sub of seedData.subcategories) {
@@ -99,7 +252,7 @@ async function seedSubcategories(catIdByKey: Map<string, string>): Promise<Map<s
       );
       continue;
     }
-    const ref = db.collection("categories").doc();
+    const ref = db().collection("categories").doc();
     batch.set(ref, {
       userId,
       domain: sub.domain,
@@ -112,7 +265,7 @@ async function seedSubcategories(catIdByKey: Map<string, string>): Promise<Map<s
     subIdByKey.set(`${sub.domain}:${sub.parentName}:${sub.name}`, ref.id);
   }
 
-  await batch.commit();
+  if (subIdByKey.size > 0) await batch.commit();
   return subIdByKey;
 }
 
@@ -144,7 +297,7 @@ function resolveCategoryId(
 async function loadServices(): Promise<
   Map<string, { serviceId: string; name: string; logoUrl?: string }>
 > {
-  const snap = await db.collection("services").get();
+  const snap = await db().collection("services").get();
   const byName = new Map<string, { serviceId: string; name: string; logoUrl?: string }>();
   snap.docs.forEach((d) => {
     const data = d.data();
@@ -157,14 +310,22 @@ async function loadServices(): Promise<
   return byName;
 }
 
+interface SeededItems {
+  /** Written docs, ready for the history builder. */
+  items: RecurrentTransaction[];
+  /** Ids whose history gets jittered (groceries and friends). */
+  variableIds: Set<string>;
+}
+
 async function seedRecurrentTransactions(
   catIdByKey: Map<string, string>,
   subIdByKey: Map<string, string>,
   pmIdByName: Map<string, string>,
   servicesByName: Map<string, { serviceId: string; name: string; logoUrl?: string }>
-): Promise<Map<string, string>> {
-  const idByName = new Map<string, string>();
-  const batch = db.batch();
+): Promise<SeededItems> {
+  const batch = db().batch();
+  const items: RecurrentTransaction[] = [];
+  const variableIds = new Set<string>();
 
   for (const rt of seedData.recurrentTransactions) {
     const categoryId = resolveCategoryId(
@@ -177,9 +338,32 @@ async function seedRecurrentTransactions(
     if (!categoryId) continue;
 
     const paymentMethodId = rt.paymentMethodName ? pmIdByName.get(rt.paymentMethodName) : undefined;
+    const startDate = startDateFor(rt.startedMonthsAgo, rt.dayOfMonth);
+    const next = nextOccurrenceFrom(startDate, rt.frequency as Frequency);
+    const ref = db().collection("recurrentTransactions").doc();
 
-    const ref = db.collection("recurrentTransactions").doc();
-    const doc: Record<string, unknown> = {
+    const item = {
+      id: ref.id,
+      userId,
+      domain: rt.domain as Domain,
+      categoryId,
+      name: rt.name,
+      amount: rt.amount,
+      currency: rt.currency as Currency,
+      frequency: rt.frequency as Frequency,
+      type: rt.type,
+      active: true,
+      startDate: timestampLike(startDate),
+      ...(rt.chargedAmount != null ? { chargedAmount: rt.chargedAmount } : {}),
+      ...(rt.chargedCurrency != null ? { chargedCurrency: rt.chargedCurrency as Currency } : {}),
+      ...(paymentMethodId ? { paymentMethodId } : {}),
+    } as RecurrentTransaction;
+
+    const serviceSnapshot = rt.serviceRef ? servicesByName.get(rt.serviceRef) : undefined;
+
+    // Built explicitly rather than spreading `item`: the doc must carry
+    // Firestore Timestamps and must not carry `id` (that's the doc key).
+    batch.set(ref, {
       userId,
       domain: rt.domain,
       categoryId,
@@ -189,41 +373,53 @@ async function seedRecurrentTransactions(
       frequency: rt.frequency,
       type: rt.type,
       active: true,
-      startDate: daysAgo(90),
-      nextOccurrence: daysFromNow(Math.floor(Math.random() * 28) + 1),
+      startDate: admin.firestore.Timestamp.fromDate(startDate),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
+      ...(next ? { nextOccurrence: admin.firestore.Timestamp.fromDate(next) } : {}),
+      ...(rt.chargedAmount != null ? { chargedAmount: rt.chargedAmount } : {}),
+      ...(rt.chargedCurrency != null ? { chargedCurrency: rt.chargedCurrency } : {}),
+      ...(paymentMethodId ? { paymentMethodId } : {}),
+      ...(serviceSnapshot ? { serviceSnapshot } : {}),
+    });
 
-    if (rt.chargedAmount != null) doc.chargedAmount = rt.chargedAmount;
-    if (rt.chargedCurrency != null) doc.chargedCurrency = rt.chargedCurrency;
-    if (paymentMethodId) doc.paymentMethodId = paymentMethodId;
-
-    if ("serviceRef" in rt && rt.serviceRef) {
-      const svc = servicesByName.get(rt.serviceRef as string);
-      if (svc) {
-        doc.serviceSnapshot = svc;
-      }
-    }
-
-    batch.set(ref, doc);
-    idByName.set(rt.name, ref.id);
+    items.push(item);
+    if (rt.variable) variableIds.add(ref.id);
   }
 
   await batch.commit();
-  return idByName;
+  return { items, variableIds };
 }
 
-async function seedTransactions(
+async function seedHistoryTransactions(seeded: SeededItems) {
+  const to = new Date();
+  const from = new Date(to.getFullYear(), to.getMonth() - HISTORY_MONTHS, 1);
+  const docs = buildHistory(seeded.items, { from, to, variableIds: seeded.variableIds });
+
+  for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+    const batch = db().batch();
+    for (const { id, data } of docs.slice(i, i + BATCH_SIZE)) {
+      batch.set(db().collection("transactions").doc(id), {
+        ...data,
+        occurredAt: admin.firestore.Timestamp.fromDate(data.occurredAt),
+        status: "PAID",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
+
+  return docs.length;
+}
+
+async function seedOneOffTransactions(
   catIdByKey: Map<string, string>,
   subIdByKey: Map<string, string>,
-  pmIdByName: Map<string, string>,
-  rtIdByName: Map<string, string>
+  pmIdByName: Map<string, string>
 ) {
+  const batch = db().batch();
   let count = 0;
-  let batch = db.batch();
-  let batchCount = 0;
 
-  for (const tx of seedData.transactions) {
+  for (const tx of seedData.oneOffTransactions) {
     const categoryId = resolveCategoryId(
       tx.domain,
       tx.categoryName,
@@ -235,45 +431,83 @@ async function seedTransactions(
 
     const paymentMethodId = tx.paymentMethodName ? pmIdByName.get(tx.paymentMethodName) : undefined;
 
-    const ref = db.collection("transactions").doc();
-    const doc: Record<string, unknown> = {
+    // Random ids are correct here: these aren't occurrences of anything, so the
+    // app's materializer has no deterministic id that could collide with them.
+    batch.set(db().collection("transactions").doc(), {
       userId,
       domain: tx.domain,
       categoryId,
       name: tx.name,
       amount: tx.amount,
       currency: tx.currency,
-      occurredAt: daysAgo(tx.daysAgo),
+      occurredAt: admin.firestore.Timestamp.fromDate(daysAgo(tx.daysAgo)),
       status: tx.status,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    if (tx.chargedAmount != null) doc.chargedAmount = tx.chargedAmount;
-    if (tx.chargedCurrency != null) doc.chargedCurrency = tx.chargedCurrency;
-    if (paymentMethodId) doc.paymentMethodId = paymentMethodId;
-
-    if (tx.recurrentTransactionRef) {
-      const rtId = rtIdByName.get(tx.recurrentTransactionRef);
-      if (rtId) doc.recurrentTransactionId = rtId;
-    }
-
-    batch.set(ref, doc);
+      ...(tx.chargedAmount != null ? { chargedAmount: tx.chargedAmount } : {}),
+      ...(tx.chargedCurrency != null ? { chargedCurrency: tx.chargedCurrency } : {}),
+      ...(paymentMethodId ? { paymentMethodId } : {}),
+    });
     count++;
-    batchCount++;
-
-    if (batchCount === BATCH_SIZE) {
-      await batch.commit();
-      batch = db.batch();
-      batchCount = 0;
-    }
   }
 
-  if (batchCount > 0) await batch.commit();
+  await batch.commit();
   return count;
 }
 
-async function main() {
+// ── Entry points ────────────────────────────────────────────────────────────
+
+function printSummary(items: RecurrentTransaction[], counts: Record<string, number>) {
+  const flow = monthlyFlow(items);
+  console.log("\nMonthly run-rate (converted to USD at the seeded rates):");
+  console.log(`  income       ${usd(flow.income)}`);
+  console.log(`  expenses     ${usd(flow.expenses)}`);
+  console.log(`  savings      ${usd(flow.savings)}`);
+  console.log(`  investments  ${usd(flow.investments)}`);
+  console.log(`  net          ${usd(flow.net)}`);
+  console.log("\nDocuments:");
+  for (const [label, n] of Object.entries(counts)) {
+    console.log(`  ${label.padEnd(22)} ${n}`);
+  }
+}
+
+function dryRunPlan() {
+  console.log(`Dry run for user: ${userId} — nothing will be written.\n`);
+
+  const problems = validate();
+  if (problems.length > 0) {
+    console.error(`Found ${problems.length} problem(s) in data/testSeedData.json:`);
+    problems.forEach((p) => console.error(`  ✗ ${p}`));
+    process.exit(1);
+  }
+  console.log("Data file validates: every category, payment method and service resolves.");
+
+  const items = planItems((i) => `dry-${i}`);
+  const to = new Date();
+  const from = new Date(to.getFullYear(), to.getMonth() - HISTORY_MONTHS, 1);
+  const history = buildHistory(items, { from, to });
+
+  printSummary(items, {
+    paymentMethods: seedData.paymentMethods.length,
+    recurrentTransactions: items.length,
+    "transactions (history)": history.length,
+    "transactions (one-off)": seedData.oneOffTransactions.length,
+  });
+
+  console.log(
+    `\nHistory window: ${from.toISOString().slice(0, 10)} → ${to.toISOString().slice(0, 10)}`
+  );
+  console.log("Re-run without --dry-run to write it.");
+}
+
+async function seedAll() {
   console.log(`Seeding data for user: ${userId}`);
+
+  const problems = validate();
+  if (problems.length > 0) {
+    console.error(`\nRefusing to seed — ${problems.length} problem(s) in data/testSeedData.json:`);
+    problems.forEach((p) => console.error(`  ✗ ${p}`));
+    process.exit(1);
+  }
 
   if (!noWipe) {
     console.log("\nWiping existing user data...");
@@ -282,48 +516,58 @@ async function main() {
     console.log("\nSkipping wipe (--no-wipe)");
   }
 
+  console.log("\nSeeding user doc and exchange rates...");
+  await seedUserDoc();
+  await seedRates();
+  console.log(`  users/${userId} → mainCurrency ${MAIN_CURRENCY}, onboardingCompleted true`);
+  console.log(
+    `  rates/${SEED_RATES.fetchedAt.slice(0, 10)} → ${Object.keys(SEED_RATES.rates).length} currencies`
+  );
+
   console.log("\nSeeding default categories...");
   await seedDefaultCategories(userId);
-
   const catIdByKey = await loadCategories();
-  console.log(`  Loaded ${catIdByKey.size} default categories`);
+  console.log(`  Loaded ${catIdByKey.size} categories`);
 
-  console.log("\nSeeding subcategories...");
   const subIdByKey = await seedSubcategories(catIdByKey);
-  console.log(`  Created ${subIdByKey.size} subcategories`);
+  if (subIdByKey.size > 0) console.log(`  Created ${subIdByKey.size} subcategories`);
 
   console.log("\nSeeding payment methods...");
   const pmIdByName = await seedPaymentMethods();
   console.log(`  Created ${pmIdByName.size} payment methods`);
 
-  console.log("\nLoading services...");
   const servicesByName = await loadServices();
-  console.log(`  Found ${servicesByName.size} services`);
+  console.log(`  Found ${servicesByName.size} services in the catalogue`);
 
   console.log("\nSeeding recurrent transactions...");
-  const rtIdByName = await seedRecurrentTransactions(
+  const seeded = await seedRecurrentTransactions(
     catIdByKey,
     subIdByKey,
     pmIdByName,
     servicesByName
   );
-  console.log(`  Created ${rtIdByName.size} recurrent transactions`);
+  console.log(`  Created ${seeded.items.length} recurrent transactions`);
 
-  console.log("\nSeeding transactions...");
-  const txCount = await seedTransactions(catIdByKey, subIdByKey, pmIdByName, rtIdByName);
-  console.log(`  Created ${txCount} transactions`);
+  console.log(`\nDeriving ${HISTORY_MONTHS} months of history from those items...`);
+  const historyCount = await seedHistoryTransactions(seeded);
+  console.log(`  Created ${historyCount} transactions with deterministic ids`);
 
-  console.log("\nDone!");
-  console.log(
-    `  categories:            ${catIdByKey.size + subIdByKey.size} (${catIdByKey.size} root + ${subIdByKey.size} subcategories)`
-  );
-  console.log(`  paymentMethods:        ${pmIdByName.size}`);
-  console.log(`  recurrentTransactions: ${rtIdByName.size}`);
-  console.log(`  transactions:          ${txCount}`);
-  console.log("\nRefresh the dashboard to see data.");
+  const oneOffCount = await seedOneOffTransactions(catIdByKey, subIdByKey, pmIdByName);
+  console.log(`  Created ${oneOffCount} one-off transactions`);
+
+  printSummary(seeded.items, {
+    categories: catIdByKey.size + subIdByKey.size,
+    paymentMethods: pmIdByName.size,
+    recurrentTransactions: seeded.items.length,
+    transactions: historyCount + oneOffCount,
+  });
+
+  console.log("\nDone — refresh the dashboard.");
 }
 
-main().catch((err) => {
+const run = dryRun ? async () => dryRunPlan() : seedAll;
+
+run().catch((err) => {
   console.error(err);
   process.exit(1);
 });

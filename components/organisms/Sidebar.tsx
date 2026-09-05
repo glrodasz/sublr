@@ -1,18 +1,41 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/" },
-  { label: "Incomes", href: "/incomes" },
-  { label: "Expenses", href: "/expenses" },
-  { label: "Investments", href: "/investments" },
-  { label: "Savings", href: "/savings" },
-  { label: "Prospect", href: "/prospect" },
-  { label: "Methods", href: "/methods" },
-  { label: "Settings", href: "/settings" },
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+/** Grouped so eight destinations read as three ideas instead of one long list. */
+const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
+  {
+    title: "Overview",
+    items: [{ label: "Dashboard", href: "/" }],
+  },
+  {
+    title: "Money",
+    items: [
+      { label: "Incomes", href: "/incomes" },
+      { label: "Expenses", href: "/expenses" },
+      { label: "Investments", href: "/investments" },
+      { label: "Savings", href: "/savings" },
+    ],
+  },
+  {
+    title: "Planning",
+    items: [{ label: "Prospect", href: "/prospect" }],
+  },
+  {
+    title: "Account",
+    items: [
+      { label: "Methods", href: "/methods" },
+      { label: "Settings", href: "/settings" },
+    ],
+  },
 ];
 
-const BOTTOM_NAV = [
+const BOTTOM_NAV: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Incomes", href: "/incomes" },
   { label: "Expenses", href: "/expenses" },
@@ -27,7 +50,7 @@ function NavIcon({ href, size = 20 }: { href: string; size?: number }) {
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 2,
+    strokeWidth: 1.75,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true,
@@ -93,96 +116,84 @@ function NavIcon({ href, size = 20 }: { href: string; size?: number }) {
 
 export function Sidebar() {
   const { pathname } = useRouter();
+  const { user } = useUser();
+
+  const name = user?.name ?? user?.nickname ?? "Account";
+  const initial = name.trim().charAt(0).toUpperCase() || "?";
 
   return (
     <>
       {/* ── Desktop sidebar ──────────────────────────── */}
       <aside className="waletto-sidebar">
         <div className="logo">Waletto</div>
-        <nav className="nav">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-item ${pathname === item.href ? "nav-item--active" : ""}`}
-            >
-              <NavIcon href={item.href} size={18} />
-              {item.label}
-            </Link>
+
+        <nav className="nav" aria-label="Main navigation">
+          {NAV_SECTIONS.map((section) => (
+            <div className="section" key={section.title}>
+              <span className="section-title">{section.title}</span>
+              {section.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={pathname === item.href ? "page" : undefined}
+                  className={`nav-item${pathname === item.href ? " is-active" : ""}`}
+                >
+                  <NavIcon href={item.href} size={18} />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
+
+        <div className="account">
+          <div className="who">
+            <span className="avatar" aria-hidden="true">
+              {initial}
+            </span>
+            <span className="who-text">
+              <span className="who-name">{name}</span>
+              {user?.email && <span className="who-mail">{user.email}</span>}
+            </span>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a href="/api/auth/logout" className="logout">
+            Log out
+          </a>
+        </div>
       </aside>
 
       {/* ── Mobile bottom nav ────────────────────────── */}
-      {/*
-       * All structural styles use the `style` prop directly.
-       * styled-jsx doesn't reliably scope flex layout onto Link-rendered <a> tags,
-       * so inline styles are used for layout; global CSS handles show/hide only.
-       */}
-      <nav
-        className="waletto-bnav"
-        aria-label="Main navigation"
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 64,
-          display: "flex",
-          alignItems: "stretch",
-          background: "var(--bg-1, #14141b)",
-          borderTop: "1px solid var(--line, #2a2a38)",
-          zIndex: 200,
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        }}
-      >
-        {BOTTOM_NAV.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-                color: active ? "var(--accent, #7cffb2)" : "var(--fg-2, #7a7a9a)",
-                textDecoration: "none",
-                padding: "8px 4px 4px",
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              <NavIcon href={item.href} size={22} />
-              <span
-                style={{
-                  fontSize: "0.6rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                  lineHeight: 1,
-                }}
-              >
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
+      <nav className="waletto-bnav" aria-label="Main navigation">
+        {BOTTOM_NAV.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            aria-current={pathname === item.href ? "page" : undefined}
+            className={`bnav-item${pathname === item.href ? " is-active" : ""}`}
+          >
+            <NavIcon href={item.href} size={22} />
+            <span>{item.label}</span>
+          </Link>
+        ))}
       </nav>
 
-      {/* Desktop sidebar styles */}
+      {/*
+       * styled-jsx does not add its scoping hash to a className handed to a
+       * child component, so rules targeting `Link` must go through :global()
+       * from a scoped parent — otherwise they compile to dead CSS. That is
+       * exactly what silently unstyled this whole sidebar before.
+       */}
       <style jsx>{`
         .waletto-sidebar {
-          width: 220px;
+          width: 232px;
           flex-shrink: 0;
-          background: var(--bg-1, #14141b);
-          border-right: 1px solid var(--line, #2a2a38);
+          background: var(--bg-1);
+          border-right: 1px solid var(--line);
           display: flex;
           flex-direction: column;
-          gap: 32px;
-          padding: 28px 12px;
+          gap: 28px;
+          padding: 24px 12px 16px;
           height: 100vh;
           position: sticky;
           top: 0;
@@ -193,7 +204,7 @@ export function Sidebar() {
           font-family: var(--font-display, "Space Grotesk", system-ui, sans-serif);
           font-size: 1.25rem;
           font-weight: 700;
-          color: var(--fg-0, #f5f5fa);
+          color: var(--fg-0);
           padding: 0 10px;
           letter-spacing: -0.03em;
         }
@@ -201,50 +212,167 @@ export function Sidebar() {
         .nav {
           display: flex;
           flex-direction: column;
+          gap: 22px;
+          flex: 1;
+        }
+
+        .section {
+          display: flex;
+          flex-direction: column;
           gap: 2px;
         }
 
-        .nav-item {
+        .section-title {
+          padding: 0 10px 6px;
+          font-size: 0.66rem;
+          font-weight: 700;
+          letter-spacing: 0.09em;
+          text-transform: uppercase;
+          color: var(--fg-2);
+          opacity: 0.75;
+        }
+
+        .nav :global(.nav-item) {
           display: flex;
           align-items: center;
           gap: 10px;
           padding: 9px 10px;
-          border-radius: 8px;
+          border-radius: var(--r-sm);
           border-left: 2px solid transparent;
           font-size: 0.875rem;
-          color: var(--fg-2, #6e6e85);
+          font-weight: 500;
+          line-height: 1;
+          color: var(--fg-2);
           text-decoration: none;
           transition:
             background 0.15s,
             color 0.15s;
         }
 
-        .nav-item:hover {
-          background: var(--bg-2, #1c1c26);
-          color: var(--fg-0, #f5f5fa);
+        .nav :global(.nav-item:hover) {
+          background: var(--bg-2);
+          color: var(--fg-0);
         }
 
-        .nav-item--active {
-          background: var(--bg-2, #1c1c26);
-          color: var(--accent, #7cffb2);
-          border-left-color: var(--accent, #7cffb2);
+        .nav :global(.nav-item:focus-visible) {
+          outline: 2px solid var(--accent);
+          outline-offset: -2px;
+        }
+
+        .nav :global(.nav-item.is-active) {
+          background: var(--bg-2);
+          color: var(--accent);
+          border-left-color: var(--accent);
           font-weight: 600;
         }
-      `}</style>
 
-      {/* Global CSS for show/hide only — avoids styled-jsx scoping issues */}
-      <style jsx global>{`
+        .account {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding: 14px 10px 0;
+          border-top: 1px solid var(--line);
+        }
+
+        .who {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .avatar {
+          flex-shrink: 0;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background: var(--bg-3);
+          color: var(--fg-1);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.8rem;
+          font-weight: 700;
+        }
+
+        .who-text {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .who-name {
+          font-size: 0.82rem;
+          font-weight: 600;
+          color: var(--fg-0);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .who-mail {
+          font-size: 0.7rem;
+          color: var(--fg-2);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .logout {
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: var(--fg-2);
+          text-decoration: none;
+          padding: 2px 0;
+        }
+
+        .logout:hover {
+          color: var(--accent-hot);
+        }
+
         .waletto-bnav {
-          display: none !important;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 64px;
+          display: none;
+          align-items: stretch;
+          background: var(--bg-1);
+          border-top: 1px solid var(--line);
+          z-index: 200;
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        .waletto-bnav :global(.bnav-item) {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          padding: 8px 4px 4px;
+          color: var(--fg-2);
+          text-decoration: none;
+          font-size: 0.6rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          line-height: 1;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .waletto-bnav :global(.bnav-item.is-active) {
+          color: var(--accent);
         }
 
         @media (max-width: 767px) {
           .waletto-sidebar {
-            display: none !important;
+            display: none;
           }
 
           .waletto-bnav {
-            display: flex !important;
+            display: flex;
           }
         }
       `}</style>

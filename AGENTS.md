@@ -105,6 +105,17 @@ styled-jsx compila `.input` a `.input.jsx-hash`, que es solo `(0,2,0)` — **el 
 
 Ese detalle causó un doble borde en el wizard. Ojo también con `select`, que trae su propio chevron por `background-image`: si el componente dibuja su icono, hay que poner `background-image: none`.
 
+### Trampa del `className` en componentes hijos (importante)
+
+styled-jsx **no** le pone su hash de scope al `className` que le pasas a un componente hijo (`<Link className="nav-item">`, cualquier componente propio). La regla compila a `.nav-item.jsx-hash`, el `<a>` renderizado solo tiene `nav-item`, y el CSS queda muerto **sin ningún error**. Así estuvo el Sidebar entero: iconos pegados al texto, sin padding ni hover. La salida es `:global()` desde un padre con scope, nunca estilos inline:
+
+```css
+.nav :global(.nav-item) { … }        /* ✓ aplica al <a> de Link */
+.nav :global(.nav-item.is-active) { … }
+```
+
+Mismo patrón en `pages/index.tsx` (`.row > :global(*)`). Si estilas algo que no es un elemento DOM literal en ese JSX, asume que necesitas `:global()`.
+
 ---
 
 ## 3. Datos
@@ -121,7 +132,9 @@ useEffect(() => {
 
 **Escritura** — siempre `fetch` a una API route. El cliente nunca escribe directo a Firestore, aunque las reglas lo permitan.
 
-**Índices** — una query que combine filtros de igualdad con `orderBy` sobre otro campo **necesita índice compuesto** en `firestore.indexes.json`. Si no está, `onSnapshot` falla y la lista queda vacía en silencio. Para colecciones pequeñas suele salir más barato ordenar en cliente (ver `utils/sortByCreatedAt.ts`). Este error dejó todas las categorías vacías en el wizard.
+**Índices** — una query que combine filtros de igualdad con un `orderBy` sobre otro campo, o con una desigualdad (`>=`), **necesita índice compuesto** en `firestore.indexes.json`. Varios filtros de igualdad solos **no** lo necesitan. Si falta, `onSnapshot` falla y la lista queda vacía. Este error ya vació las categorías del wizard una vez y, más tarde, los totales y las gráficas de todas las pantallas de dominio — porque declarar el índice no basta: **hay que desplegarlo** (`pnpm firebase:deploy`). Para colecciones chicas suele salir más barato filtrar y ordenar en cliente y no depender del deploy (ver `hooks/useCategories.ts` y `features/dashboard/hooks/useUpcomingItems.ts`); para historiales que crecen, el índice es la herramienta correcta.
+
+**Errores visibles** — `ErrorState` recibe el `Error` y muestra su mensaje tal cual; los de índice de Firestore traen la URL de consola que lo crea y se pintan como link. No lo escondas detrás de copy amable: eso es justo lo que convirtió un índice sin desplegar en un dashboard vacío y silencioso.
 
 **Otras reglas**
 
@@ -194,7 +207,7 @@ Es exactamente lo que corre CI (`.github/workflows/ci.yml`). **`pnpm build` no e
 
 Otras notas:
 
-- `pnpm seed:global` siembra el catálogo de `services`; `pnpm seed:user <userId>` siembra datos de un usuario.
+- `pnpm seed:global` siembra el catálogo de `services`; `pnpm seed:user <userId>` siembra el perfil demo multi-moneda de un usuario (`--dry-run` lo valida e imprime el resumen sin escribir ni pedir credenciales; `--no-wipe` no borra lo que ya hay). El historial **no** está escrito a mano: se deriva de los recurrentes con `helpers/materializeOccurrences`, así que comparte los ids determinísticos del materializador de la app y montar el dashboard no duplica nada. Si tocas `data/testSeedData.json`, corre el `--dry-run` — valida categorías, métodos, servicios y pares charged.
 - Husky + lint-staged formatean con Prettier al commitear, así que no pelees con el formato.
 
 ---

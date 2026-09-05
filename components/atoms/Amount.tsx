@@ -1,5 +1,5 @@
 import type { Currency } from "../../types";
-import { LANG_PER_CURRENCY, ZERO_DECIMAL_CURRENCIES } from "../../constants";
+import { ZERO_DECIMAL_CURRENCIES } from "../../constants";
 
 interface Props {
   value: number;
@@ -21,14 +21,40 @@ const SIZE_MAP = {
   lg: "1.9rem",
 };
 
-export function formatAmount(value: number, currency: Currency): string {
+/**
+ * One locale for the whole UI on purpose. Formatting each currency in its own
+ * locale put "$ 26.900" (es-CO) next to "$1,150.00" (en-US) in the same list,
+ * where the COP row reads as twenty-six dollars.
+ */
+const GROUPING_LOCALE = "en-US";
+
+interface FormatOptions {
+  /** Write the ISO code instead of the symbol — "COP 220,000" rather than "$220,000". */
+  code?: boolean;
+}
+
+export function formatAmount(
+  value: number,
+  currency: Currency,
+  { code = false }: FormatOptions = {}
+): string {
   const digits = ZERO_DECIMAL_CURRENCIES.has(currency) ? 0 : 2;
-  return new Intl.NumberFormat(LANG_PER_CURRENCY[currency], {
+  return new Intl.NumberFormat(GROUPING_LOCALE, {
     style: "currency",
     currency,
+    currencyDisplay: code ? "code" : "symbol",
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(value);
+}
+
+/**
+ * How a row's own amount should read next to totals in `displayCurrency`:
+ * symbol when they match, ISO code when they don't — $, MXN$ and COP$ are all
+ * "$" otherwise.
+ */
+export function formatNative(value: number, currency: Currency, displayCurrency: Currency): string {
+  return formatAmount(value, currency, { code: currency !== displayCurrency });
 }
 
 export function Amount({

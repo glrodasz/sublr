@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import SettingsPage from "../../pages/settings";
 
 const pushMock = jest.fn();
@@ -35,8 +35,11 @@ beforeEach(() => {
 describe("SettingsPage", () => {
   it("renders account details", () => {
     render(<SettingsPage />);
-    expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
-    expect(screen.getByText("ada@example.com")).toBeInTheDocument();
+    // The sidebar footer shows the same identity, so scope to the page's own
+    // Account card rather than matching across the whole layout.
+    const main = screen.getByRole("main");
+    expect(within(main).getByText("Ada Lovelace")).toBeInTheDocument();
+    expect(within(main).getByText("ada@example.com")).toBeInTheDocument();
   });
 
   it("resets onboardingCompleted and navigates to the wizard on redo", async () => {

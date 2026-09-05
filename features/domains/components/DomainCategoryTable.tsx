@@ -1,5 +1,5 @@
 import { Card } from "../../../components/atoms/Card";
-import { formatAmount } from "../../../components/atoms/Amount";
+import { formatAmount, formatNative } from "../../../components/atoms/Amount";
 import { KebabMenu } from "../../../components/molecules/KebabMenu";
 import { FREQUENCY_LABELS } from "../../../constants";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
@@ -100,7 +100,7 @@ export function DomainCategoryTable({
                 {items.map((item) => (
                   <tr key={item.id}>
                     <td>{item.name}</td>
-                    <td className="mono">{formatAmount(item.amount, item.currency)}</td>
+                    <td className="mono">{formatNative(item.amount, item.currency, currency)}</td>
                     <td className="muted">{FREQUENCY_LABELS[item.frequency]}</td>
                     {config.showPaymentMethod && (
                       <td className="muted">

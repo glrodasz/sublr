@@ -1,22 +1,25 @@
 import type { ReactNode } from "react";
 import type { Currency } from "../../types";
-import { formatAmount } from "../atoms/Amount";
+import { formatNative } from "../atoms/Amount";
 
 interface Props {
   name: string;
   amount: number;
+  /** The row's own currency — rows always show what was actually charged. */
   currency: Currency;
+  /** The reporting currency, so a foreign row can be written with its ISO code. */
+  displayCurrency: Currency;
   meta: string;
   /** Optional trailing slot — a kebab menu, for rows that support actions. */
   trailing?: ReactNode;
 }
 
-export function TransactionRow({ name, amount, currency, meta, trailing }: Props) {
+export function TransactionRow({ name, amount, currency, displayCurrency, meta, trailing }: Props) {
   return (
     <li className="row">
       <span className="name">{name}</span>
       <span className="right">
-        <span className="amount">{formatAmount(amount, currency)}</span>
+        <span className="amount">{formatNative(amount, currency, displayCurrency)}</span>
         <span className="meta">{meta}</span>
       </span>
       {trailing}

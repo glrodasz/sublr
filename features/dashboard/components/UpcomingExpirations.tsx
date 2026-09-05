@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { RecurrentTransaction } from "../../../types";
+import type { Currency, RecurrentTransaction } from "../../../types";
 import { Card } from "../../../components/atoms/Card";
 import { SectionTitle } from "../../../components/atoms/SectionTitle";
 import { TransactionRow } from "../../../components/molecules/TransactionRow";
@@ -7,6 +7,7 @@ import { KebabMenu } from "../../../components/molecules/KebabMenu";
 
 interface Props {
   items: RecurrentTransaction[];
+  displayCurrency: Currency;
   loading?: boolean;
   onMarkPaid?: (id: string) => Promise<void>;
 }
@@ -20,7 +21,7 @@ function formatDate(ts: RecurrentTransaction["nextOccurrence"]): string {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
 }
 
-export function UpcomingExpirations({ items, loading, onMarkPaid }: Props) {
+export function UpcomingExpirations({ items, displayCurrency, loading, onMarkPaid }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   const markPaid = async (id: string) => {
@@ -51,6 +52,7 @@ export function UpcomingExpirations({ items, loading, onMarkPaid }: Props) {
               name={item.name}
               amount={item.amount}
               currency={item.currency}
+              displayCurrency={displayCurrency}
               meta={formatDate(item.nextOccurrence)}
               trailing={
                 onMarkPaid &&

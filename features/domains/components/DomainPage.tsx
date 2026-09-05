@@ -6,7 +6,7 @@ import { DomainChart } from "./DomainChart";
 import { DomainCategoryTable } from "./DomainCategoryTable";
 import { RecurrentTransactionModal } from "./RecurrentTransactionModal";
 import { SubscriptionInsights } from "../../insights/components/SubscriptionInsights";
-import { PERIODS, getStartDate } from "../helpers/periods";
+import { PERIODS, DEFAULT_PERIOD_INDEX, getStartDate } from "../helpers/periods";
 import { DOMAIN_CONFIG } from "../helpers/domainConfig";
 import { toDomainChartData } from "../helpers/domainChartData";
 import { useDomainTransactions } from "../../../hooks/useDomainTransactions";
@@ -56,7 +56,7 @@ export function DomainPage({ domain }: Props) {
   const { ctx, target } = useMoneyContext();
   const currency: Currency = target;
 
-  const [periodIdx, setPeriodIdx] = useState(0);
+  const [periodIdx, setPeriodIdx] = useState(DEFAULT_PERIOD_INDEX);
   const startDate = useMemo(() => getStartDate(PERIODS[periodIdx].months), [periodIdx]);
   // Fetch at least back to the 1st of last month so the MoM badge always
   // compares against a complete previous month, whatever period is displayed.
@@ -134,7 +134,7 @@ export function DomainPage({ domain }: Props) {
         <NewItemButton label={`New ${config.noun.replace(/s$/, "")}`} onClick={openCreate} />
       }
     >
-      {error && <ErrorState />}
+      {error && <ErrorState error={error} />}
 
       <DomainSummary
         domain={domain}

@@ -9,6 +9,7 @@
   "scripts": {
     "seed:global": "tsx scripts/firebase/firestoreSeedGlobalData.ts",
     "seed:user": "tsx scripts/firebase/firestoreSeedUserData.ts",
+    "firebase:deploy": "npx --yes firebase-tools deploy --only firestore:rules,firestore:indexes",
     "dev": "next dev",
     "debug": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",

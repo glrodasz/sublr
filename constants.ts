@@ -7,17 +7,6 @@ import type { Currency, Frequency } from "./types";
  */
 export const CURRENCIES = ["USD", "EUR", "MXN", "GBP", "SEK", "CHF", "JPY", "COP"] as const;
 
-export const LANG_PER_CURRENCY: Record<Currency, string> = {
-  USD: "en-US",
-  EUR: "en-IE",
-  MXN: "es-MX",
-  GBP: "en-GB",
-  SEK: "en-SE",
-  CHF: "de-CH",
-  JPY: "ja-JP",
-  COP: "es-CO",
-};
-
 /** Currencies conventionally written without decimal places. */
 export const ZERO_DECIMAL_CURRENCIES: Set<Currency> = new Set(["JPY", "COP"]);
 

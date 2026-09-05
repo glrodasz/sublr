@@ -64,7 +64,7 @@ export default function ProspectPage() {
 
   return (
     <PageLayout title="Prospect">
-      {error && <ErrorState />}
+      {error && <ErrorState error={error} />}
 
       <section className="row">
         <CancelableItemsList

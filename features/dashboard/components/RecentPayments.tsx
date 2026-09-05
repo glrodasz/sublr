@@ -1,10 +1,11 @@
-import type { Transaction } from "../../../types";
+import type { Currency, Transaction } from "../../../types";
 import { Card } from "../../../components/atoms/Card";
 import { SectionTitle } from "../../../components/atoms/SectionTitle";
 import { TransactionRow } from "../../../components/molecules/TransactionRow";
 
 interface Props {
   transactions: Transaction[];
+  displayCurrency: Currency;
   loading?: boolean;
 }
 
@@ -22,7 +23,7 @@ function formatDate(ts: Transaction["occurredAt"]): string {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
 }
 
-export function RecentPayments({ transactions, loading }: Props) {
+export function RecentPayments({ transactions, displayCurrency, loading }: Props) {
   return (
     <Card>
       <SectionTitle title="Recent payments" />
@@ -39,6 +40,7 @@ export function RecentPayments({ transactions, loading }: Props) {
               name={t.name}
               amount={t.amount}
               currency={t.currency}
+              displayCurrency={displayCurrency}
               meta={formatDate(t.occurredAt)}
             />
           ))}

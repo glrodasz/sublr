@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
-import {
-  collection,
-  onSnapshot,
-  query,
-  where,
-  orderBy,
-  limit,
-  Timestamp,
-} from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { db } from "../../../firebase/client";
 import { useFirebaseAuth } from "../../../hooks/useFirebaseAuth";
 import type { RecurrentTransaction } from "../../../types";
+
+/** Soonest first; items without a next charge sink to the bottom. */
+function byNextOccurrence(a: RecurrentTransaction, b: RecurrentTransaction) {
+  const at = a.nextOccurrence?.toDate().getTime() ?? Infinity;
+  const bt = b.nextOccurrence?.toDate().getTime() ?? Infinity;
+  return at - bt;
+}
 
 export function useUpcomingItems(count: number = 5) {
   const { user } = useUser();
@@ -23,20 +22,28 @@ export function useUpcomingItems(count: number = 5) {
   useEffect(() => {
     if (!ready || !user?.sub) return;
 
-    const now = Timestamp.now();
+    // Equality filters only, then window/sort/slice in memory. Adding
+    // `nextOccurrence > now` + orderBy would need a composite index, and a
+    // user only ever has a few dozen active items — the same trade-off
+    // useCategories already makes. One less thing that breaks on a fresh
+    // project where the indexes haven't been deployed.
     const q = query(
       collection(db, "recurrentTransactions"),
       where("userId", "==", user.sub),
-      where("active", "==", true),
-      where("nextOccurrence", ">", now),
-      orderBy("nextOccurrence", "asc"),
-      limit(count)
+      where("active", "==", true)
     );
 
     return onSnapshot(
       q,
       (snap) => {
-        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as RecurrentTransaction));
+        const now = Date.now();
+        const upcoming = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }) as RecurrentTransaction)
+          .filter((i) => (i.nextOccurrence?.toDate().getTime() ?? 0) > now)
+          .sort(byNextOccurrence)
+          .slice(0, count);
+
+        setItems(upcoming);
         setError(null);
         setLoading(false);
       },

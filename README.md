@@ -82,15 +82,49 @@ To populate your Firestore database run the two seed scripts:
 # 1. Seed the global services catalogue (Netflix, Spotify, etc.) — run once
 pnpm seed:global
 
-# 2. Seed per-user data (categories, payment methods, transactions) — run after first login
+# 2. Preview the demo profile without writing anything (no credentials needed)
+pnpm seed:user <userId> --dry-run
+
+# 3. Seed per-user demo data — run after first login
 pnpm seed:user <userId>
 ```
 
 To find your `userId`, add a temporary `console.log` in any page to print the Auth0 `user.sub` value after logging in.
 
-## Firebase Rules
+### What the demo profile contains
 
-The deployed security rules live in [`firestore.rules`](./firestore.rules) —
-deploy them with `firebase deploy --only firestore:rules` (or paste the file
-into the Firebase console). Composite indexes live in
-[`firestore.indexes.json`](./firestore.indexes.json).
+`pnpm seed:user` writes a curated multi-currency profile (`data/testSeedData.json`):
+USD as the main currency, with income in USD/EUR/COP, subscriptions billed in
+COP against USD prices (so implied exchange rates show up), and expenses,
+investments and savings across all four domains — roughly $6.8k/mo in, $2.1k/mo
+of unallocated net.
+
+- **It wipes first.** By default it deletes that user's categories, payment
+  methods, recurrent transactions and transactions before writing. Pass
+  `--no-wipe` to add on top instead.
+- **History is derived, not hand-written.** Twelve months of PAID transactions
+  are generated from the recurring items through the same
+  `helpers/materializeOccurrences` the app uses, with the same deterministic
+  `{itemId}_{YYYY-MM-DD}` ids — so the materializer that runs on dashboard mount
+  finds them already there and never writes a duplicate.
+- **It also seeds `users/{id}`** (main currency, onboarding marked complete) and a
+  `rates/{today}` document, so conversion works even without
+  `EXCHANGE_RATES_API_KEY`; a real key overwrites those rates on the first fetch.
+
+## Firebase rules and indexes
+
+Security rules live in [`firestore.rules`](./firestore.rules) and composite
+indexes in [`firestore.indexes.json`](./firestore.indexes.json). Both are
+deployed together with:
+
+```bash
+pnpm firebase:deploy
+```
+
+**Deploying the indexes is not optional.** Several queries — the per-domain
+transaction history behind the charts and period totals, and the recent
+payments list — combine equality filters with a range or an `orderBy`, which
+Firestore refuses to run without a matching composite index. A missing index
+fails the whole listener, so the panel renders empty rather than wrong. When
+that happens the app now shows Firestore's own message, which includes a
+one-click link to create the index it wants.
