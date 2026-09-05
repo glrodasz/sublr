@@ -1,22 +1,29 @@
-export interface ChartPoint {
+import { convertedAmount } from "../../../helpers/aggregations";
+import type { MoneyContext, MoneyFields } from "../../../helpers/aggregations";
+
+export interface DomainChartPoint {
   label: string;
   amount: number;
   name: string;
 }
 
-interface ChartInput {
+interface ChartInput extends MoneyFields {
   occurredAt: unknown;
-  amount: number;
   name: string;
 }
 
 /**
- * Maps transactions to the shape the area chart expects.
+ * Maps one domain's transactions to per-transaction chart points (the mockup
+ * tooltip shows amount, date and the source's name), with every amount
+ * converted into the reporting currency.
  *
  * `occurredAt` arrives as a Firestore Timestamp from live queries but as an ISO
  * string from anything serialised, so both are accepted.
  */
-export function toChartData(transactions: ChartInput[]): ChartPoint[] {
+export function toDomainChartData(
+  transactions: ChartInput[],
+  ctx: MoneyContext
+): DomainChartPoint[] {
   const format = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" });
 
   return transactions.map((t) => {
@@ -24,7 +31,7 @@ export function toChartData(transactions: ChartInput[]): ChartPoint[] {
     const date = typeof ts?.toDate === "function" ? ts.toDate() : new Date(ts as unknown as string);
     return {
       label: format.format(date),
-      amount: t.amount,
+      amount: convertedAmount(t, ctx),
       name: t.name,
     };
   });

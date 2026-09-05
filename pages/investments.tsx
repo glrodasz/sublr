@@ -1,15 +1,8 @@
 import { withOnboardingGuard } from "../features/onboarding/helpers/onboardingGuard";
-import { PageLayout } from "../components/organisms/PageLayout";
-import { DomainView } from "../features/domains/components/DomainView";
-import { useUserDoc } from "../hooks/useUserDoc";
+import { DomainPage } from "../features/domains/components/DomainPage";
 
 export const getServerSideProps = withOnboardingGuard();
 
 export default function InvestmentsPage() {
-  const { userDoc } = useUserDoc();
-  return (
-    <PageLayout title="Investments" currency={userDoc?.mainCurrency}>
-      <DomainView domain="INVESTMENT" monthlyLabel="Monthly investments" />
-    </PageLayout>
-  );
+  return <DomainPage domain="INVESTMENT" />;
 }

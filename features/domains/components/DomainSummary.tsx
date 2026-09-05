@@ -1,31 +1,56 @@
-import { Amount } from "../../../components/atoms/Amount";
+import { Amount, formatAmount } from "../../../components/atoms/Amount";
 import { PERIODS } from "../helpers/periods";
-import type { Currency } from "../../../types";
+import { DOMAIN_CONFIG } from "../helpers/domainConfig";
+import type { Currency, Domain } from "../../../types";
 
 interface Props {
-  total: number;
+  domain: Domain;
+  /** Converted sum of realized transactions in the period — matches the chart and the delta. */
+  periodTotal: number;
+  /** Monthly run-rate of the active recurrent plans. */
+  runRate: number;
   currency: Currency;
   deltaPct: number;
+  approximate?: boolean;
   periodIdx: number;
   onPeriodChange: (index: number) => void;
 }
 
-export function ExpensesSummary({ total, currency, deltaPct, periodIdx, onPeriodChange }: Props) {
+/**
+ * The KPI header of a domain page: the period's realized total (big figure,
+ * one data source with the chart below it) with the planned monthly run-rate
+ * as a second line — two different questions, two labeled numbers.
+ */
+export function DomainSummary({
+  domain,
+  periodTotal,
+  runRate,
+  currency,
+  deltaPct,
+  approximate = false,
+  periodIdx,
+  onPeriodChange,
+}: Props) {
+  const config = DOMAIN_CONFIG[domain];
   const hasDelta = deltaPct !== 0;
   const up = deltaPct > 0;
+  const good = up === config.upIsGood;
 
   return (
     <div className="summary-row">
       <div>
-        <span className="summary-label">Total expenses</span>
+        <span className="summary-label">{config.totalLabel}</span>
         <div className="summary-amount">
-          <Amount value={total} currency={currency} size="lg" />
+          <Amount value={periodTotal} currency={currency} size="lg" approximate={approximate} />
           {hasDelta && (
-            <span className={`delta-badge ${up ? "up" : "down"}`}>
+            <span className={`delta-badge ${good ? "good" : "bad"}`}>
               {up ? "▲" : "▼"} {Math.abs(deltaPct).toFixed(0)}%
             </span>
           )}
         </div>
+        <span className="run-rate">
+          {config.runRateLabel}: <strong>{formatAmount(runRate, currency)}</strong>/mo
+        </span>
       </div>
 
       <div className="period-tabs">
@@ -64,6 +89,19 @@ export function ExpensesSummary({ total, currency, deltaPct, periodIdx, onPeriod
           gap: 10px;
         }
 
+        .run-rate {
+          display: block;
+          margin-top: 6px;
+          font-size: 0.8rem;
+          color: var(--fg-2);
+        }
+
+        .run-rate strong {
+          color: var(--fg-1);
+          font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+          font-variant-numeric: tabular-nums;
+        }
+
         .delta-badge {
           font-size: 0.75rem;
           font-weight: 700;
@@ -71,13 +109,12 @@ export function ExpensesSummary({ total, currency, deltaPct, periodIdx, onPeriod
           border-radius: 999px;
         }
 
-        /* Spending more is bad, spending less is good. */
-        .delta-badge.up {
+        .delta-badge.bad {
           background: rgba(255, 61, 104, 0.12);
           color: var(--accent-hot);
         }
 
-        .delta-badge.down {
+        .delta-badge.good {
           background: rgba(124, 255, 178, 0.12);
           color: var(--accent);
         }

@@ -17,7 +17,7 @@ const FREQ_TO_MONTHS: Record<RecurrentTransaction["frequency"], number> = {
   YEARLY: 1 / 12,
 };
 
-interface MoneyFields {
+export interface MoneyFields {
   amount: number;
   currency: Currency;
   chargedAmount?: number;

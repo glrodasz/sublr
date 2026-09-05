@@ -8,6 +8,11 @@ import { UpcomingExpirations } from "../features/dashboard/components/UpcomingEx
 import Skeleton from "../components/Skeleton";
 import { ErrorState } from "../components/atoms/ErrorState";
 import { CurrencySelector } from "../features/dashboard/components/CurrencySelector";
+import { NetFlowCard } from "../features/dashboard/components/NetFlowCard";
+import { topWithOther } from "../features/dashboard/helpers/topWithOther";
+import { Card } from "../components/atoms/Card";
+import { SectionTitle } from "../components/atoms/SectionTitle";
+import { FlowChart } from "../components/molecules/FlowChart";
 import { useDashboard } from "../features/dashboard/hooks/useDashboard";
 import { useUserDoc } from "../hooks/useUserDoc";
 import { useMaterialize } from "../hooks/useMaterialize";
@@ -22,12 +27,17 @@ export default function Dashboard() {
     currency,
     setDisplayCurrency,
     totals,
+    flow,
+    approximate,
+    fxUnavailable,
     expensesByCategory,
     incomesByCategory,
     investmentsByCategory,
+    savingsByCategory,
     recentPayments,
     upcoming,
     momDelta,
+    flowSeries,
     loading,
     error,
   } = useDashboard();
@@ -72,6 +82,20 @@ export default function Dashboard() {
       actions={actions}
     >
       {error && <ErrorState />}
+      {fxUnavailable && (
+        <ErrorState
+          title="Exchange rates unavailable"
+          description="Totals mix currencies without conversion right now. They'll correct themselves when rates load again."
+        />
+      )}
+
+      <section className="row">
+        {userDoc ? (
+          <NetFlowCard flow={flow} currency={currency} approximate={approximate} />
+        ) : (
+          <Skeleton.Box width="100%" height={140} />
+        )}
+      </section>
 
       <section className="row">
         {userDoc ? (
@@ -98,9 +122,17 @@ export default function Dashboard() {
               domain="INVESTMENT"
               summary={investmentsByCategory.slice(0, 2)}
             />
+            <StatCard
+              title="Savings"
+              amount={totals.saving}
+              currency={currency}
+              domain="SAVING"
+              summary={savingsByCategory.slice(0, 2)}
+            />
           </>
         ) : (
           <>
+            <Skeleton.Box width="100%" height={120} />
             <Skeleton.Box width="100%" height={120} />
             <Skeleton.Box width="100%" height={120} />
             <Skeleton.Box width="100%" height={120} />
@@ -109,7 +141,18 @@ export default function Dashboard() {
       </section>
 
       <section className="row">
-        <ExpenseBreakdown rows={expensesByCategory} currency={currency} loading={loading} />
+        <Card>
+          <SectionTitle title="Cash flow" />
+          <FlowChart data={flowSeries} currency={currency} loading={loading} />
+        </Card>
+      </section>
+
+      <section className="row">
+        <ExpenseBreakdown
+          rows={topWithOther(expensesByCategory, 5)}
+          currency={currency}
+          loading={loading}
+        />
         <RecentPayments transactions={recentPayments} loading={loading} />
         <UpcomingExpirations items={upcoming} loading={loading} />
       </section>
@@ -120,9 +163,28 @@ export default function Dashboard() {
           gap: 16px;
         }
 
-        @media (max-width: 900px) {
+        .row > :global(*) {
+          flex: 1;
+          min-width: 0;
+        }
+
+        @media (max-width: 1100px) {
+          .row {
+            flex-wrap: wrap;
+          }
+
+          .row > :global(*) {
+            flex-basis: calc(50% - 8px);
+          }
+        }
+
+        @media (max-width: 640px) {
           .row {
             flex-direction: column;
+          }
+
+          .row > :global(*) {
+            flex-basis: auto;
           }
         }
       `}</style>

@@ -1,11 +1,20 @@
 import { Card } from "../../../components/atoms/Card";
 import { formatAmount } from "../../../components/atoms/Amount";
 import { FREQUENCY_LABELS } from "../../../constants";
-import type { Category, Currency, RecurrentTransaction } from "../../../types";
+import { DOMAIN_CONFIG } from "../helpers/domainConfig";
+import type {
+  Category,
+  Currency,
+  Domain,
+  PaymentMethod,
+  RecurrentTransaction,
+} from "../../../types";
 
 interface Props {
+  domain: Domain;
   categories: Category[];
   items: RecurrentTransaction[];
+  paymentMethods: PaymentMethod[];
   selectedCategoryId: string | null;
   categoryTotal: number;
   currency: Currency;
@@ -13,38 +22,31 @@ interface Props {
   onSelectCategory: (id: string | null) => void;
 }
 
-export function CategoryBreakdown({
+/** "{name} - {last4}" when the method has digits, its plain name otherwise. */
+export function paymentMethodLabel(method: PaymentMethod | undefined): string {
+  if (!method) return "—";
+  return method.last4 ? `${method.name} - ${method.last4}` : method.name;
+}
+
+export function DomainCategoryTable({
+  domain,
   categories,
   items,
+  paymentMethods,
   selectedCategoryId,
   categoryTotal,
   currency,
   loading,
   onSelectCategory,
 }: Props) {
+  const config = DOMAIN_CONFIG[domain];
   const selected = categories.find((c) => c.id === selectedCategoryId);
+  const methodById = new Map(paymentMethods.map((m) => [m.id, m]));
 
   return (
     <Card>
       <div className="cat-header">
         <span className="cat-title">Categories</span>
-        <button type="button" className="filter-btn" disabled aria-label="Filter">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <line x1="4" y1="6" x2="20" y2="6" />
-            <line x1="8" y1="12" x2="16" y2="12" />
-            <line x1="11" y1="18" x2="13" y2="18" />
-          </svg>
-        </button>
       </div>
 
       {loading ? (
@@ -68,7 +70,8 @@ export function CategoryBreakdown({
 
           {selected && (
             <p className="cat-total">
-              Expenses by {selected.name}: <strong>{formatAmount(categoryTotal, currency)}</strong>
+              {config.title} by {selected.name}:{" "}
+              <strong>{formatAmount(categoryTotal, currency)}</strong>
             </p>
           )}
 
@@ -81,7 +84,7 @@ export function CategoryBreakdown({
                   <th>Name</th>
                   <th>Amount</th>
                   <th>Frequency</th>
-                  <th>Payment method</th>
+                  {config.showPaymentMethod && <th>Payment method</th>}
                   <th />
                 </tr>
               </thead>
@@ -91,7 +94,13 @@ export function CategoryBreakdown({
                     <td>{item.name}</td>
                     <td className="mono">{formatAmount(item.amount, item.currency)}</td>
                     <td className="muted">{FREQUENCY_LABELS[item.frequency]}</td>
-                    <td className="muted">—</td>
+                    {config.showPaymentMethod && (
+                      <td className="muted">
+                        {paymentMethodLabel(
+                          item.paymentMethodId ? methodById.get(item.paymentMethodId) : undefined
+                        )}
+                      </td>
+                    )}
                     <td className="actions">
                       <button type="button" className="more-btn" disabled aria-label="More options">
                         ⋮
@@ -118,37 +127,12 @@ export function CategoryBreakdown({
           color: var(--fg-0);
         }
 
-        .filter-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-          border: none;
-          background: transparent;
-          color: var(--fg-2);
-          cursor: pointer;
-          border-radius: var(--r-sm);
-          transition:
-            background 0.15s,
-            color 0.15s;
-        }
-
-        .filter-btn:hover:not(:disabled) {
-          background: var(--bg-2);
-          color: var(--fg-1);
-        }
-
-        .filter-btn:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-
         .cat-tabs {
           display: flex;
           border-bottom: 1px solid var(--line);
           margin-bottom: 16px;
           gap: 0;
+          overflow-x: auto;
         }
 
         .cat-tab {
@@ -170,7 +154,7 @@ export function CategoryBreakdown({
 
         .cat-tab.active {
           color: var(--fg-0);
-          border-bottom-color: var(--domain-expense);
+          border-bottom-color: ${config.accent};
         }
 
         .cat-tab:first-child {

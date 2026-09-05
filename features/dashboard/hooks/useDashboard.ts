@@ -7,7 +7,7 @@ import { useCategories } from "../../../hooks/useCategories";
 import { useMoneyContext } from "../../../hooks/useMoneyContext";
 import { groupByCategory, computeMoM, computeFlow } from "../../../helpers";
 import type { MoneyContext } from "../../../helpers";
-import { startOfPreviousMonth } from "../../../utils/startOfPreviousMonth";
+import { toFlowSeries } from "../../../helpers/chartData";
 
 function buildCategoryList(
   items: ReturnType<typeof useRecurringItems>["items"],
@@ -34,18 +34,33 @@ export function useDashboard() {
   const { categories, loading: l4, error: e4 } = useCategories();
   const { transactions: recentPayments, loading: l5, error: e5 } = useRecentTransactions(5);
   const { items: upcoming, loading: l6, error: e6 } = useUpcomingItems(5);
-  // The MoM delta needs every EXPENSE doc since the 1st of last month — a
-  // capped recent-payments query would truncate the previous month and mix
-  // domains into the comparison.
-  const momStart = useMemo(() => startOfPreviousMonth(), []);
+  // One window serves both consumers: the cash-flow chart wants the 6 months
+  // the materializer backfills, and computeMoM slices its own current/previous
+  // months out of the same set — so the previous month is never truncated and
+  // other domains never pollute the delta.
+  const chartStart = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() - 6, 1);
+  }, []);
   const {
     transactions: expenseTransactions,
     loading: l8,
     error: e8,
-  } = useDomainTransactions("EXPENSE", momStart);
+  } = useDomainTransactions("EXPENSE", chartStart);
+  const {
+    transactions: incomeTransactions,
+    loading: l9,
+    error: e9,
+  } = useDomainTransactions("INCOME", chartStart);
   const { ctx, target, fxStale, fxMissing, setDisplayCurrency } = useMoneyContext();
-  const loading = l1 || l2 || l3 || l4 || l5 || l6 || l7 || l8;
-  const error = e1 ?? e2 ?? e3 ?? e4 ?? e5 ?? e6 ?? e7 ?? e8;
+  const loading = l1 || l2 || l3 || l4 || l5 || l6 || l7 || l8 || l9;
+  const error = e1 ?? e2 ?? e3 ?? e4 ?? e5 ?? e6 ?? e7 ?? e8 ?? e9;
+
+  // "≈" only means something when conversion actually happened: at least one
+  // item lives in a currency other than the reporting target.
+  const hasForeign = [incomes, expenses, investments, savings].some((arr) =>
+    arr.some((i) => i.currency !== target)
+  );
 
   const flow = useMemo(
     () =>
@@ -91,10 +106,22 @@ export function useDashboard() {
     [expenseTransactions, ctx]
   );
 
+  const flowSeries = useMemo(
+    () =>
+      toFlowSeries([...incomeTransactions, ...expenseTransactions], {
+        ...ctx,
+        from: chartStart,
+        bucket: "month",
+      }),
+    [incomeTransactions, expenseTransactions, ctx, chartStart]
+  );
+
   return {
     currency: target,
     fxStale,
     fxMissing,
+    approximate: hasForeign && !fxMissing,
+    fxUnavailable: hasForeign && fxMissing,
     setDisplayCurrency,
     totals,
     flow,
@@ -105,6 +132,7 @@ export function useDashboard() {
     recentPayments,
     upcoming,
     momDelta,
+    flowSeries,
     loading,
     error,
   };

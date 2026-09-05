@@ -1,7 +1,8 @@
 import dynamic from "next/dynamic";
 import { formatAmount } from "../../../components/atoms/Amount";
-import type { ChartPoint } from "../helpers/chartData";
-import type { Currency } from "../../../types";
+import { DOMAIN_CONFIG } from "../helpers/domainConfig";
+import type { DomainChartPoint } from "../helpers/domainChartData";
+import type { Currency, Domain } from "../../../types";
 
 // recharts is client-only and heavy, so every piece is loaded on demand.
 const AreaChart = dynamic(() => import("recharts").then((m) => m.AreaChart), { ssr: false });
@@ -17,12 +18,17 @@ const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.Respo
 });
 
 interface Props {
-  data: ChartPoint[];
+  domain: Domain;
+  data: DomainChartPoint[];
   currency: Currency;
   loading: boolean;
 }
 
-export function ExpensesChart({ data, currency, loading }: Props) {
+/** Single-series area chart in the domain's accent, tooltip = amount, date, source. */
+export function DomainChart({ domain, data, currency, loading }: Props) {
+  const accent = DOMAIN_CONFIG[domain].accent;
+  const gradientId = `domainGrad-${domain}`;
+
   return (
     <div className="chart-area">
       {!loading && data.length === 0 ? (
@@ -31,9 +37,9 @@ export function ExpensesChart({ data, currency, loading }: Props) {
         <ResponsiveContainer width="100%" height={240}>
           <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <defs>
-              <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--accent-hot)" stopOpacity={0.18} />
-                <stop offset="95%" stopColor="var(--accent-hot)" stopOpacity={0} />
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={accent} stopOpacity={0.18} />
+                <stop offset="95%" stopColor={accent} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="4 4" stroke="var(--line)" vertical={false} />
@@ -52,6 +58,7 @@ export function ExpensesChart({ data, currency, loading }: Props) {
               width={68}
             />
             <Tooltip
+              cursor={{ stroke: "var(--line-strong)", strokeDasharray: "4 4" }}
               contentStyle={{
                 background: "var(--bg-1)",
                 border: "1px solid var(--line-strong)",
@@ -70,13 +77,13 @@ export function ExpensesChart({ data, currency, loading }: Props) {
             <Area
               type="monotone"
               dataKey="amount"
-              stroke="var(--accent-hot)"
+              stroke={accent}
               strokeWidth={2}
-              fill="url(#expGrad)"
+              fill={`url(#${gradientId})`}
               dot={false}
               activeDot={{
                 r: 5,
-                fill: "var(--accent-hot)",
+                fill: accent,
                 stroke: "var(--bg-1)",
                 strokeWidth: 2,
               }}
