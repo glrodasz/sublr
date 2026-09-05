@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { request } from "../../lib/request";
+import { request } from "../../utils/request";
 
 const RATES_FROM_USD = ["COP", "SEK", "EUR"];
 

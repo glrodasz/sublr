@@ -1,6 +1,6 @@
-import { withOnboardingGuard } from "../lib/withOnboardingGuard";
+import { withOnboardingGuard } from "../features/onboarding/helpers/onboardingGuard";
 import { PageLayout } from "../components/organisms/PageLayout";
-import { DomainView } from "../components/organisms/DomainView";
+import { DomainView } from "../features/domains/components/DomainView";
 import { useUserDoc } from "../hooks/useUserDoc";
 
 export const getServerSideProps = withOnboardingGuard();

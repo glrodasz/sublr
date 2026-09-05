@@ -55,7 +55,7 @@ export interface PaymentMethod {
   currencies: Currency[];
   defaultCurrency?: Currency;
   last4?: string;
-  alias?: string;
+  network?: string;
   archived?: boolean;
   createdAt: Timestamp;
 }

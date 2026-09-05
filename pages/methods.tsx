@@ -1,4 +1,4 @@
-import { withOnboardingGuard } from "../lib/withOnboardingGuard";
+import { withOnboardingGuard } from "../features/onboarding/helpers/onboardingGuard";
 import { PageLayout } from "../components/organisms/PageLayout";
 import { Card } from "../components/atoms/Card";
 import { EmptyState } from "../components/atoms/EmptyState";

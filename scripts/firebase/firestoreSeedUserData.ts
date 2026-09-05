@@ -62,6 +62,7 @@ async function seedPaymentMethods(): Promise<Map<string, string>> {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
     if (pm.defaultCurrency) doc.defaultCurrency = pm.defaultCurrency;
+    if (pm.network) doc.network = pm.network;
     batch.set(ref, doc);
     idByName.set(pm.name, ref.id);
   }

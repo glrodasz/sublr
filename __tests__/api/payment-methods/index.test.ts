@@ -131,11 +131,11 @@ describe("POST /api/payment-methods", () => {
         method: "POST",
         query: {},
         body: {
-          name: "Amex",
+          name: "Amex Gold",
           type: "CREDIT_CARD",
           currencies: ["USD"],
           last4: "3478",
-          alias: "For all",
+          network: "American Express",
         },
       } as NextApiRequest,
       res
@@ -143,7 +143,7 @@ describe("POST /api/payment-methods", () => {
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({ id: "new-pm" });
     expect(add).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: "user1", last4: "3478", alias: "For all" })
+      expect.objectContaining({ userId: "user1", last4: "3478", network: "American Express" })
     );
   });
 

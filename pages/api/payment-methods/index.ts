@@ -30,7 +30,7 @@ export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextAp
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten() });
     }
-    const { name, type, currencies, defaultCurrency, last4, alias } = parsed.data;
+    const { name, type, currencies, defaultCurrency, last4, network } = parsed.data;
 
     // Onboarding doesn't ask for currencies per method — fall back to the
     // user's main currency so the field is never empty.
@@ -63,7 +63,7 @@ export default auth0.withApiAuthRequired(async (req: NextApiRequest, res: NextAp
       currencies: resolved,
       ...(defaultCurrency ? { defaultCurrency } : {}),
       ...(last4 ? { last4 } : {}),
-      ...(alias ? { alias } : {}),
+      ...(network ? { network } : {}),
       archived: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });

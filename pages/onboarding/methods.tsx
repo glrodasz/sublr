@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import auth0 from "../../lib/auth0";
-import { OnboardingLayout } from "../../components/organisms/OnboardingLayout";
-import { MethodsStep, useMethodsStep } from "../../components/onboarding/steps/MethodsStep";
-import { WizardActions } from "../../components/onboarding/WizardActions";
+import { OnboardingLayout } from "../../features/onboarding/components/OnboardingLayout";
+import { MethodsStep } from "../../features/onboarding/components/MethodsStep";
+import { useMethodsStep } from "../../features/onboarding/hooks/useMethodsStep";
+import { WizardActions } from "../../features/onboarding/components/WizardActions";
 
 export const getServerSideProps = auth0.withPageAuthRequired();
 

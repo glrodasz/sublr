@@ -8,6 +8,19 @@ interface Props {
   placeholder?: string;
   label: string;
   autoFocus?: boolean;
+  disabled?: boolean;
+  /**
+   * Controlled mode: the field mirrors this value instead of managing its own
+   * draft, and never clears itself after a commit — every keystroke and every
+   * pick both just call `onSelect` with the new text. Use this to embed the
+   * combobox as a normal persistent form field (e.g. a card network picker)
+   * rather than the default one-shot "type or create, then reset" affordance.
+   */
+  value?: string;
+  /** Visible label above the field, like TextField/Select. Only meaningful — and
+   * only rendered — in controlled mode; the uncontrolled "add" usage relies on
+   * surrounding context (a chip, a section heading) instead. */
+  fieldLabel?: string;
 }
 
 /**
@@ -22,9 +35,19 @@ export function Combobox({
   placeholder = "Search or create",
   label,
   autoFocus,
+  disabled,
+  value,
+  fieldLabel,
 }: Props) {
-  const [draft, setDraft] = useState("");
+  const isControlled = value !== undefined;
+  const [internalDraft, setInternalDraft] = useState("");
+  const draft = isControlled ? value : internalDraft;
   const [highlight, setHighlight] = useState(0);
+  // Only the controlled (persistent field) usage needs real open/close state —
+  // the uncontrolled "add" usage is mounted only while actively adding, so it
+  // has always shown its options immediately, and changing that would break
+  // existing callers and their tests.
+  const [focused, setFocused] = useState(false);
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -45,6 +68,7 @@ export function Combobox({
     [matches, canCreate, trimmed]
   );
   const createIndex = canCreate ? options.length - 1 : -1;
+  const showList = (isControlled ? focused : true) && options.length > 0 && !disabled;
 
   useEffect(() => {
     setHighlight(0);
@@ -62,28 +86,43 @@ export function Combobox({
   }, [onCancel]);
 
   const commit = (index: number) => {
-    const value = options[index];
-    if (!value) return;
-    onSelect(value);
-    setDraft("");
+    const picked = options[index];
+    if (!picked) return;
+    onSelect(picked);
+    if (!isControlled) setInternalDraft("");
+    setFocused(false);
   };
 
   return (
-    <div className="combobox" ref={rootRef}>
+    <div className={`combobox${fieldLabel ? " full-width" : ""}`} ref={rootRef}>
+      {fieldLabel && (
+        <label className="label" htmlFor={listId}>
+          {fieldLabel}
+        </label>
+      )}
       <input
         // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus={autoFocus}
+        id={fieldLabel ? listId : undefined}
         className="input"
         type="text"
         role="combobox"
-        aria-expanded={options.length > 0}
+        disabled={disabled}
+        aria-expanded={showList}
         aria-controls={listId}
         aria-autocomplete="list"
-        aria-activedescendant={options.length ? `${listId}-${highlight}` : undefined}
+        aria-activedescendant={showList ? `${listId}-${highlight}` : undefined}
         aria-label={label}
         placeholder={placeholder}
         value={draft}
-        onChange={(e) => setDraft(e.currentTarget.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onChange={(e) => {
+          const next = e.currentTarget.value;
+          setFocused(true);
+          if (isControlled) onSelect(next);
+          else setInternalDraft(next);
+        }}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
@@ -96,13 +135,17 @@ export function Combobox({
             commit(highlight);
           } else if (e.key === "Escape") {
             e.preventDefault();
-            setDraft("");
-            onCancel?.();
+            if (isControlled) {
+              setFocused(false);
+            } else {
+              setInternalDraft("");
+              onCancel?.();
+            }
           }
         }}
       />
 
-      {options.length > 0 && (
+      {showList && (
         <ul className="list" id={listId} role="listbox" aria-label={label}>
           {options.map((option, i) => (
             <li
@@ -135,13 +178,25 @@ export function Combobox({
           position: relative;
           display: inline-flex;
           flex-direction: column;
+          gap: 6px;
+          width: 200px;
+        }
+
+        .combobox.full-width {
+          width: 100%;
+        }
+
+        .label {
+          font-size: 0.8125rem;
+          color: var(--fg-1);
         }
 
         /* Scoped through .combobox so it beats the blanket input rule in
            globals.css — otherwise the input keeps its own border inside this
            one and renders as a double ring. */
         .combobox .input {
-          width: 200px;
+          width: 100%;
+          min-width: 0;
           min-height: 34px;
           height: 34px;
           padding: 0 14px;
@@ -153,6 +208,12 @@ export function Combobox({
           font-size: 16px;
         }
 
+        .combobox.full-width .input {
+          height: 40px;
+          border-radius: var(--r-md);
+          border-color: var(--line);
+        }
+
         .combobox .input:focus {
           outline: none;
           border-color: var(--accent);
@@ -161,6 +222,10 @@ export function Combobox({
 
         .combobox .input::placeholder {
           color: var(--fg-2);
+        }
+
+        .combobox .input:disabled {
+          opacity: 0.5;
         }
 
         .list {

@@ -1,12 +1,12 @@
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { withOnboardingGuard } from "../lib/withOnboardingGuard";
+import { withOnboardingGuard } from "../features/onboarding/helpers/onboardingGuard";
 import { PageLayout } from "../components/organisms/PageLayout";
 import { StatCard } from "../components/molecules/StatCard";
-import { ExpenseBreakdown } from "../components/organisms/ExpenseBreakdown";
-import { RecentPayments } from "../components/organisms/RecentPayments";
-import { UpcomingExpirations } from "../components/organisms/UpcomingExpirations";
+import { ExpenseBreakdown } from "../features/dashboard/components/ExpenseBreakdown";
+import { RecentPayments } from "../features/dashboard/components/RecentPayments";
+import { UpcomingExpirations } from "../features/dashboard/components/UpcomingExpirations";
 import Skeleton from "../components/Skeleton";
-import { useDashboard } from "../hooks/useDashboard";
+import { useDashboard } from "../features/dashboard/hooks/useDashboard";
 import { useUserDoc } from "../hooks/useUserDoc";
 import type { Currency } from "../types";
 

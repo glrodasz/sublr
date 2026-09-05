@@ -53,7 +53,9 @@ export const PaymentMethodInputSchema = z.object({
     .string()
     .regex(/^\d{4}$/, "Must be exactly 4 digits")
     .optional(),
-  alias: z.string().max(40).trim().optional(),
+  // Card network (Visa, Mastercard...) or wallet provider (Wise, PayPal...).
+  // Free text — suggested via a Combobox, not enforced against a fixed list.
+  network: z.string().max(40).trim().optional(),
 });
 
 export const PaymentMethodUpdateSchema = z.object({
@@ -65,7 +67,7 @@ export const PaymentMethodUpdateSchema = z.object({
     .string()
     .regex(/^\d{4}$/, "Must be exactly 4 digits")
     .optional(),
-  alias: z.string().max(40).trim().optional(),
+  network: z.string().max(40).trim().optional(),
   archived: z.boolean().optional(),
 });
 

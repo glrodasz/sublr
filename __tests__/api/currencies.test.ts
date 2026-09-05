@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { request } from "../../lib/request";
+import { request } from "../../utils/request";
 import handler from "../../pages/api/currencies";
 
-jest.mock("../../lib/request");
+jest.mock("../../utils/request");
 const mockedRequest = request as jest.MockedFunction<typeof request>;
 
 const mockRes = () => {

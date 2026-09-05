@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { db } from "../firebase/client";
 import { useFirebaseAuth } from "./useFirebaseAuth";
-import { byCreatedAt } from "../helpers/categorySort";
+import { byCreatedAt } from "../utils/sortByCreatedAt";
 import type { Category, Domain } from "../types";
 
 export function useCategories(domain?: Domain) {

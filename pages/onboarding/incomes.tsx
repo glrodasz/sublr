@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import auth0 from "../../lib/auth0";
-import { OnboardingLayout } from "../../components/organisms/OnboardingLayout";
-import { RecurrentStep, useRecurrentStep } from "../../components/onboarding/steps/RecurrentStep";
-import { CurrencyPicker } from "../../components/onboarding/steps/CurrencyPicker";
-import { WizardActions } from "../../components/onboarding/WizardActions";
+import { OnboardingLayout } from "../../features/onboarding/components/OnboardingLayout";
+import { RecurrentStep } from "../../features/onboarding/components/RecurrentStep";
+import { useRecurrentStep } from "../../features/onboarding/hooks/useRecurrentStep";
+import { CurrencyPicker } from "../../features/onboarding/components/CurrencyPicker";
+import { WizardActions } from "../../features/onboarding/components/WizardActions";
 import { useUserDoc } from "../../hooks/useUserDoc";
 import type { Currency } from "../../types";
 

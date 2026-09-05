@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import auth0 from "../../lib/auth0";
-import { OnboardingLayout } from "../../components/organisms/OnboardingLayout";
-import { CategoriesStep } from "../../components/onboarding/steps/CategoriesStep";
-import { WizardActions } from "../../components/onboarding/WizardActions";
+import { OnboardingLayout } from "../../features/onboarding/components/OnboardingLayout";
+import { CategoriesStep } from "../../features/onboarding/components/CategoriesStep";
+import { WizardActions } from "../../features/onboarding/components/WizardActions";
 import { useUserDoc } from "../../hooks/useUserDoc";
 
 export const getServerSideProps = auth0.withPageAuthRequired();
@@ -53,6 +53,8 @@ export default function OnboardingCategories() {
               color: var(--fg-2);
               cursor: pointer;
               text-decoration: underline;
+              white-space: nowrap;
+              flex-shrink: 0;
             }
 
             .skip:hover:not(:disabled) {
