@@ -5,6 +5,22 @@ import { useUpcomingItems } from "./useUpcomingItems";
 import { useCategories } from "./useCategories";
 import { sumMonthly, groupByCategory, computeMoM } from "../helpers";
 
+function buildCategoryList(
+  items: ReturnType<typeof useRecurringItems>["items"],
+  categories: ReturnType<typeof useCategories>["categories"]
+) {
+  const grouped = groupByCategory(items);
+  const total = Object.values(grouped).reduce((a, b) => a + b, 0);
+  return Object.entries(grouped)
+    .map(([categoryId, amount]) => ({
+      categoryId,
+      name: categories.find((c) => c.id === categoryId)?.name ?? "Unknown",
+      amount,
+      percent: total === 0 ? 0 : (amount / total) * 100,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+}
+
 export function useDashboard() {
   const { items: incomes, loading: l1 } = useRecurringItems("INCOME");
   const { items: expenses, loading: l2 } = useRecurringItems("EXPENSE");
@@ -23,24 +39,28 @@ export function useDashboard() {
     [incomes, expenses, investments]
   );
 
-  const expensesByCategory = useMemo(() => {
-    const grouped = groupByCategory(expenses);
-    const total = Object.values(grouped).reduce((a, b) => a + b, 0);
-    return Object.entries(grouped)
-      .map(([categoryId, amount]) => ({
-        categoryId,
-        name: categories.find((c) => c.id === categoryId)?.name ?? "Unknown",
-        amount,
-        percent: total === 0 ? 0 : (amount / total) * 100,
-      }))
-      .sort((a, b) => b.amount - a.amount);
-  }, [expenses, categories]);
+  const expensesByCategory = useMemo(
+    () => buildCategoryList(expenses, categories),
+    [expenses, categories]
+  );
+
+  const incomesByCategory = useMemo(
+    () => buildCategoryList(incomes, categories),
+    [incomes, categories]
+  );
+
+  const investmentsByCategory = useMemo(
+    () => buildCategoryList(investments, categories),
+    [investments, categories]
+  );
 
   const momDelta = useMemo(() => computeMoM(transactions), [transactions]);
 
   return {
     totals,
     expensesByCategory,
+    incomesByCategory,
+    investmentsByCategory,
     recentPayments: transactions.slice(0, 5),
     upcoming,
     momDelta,

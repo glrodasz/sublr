@@ -23,6 +23,12 @@
   --r-sm: 6px;
   --r-md: 10px;
   --r-lg: 16px;
+
+  /* Domain accent colors */
+  --domain-income:     var(--accent);
+  --domain-expense:    var(--accent-hot);
+  --domain-investment: var(--accent-cyan);
+  --domain-saving:     var(--accent-amber);
 }
 
 html,
