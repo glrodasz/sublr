@@ -17,12 +17,21 @@ export function useUserDoc() {
   const { user } = useUser();
   const { ready } = useFirebaseAuth();
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!ready || !user?.sub) return;
-    return onSnapshot(doc(db, "users", user.sub), (snap) => {
-      if (snap.exists()) setUserDoc(snap.data() as UserDoc);
-    });
+    return onSnapshot(
+      doc(db, "users", user.sub),
+      (snap) => {
+        if (snap.exists()) setUserDoc(snap.data() as UserDoc);
+        setError(null);
+      },
+      (err) => {
+        console.error("useUserDoc onSnapshot error:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+      }
+    );
   }, [ready, user?.sub]);
 
   const update = async (patch: UserUpdate) => {
@@ -34,5 +43,5 @@ export function useUserDoc() {
     if (!res.ok) throw new Error(await res.text());
   };
 
-  return { userDoc, update };
+  return { userDoc, error, update };
 }

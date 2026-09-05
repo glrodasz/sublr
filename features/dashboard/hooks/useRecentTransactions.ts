@@ -10,6 +10,7 @@ export function useRecentTransactions(count: number = 10) {
   const { ready } = useFirebaseAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!ready || !user?.sub) return;
@@ -26,14 +27,16 @@ export function useRecentTransactions(count: number = 10) {
       q,
       (snap) => {
         setTransactions(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Transaction));
+        setError(null);
         setLoading(false);
       },
       (err) => {
         console.error("useRecentTransactions onSnapshot error:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
         setLoading(false);
       }
     );
   }, [ready, user?.sub, count]);
 
-  return { transactions, loading };
+  return { transactions, loading, error };
 }

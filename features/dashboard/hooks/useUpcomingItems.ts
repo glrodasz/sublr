@@ -18,6 +18,7 @@ export function useUpcomingItems(count: number = 5) {
   const { ready } = useFirebaseAuth();
   const [items, setItems] = useState<RecurrentTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!ready || !user?.sub) return;
@@ -36,14 +37,16 @@ export function useUpcomingItems(count: number = 5) {
       q,
       (snap) => {
         setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as RecurrentTransaction));
+        setError(null);
         setLoading(false);
       },
       (err) => {
         console.error("useUpcomingItems onSnapshot error:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
         setLoading(false);
       }
     );
   }, [ready, user?.sub, count]);
 
-  return { items, loading };
+  return { items, loading, error };
 }

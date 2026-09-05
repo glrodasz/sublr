@@ -6,6 +6,7 @@ import { sumMonthly } from "../../../helpers/aggregations";
 import { StatCard } from "../../../components/molecules/StatCard";
 import { TransactionRow } from "../../../components/molecules/TransactionRow";
 import { Card } from "../../../components/atoms/Card";
+import { ErrorState } from "../../../components/atoms/ErrorState";
 import { SectionTitle } from "../../../components/atoms/SectionTitle";
 
 interface Props {
@@ -23,9 +24,10 @@ const FREQ_LABEL: Record<string, string> = {
 };
 
 export function DomainView({ domain, monthlyLabel }: Props) {
-  const { items, loading } = useRecurringItems(domain);
-  const { categories } = useCategories(domain);
+  const { items, loading, error: itemsError } = useRecurringItems(domain);
+  const { categories, error: catError } = useCategories(domain);
   const { ctx, target } = useMoneyContext();
+  const error = itemsError ?? catError;
 
   const currency: Currency = target;
   const monthlyTotal = sumMonthly(items, ctx);
@@ -52,7 +54,9 @@ export function DomainView({ domain, monthlyLabel }: Props) {
       </section>
 
       <section className="groups">
-        {loading ? (
+        {error ? (
+          <ErrorState />
+        ) : loading ? (
           <Card>
             <p className="empty">Loading…</p>
           </Card>

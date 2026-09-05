@@ -11,6 +11,7 @@ export function useRecurrentTransactions(domain?: Domain) {
   const { ready } = useFirebaseAuth();
   const [items, setItems] = useState<RecurrentTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!ready || !user?.sub) return;
@@ -26,10 +27,12 @@ export function useRecurrentTransactions(domain?: Domain) {
       q,
       (snap) => {
         setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as RecurrentTransaction));
+        setError(null);
         setLoading(false);
       },
       (err) => {
         console.error("useRecurrentTransactions onSnapshot error:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
         setLoading(false);
       }
     );
@@ -51,7 +54,7 @@ export function useRecurrentTransactions(domain?: Domain) {
     if (!res.ok) throw new Error(await res.text());
   };
 
-  return { items, loading, create, remove };
+  return { items, loading, error, create, remove };
 }
 
 // Backward-compat alias — callers can migrate to useRecurrentTransactions gradually

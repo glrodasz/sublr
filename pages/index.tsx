@@ -6,15 +6,18 @@ import { ExpenseBreakdown } from "../features/dashboard/components/ExpenseBreakd
 import { RecentPayments } from "../features/dashboard/components/RecentPayments";
 import { UpcomingExpirations } from "../features/dashboard/components/UpcomingExpirations";
 import Skeleton from "../components/Skeleton";
+import { ErrorState } from "../components/atoms/ErrorState";
 import { CurrencySelector } from "../features/dashboard/components/CurrencySelector";
 import { useDashboard } from "../features/dashboard/hooks/useDashboard";
 import { useUserDoc } from "../hooks/useUserDoc";
+import { useMaterialize } from "../hooks/useMaterialize";
 
 export const getServerSideProps = withOnboardingGuard();
 
 export default function Dashboard() {
   const { user } = useUser();
   const { userDoc } = useUserDoc();
+  useMaterialize();
   const {
     currency,
     setDisplayCurrency,
@@ -26,6 +29,7 @@ export default function Dashboard() {
     upcoming,
     momDelta,
     loading,
+    error,
   } = useDashboard();
 
   const firstName = (user?.name ?? user?.nickname ?? "there").split(" ")[0];
@@ -67,6 +71,8 @@ export default function Dashboard() {
       currencyControl={<CurrencySelector value={currency} onChange={setDisplayCurrency} />}
       actions={actions}
     >
+      {error && <ErrorState />}
+
       <section className="row">
         {userDoc ? (
           <>

@@ -11,6 +11,7 @@ export function usePaymentMethods() {
   const { ready } = useFirebaseAuth();
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!ready || !user?.sub) return;
@@ -25,10 +26,12 @@ export function usePaymentMethods() {
       q,
       (snap) => {
         setMethods(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as PaymentMethod));
+        setError(null);
         setLoading(false);
       },
       (err) => {
         console.error("usePaymentMethods onSnapshot error:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
         setLoading(false);
       }
     );
@@ -50,5 +53,5 @@ export function usePaymentMethods() {
     if (!res.ok) throw new Error(await res.text());
   };
 
-  return { methods, loading, create, remove };
+  return { methods, loading, error, create, remove };
 }
